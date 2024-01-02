@@ -8,14 +8,33 @@
 	import { Circle, Image, Layer, Stage } from 'svelte-konva';
 
 	import ModalConfirm from '$components/ModalConfirm.svelte';
-	import PcbImageDropzone from '$components/PcbImageDropzone.svelte';
+	import ModalPanelSettings, { type PanelSettings } from '$components/ModalPanelSettings.svelte';
+	import PcbImageDropzone, { type ImageSize } from '$components/PcbImageDropzone.svelte';
 
-	onMount(() => {});
+	onMount(() => {
+		const remoteImage = document.createElement('img');
+		remoteImage.src = 'https://www.raypcb.com/wp-content/uploads/2023/08/image.avif';
+		remoteImage.addEventListener('load', () =>
+			onImageUpload(remoteImage, 'dummy.jpg', {
+				width: remoteImage.width,
+				height: remoteImage.height
+			})
+		);
+	});
 
 	let pcbImage: HTMLImageElement | undefined;
 	let filename: string = '';
-	let size: { width: number; height: number } | undefined;
+	let size: ImageSize | undefined;
+
 	let modalConfirm: ModalConfirm;
+	let modalPanelSettings: ModalPanelSettings;
+
+	let panelSettings: PanelSettings = {
+		width: 100,
+		height: 80,
+		pcbThickness: 1.6,
+		smdHeight: 3
+	};
 
 	const reset = () => {
 		modalConfirm.open('Are you sure to reset PCB panel?', () => {
@@ -25,18 +44,21 @@
 		});
 	};
 
-	const onImageUpload = (
-		_pcbImage: HTMLImageElement,
-		_filename: string,
-		_size: { width: number; height: number }
-	) => {
-		pcbImage = _pcbImage;
-		filename = _filename;
-		size = _size;
+	const onImageUpload = (image: HTMLImageElement, name: string, imagesize: ImageSize) => {
+		pcbImage = image;
+		filename = name;
+		size = imagesize;
+		openPanelSettings();
 	};
+
+	const openPanelSettings = () =>
+		modalPanelSettings.open(panelSettings, (recentSettings) => {
+			panelSettings = recentSettings;
+		});
 </script>
 
 <ModalConfirm bind:this={modalConfirm} />
+<ModalPanelSettings bind:this={modalPanelSettings} />
 
 <Navbar>
 	<NavBrand href="/">
@@ -50,10 +72,6 @@
 		<NavHamburger />
 	</div>
 	<NavUl class="order-1">
-		{#if !pcbImage}
-			<NavLi href="/">Upload a file</NavLi>
-		{/if}
-
 		{#if pcbImage}
 			<NavLi class="cursor-pointer">
 				Add<ChevronDownOutline class="w-3 h-3 ms-2 text-primary-800 dark:text-white inline" />
@@ -64,6 +82,7 @@
 				<DropdownDivider />
 				<DropdownItem href="/">Sign out</DropdownItem>
 			</Dropdown>
+			<NavLi href="/" on:click={openPanelSettings}>Panel settings</NavLi>
 			<NavLi href="/" on:click={reset}>Reset</NavLi>
 		{/if}
 	</NavUl>

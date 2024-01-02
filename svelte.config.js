@@ -14,14 +14,15 @@ const config = {
 	kit: {
 		adapter: adapter({
 			precompress: true,
-			polyfill: false
+			polyfill: false,
+			pages: 'docs',
 		}),
 		alias: {
 			$assets: './src/lib/assets',
 			$components: './src/components',
 			$lib: './src/lib',
 			$types: './src/types'
-		}
+		},
 	}
 };
 

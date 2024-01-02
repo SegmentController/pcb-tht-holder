@@ -4,6 +4,7 @@ export type CircleData = {
 	konvaConfig: {
 		x: number;
 		y: number;
+
 		radius: number;
 
 		fill: 'orange';

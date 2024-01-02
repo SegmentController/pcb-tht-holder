@@ -5,13 +5,15 @@
 	import { Navbar, NavBrand, NavHamburger, NavLi, NavUl } from 'flowbite-svelte';
 	import { ChevronDownOutline } from 'flowbite-svelte-icons';
 	import { onMount } from 'svelte';
-	import { Circle, Image, Layer, Stage } from 'svelte-konva';
+	import { Circle, Image, Layer, Rect, Stage } from 'svelte-konva';
 
 	import ModalCircleSettings from '$components/ModalCircleSettings.svelte';
 	import ModalConfirm from '$components/ModalConfirm.svelte';
 	import ModalPanelSettings, { type PanelSettings } from '$components/ModalPanelSettings.svelte';
+	import ModalRectangleSettings from '$components/ModalRectangleSettings.svelte';
 	import PcbImageDropzone, { type ImageSize } from '$components/PcbImageDropzone.svelte';
 	import type { CircleData } from '$types/circle';
+	import type { RectangleData } from '$types/rectangle';
 
 	onMount(() => {
 		const remoteImage = document.createElement('img');
@@ -25,6 +27,7 @@
 	});
 
 	let circles: CircleData[] = [];
+	let rectangles: RectangleData[] = [];
 
 	let pcbImage: HTMLImageElement | undefined;
 	let filename: string = '';
@@ -33,6 +36,7 @@
 	let modalConfirm: ModalConfirm;
 	let modalPanelSettings: ModalPanelSettings;
 	let modalCircleSettings: ModalCircleSettings;
+	let modalRectangleSettings: ModalRectangleSettings;
 
 	let panelSettings: PanelSettings = {
 		width: 100,
@@ -69,10 +73,11 @@
 				opacity: 0.75,
 				x: panelSettings.width / 2,
 				y: panelSettings.height / 2,
-				radius: 50
+				radius: 10
 			}
 		};
 		circles.push(circle);
+		circles = circles;
 		modalCircleSettings.open(circle, (recent) => {
 			circle.diameter = recent.diameter;
 			circle.depth = recent.depth;
@@ -88,11 +93,49 @@
 			circles = circles;
 		});
 	};
+
+	const addRectangle = () => {
+		const rectangle: RectangleData = {
+			depth: 5,
+			sizeX: 10,
+			sizeY: 5,
+			konvaConfig: {
+				draggable: true,
+				fill: 'green',
+				opacity: 0.75,
+				x: panelSettings.width / 2,
+				y: panelSettings.height / 2,
+				width: 10,
+				height: 5
+			}
+		};
+		rectangles.push(rectangle);
+		rectangles = rectangles;
+		modalRectangleSettings.open(rectangle, (recent) => {
+			rectangle.sizeX = recent.sizeX;
+			rectangle.sizeY = recent.sizeY;
+			rectangle.depth = recent.depth;
+			rectangle.konvaConfig.width = rectangle.sizeX;
+			rectangle.konvaConfig.height = rectangle.sizeY;
+			rectangles = rectangles;
+		});
+	};
+	const dblClickRectangle = (rectangle: RectangleData) => {
+		modalRectangleSettings.open(rectangle, (recent) => {
+			rectangle.sizeX = recent.sizeX;
+			rectangle.sizeY = recent.sizeY;
+			rectangle.depth = recent.depth;
+			rectangle.konvaConfig.width = rectangle.sizeX;
+			rectangle.konvaConfig.height = rectangle.sizeY;
+			rectangles = rectangles;
+		});
+	};
 </script>
 
 <ModalConfirm bind:this={modalConfirm} />
 <ModalPanelSettings bind:this={modalPanelSettings} />
 <ModalCircleSettings bind:this={modalCircleSettings} />
+<ModalRectangleSettings bind:this={modalRectangleSettings} />
 
 <Navbar>
 	<NavBrand href="/">
@@ -112,7 +155,7 @@
 			</NavLi>
 			<Dropdown class="w-44 z-20">
 				<DropdownItem href="/" on:click={addCircle}>Circle</DropdownItem>
-				<DropdownItem href="/">Rectangle</DropdownItem>
+				<DropdownItem href="/" on:click={addRectangle}>Rectangle</DropdownItem>
 				<DropdownDivider />
 				<DropdownItem href="/">Leg</DropdownItem>
 			</Dropdown>
@@ -152,6 +195,12 @@
 				/>
 				{#each circles as circle}
 					<Circle bind:config={circle.konvaConfig} on:dblclick={() => dblClickCircle(circle)} />
+				{/each}
+				{#each rectangles as rectangle}
+					<Rect
+						bind:config={rectangle.konvaConfig}
+						on:dblclick={() => dblClickRectangle(rectangle)}
+					/>
 				{/each}
 			</Layer>
 		</Stage>

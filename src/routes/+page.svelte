@@ -7,6 +7,7 @@
 	import { onMount } from 'svelte';
 	import { Circle, Image, Layer, Rect, Stage } from 'svelte-konva';
 
+	import { base } from '$app/paths';
 	import ModalCircleSettings from '$components/ModalCircleSettings.svelte';
 	import ModalConfirm from '$components/ModalConfirm.svelte';
 	import ModalPanelSettings, { type PanelSettings } from '$components/ModalPanelSettings.svelte';
@@ -138,8 +139,8 @@
 <ModalRectangleSettings bind:this={modalRectangleSettings} />
 
 <Navbar>
-	<NavBrand href="/">
-		<img src="/favicon.png" class="me-3 h-6 sm:h-9" alt="PCB THT Holder Logo" />
+	<NavBrand href="#">
+		<img src="{base}/favicon.png" class="me-3 h-6 sm:h-9" alt="PCB THT Holder Logo" />
 		<span class="self-center whitespace-nowrap text-xl font-semibold dark:text-white"
 			>PCB THT Holder</span
 		>
@@ -154,13 +155,13 @@
 				Add<ChevronDownOutline class="w-3 h-3 ms-2 text-primary-800 dark:text-white inline" />
 			</NavLi>
 			<Dropdown class="w-44 z-20">
-				<DropdownItem href="/" on:click={addCircle}>Circle</DropdownItem>
-				<DropdownItem href="/" on:click={addRectangle}>Rectangle</DropdownItem>
+				<DropdownItem href="#" on:click={addCircle}>Circle</DropdownItem>
+				<DropdownItem href="#" on:click={addRectangle}>Rectangle</DropdownItem>
 				<DropdownDivider />
-				<DropdownItem href="/">Leg</DropdownItem>
+				<DropdownItem href="#">Leg</DropdownItem>
 			</Dropdown>
-			<NavLi href="/" on:click={openPanelSettings}>Panel settings</NavLi>
-			<NavLi href="/" on:click={reset}>Reset</NavLi>
+			<NavLi href="#" on:click={openPanelSettings}>Panel settings</NavLi>
+			<NavLi href="#" on:click={reset}>Reset</NavLi>
 		{/if}
 	</NavUl>
 </Navbar>

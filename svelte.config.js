@@ -15,14 +15,20 @@ const config = {
 		adapter: adapter({
 			precompress: true,
 			polyfill: false,
-			pages: 'docs',
+			pages: 'docs'
 		}),
+		paths: {
+			base: process.env.NODE_ENV === 'production' ? '/pcb-tht-holder' : ''
+		},
+		prerender: {
+			handleHttpError: 'ignore',
+		},
 		alias: {
 			$assets: './src/lib/assets',
 			$components: './src/components',
 			$lib: './src/lib',
 			$types: './src/types'
-		},
+		}
 	}
 };
 

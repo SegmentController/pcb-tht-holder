@@ -21,7 +21,7 @@ const config = {
 			base: process.env.NODE_ENV === 'production' ? '/pcb-tht-holder' : ''
 		},
 		prerender: {
-			handleHttpError: 'ignore',
+			//handleHttpError: 'ignore',
 		},
 		alias: {
 			$assets: './src/lib/assets',

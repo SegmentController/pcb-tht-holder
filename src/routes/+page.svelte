@@ -5,6 +5,7 @@
 	import { Navbar, NavBrand, NavHamburger, NavLi, NavUl } from 'flowbite-svelte';
 	import { ChevronDownOutline } from 'flowbite-svelte-icons';
 	import { onMount } from 'svelte';
+	import { get } from 'svelte/store';
 	import { Circle, Image, Layer, Rect, Stage } from 'svelte-konva';
 
 	import { base } from '$app/paths';
@@ -12,11 +13,15 @@
 	import ModalConfirm from '$components/ModalConfirm.svelte';
 	import ModalPanelSettings, { type PanelSettings } from '$components/ModalPanelSettings.svelte';
 	import ModalRectangleSettings from '$components/ModalRectangleSettings.svelte';
-	import PcbImageDropzone, { type ImageSize } from '$components/PcbImageDropzone.svelte';
+	import PcbImageDropzone from '$components/PcbImageDropzone.svelte';
 	import type { CircleData } from '$types/circle';
+	import type { ImageSize } from '$types/imageSize';
 	import type { RectangleData } from '$types/rectangle';
 
+	import { preferencesStore } from '../store/projectStore';
+
 	onMount(() => {
+		/*
 		const remoteImage = document.createElement('img');
 		remoteImage.src = 'https://www.raypcb.com/wp-content/uploads/2023/08/image.avif';
 		remoteImage.addEventListener('load', () =>
@@ -25,6 +30,16 @@
 				height: remoteImage.height
 			})
 		);
+		*/
+		const preferences = get(preferencesStore);
+		if (preferences.image && preferences.filename) {
+			circles = preferences.circles;
+			rectangles = preferences.rectangles;
+
+			onImageUpload(preferences.image, preferences.filename, false);
+
+			panelSettings = preferences.panelSettings;
+		}
 	});
 
 	let circles: CircleData[] = [];
@@ -46,12 +61,29 @@
 		smdHeight: 3
 	};
 
-	const onImageUpload = (image: HTMLImageElement, name: string, imagesize: ImageSize) => {
-		pcbImage = image;
-		filename = name;
-		size = imagesize;
-		panelSettings.height = Math.round(panelSettings.width * (imagesize.height / imagesize.width));
-		openPanelSettings();
+	const onImageUpload = (_imageData: string, _filename: string, isManualUpload = true) => {
+		pcbImage = document.createElement('img');
+		pcbImage.addEventListener('load', () => {
+			filename = _filename;
+			if (pcbImage) {
+				size = { width: pcbImage.width, height: pcbImage.height };
+				if (isManualUpload)
+					panelSettings.height = Math.round(panelSettings.width * (size.height / size.width));
+			}
+			if (isManualUpload) {
+				preferencesStore.update((value) => {
+					value.image = _imageData;
+					value.filename = _filename;
+					return value;
+				});
+				openPanelSettings();
+			}
+		});
+		pcbImage.addEventListener('error', () => {
+			pcbImage = undefined;
+			filename = '';
+		});
+		pcbImage.src = _imageData;
 	};
 
 	const reset = () =>
@@ -59,10 +91,25 @@
 			pcbImage = undefined;
 			filename = '';
 			size = undefined;
+			circles = [];
+			rectangles = [];
+			preferencesStore.update((value) => {
+				value.image = '';
+				value.filename = '';
+				value.circles = [];
+				value.rectangles = [];
+				return value;
+			});
 		});
 
 	const openPanelSettings = () =>
-		modalPanelSettings.open(panelSettings, (recentSettings) => (panelSettings = recentSettings));
+		modalPanelSettings.open(panelSettings, (recentSettings) => {
+			panelSettings = recentSettings;
+			preferencesStore.update((value) => {
+				value.panelSettings = recentSettings;
+				return value;
+			});
+		});
 
 	const addCircle = () => {
 		const circle: CircleData = {
@@ -79,11 +126,13 @@
 		};
 		circles.push(circle);
 		circles = circles;
+		storeCircleChanges();
 		modalCircleSettings.open(circle, (recent) => {
 			circle.diameter = recent.diameter;
 			circle.depth = recent.depth;
 			circle.konvaConfig.radius = circle.diameter / 2;
 			circles = circles;
+			storeCircleChanges();
 		});
 	};
 	const dblClickCircle = (circle: CircleData) => {
@@ -92,8 +141,14 @@
 			circle.depth = recent.depth;
 			circle.konvaConfig.radius = circle.diameter / 2;
 			circles = circles;
+			storeCircleChanges();
 		});
 	};
+	const storeCircleChanges = () =>
+		preferencesStore.update((value) => {
+			value.circles = circles;
+			return value;
+		});
 
 	const addRectangle = () => {
 		const rectangle: RectangleData = {
@@ -112,6 +167,7 @@
 		};
 		rectangles.push(rectangle);
 		rectangles = rectangles;
+		storeRectangleChanges();
 		modalRectangleSettings.open(rectangle, (recent) => {
 			rectangle.sizeX = recent.sizeX;
 			rectangle.sizeY = recent.sizeY;
@@ -119,6 +175,7 @@
 			rectangle.konvaConfig.width = rectangle.sizeX;
 			rectangle.konvaConfig.height = rectangle.sizeY;
 			rectangles = rectangles;
+			storeRectangleChanges();
 		});
 	};
 	const dblClickRectangle = (rectangle: RectangleData) => {
@@ -129,8 +186,14 @@
 			rectangle.konvaConfig.width = rectangle.sizeX;
 			rectangle.konvaConfig.height = rectangle.sizeY;
 			rectangles = rectangles;
+			storeRectangleChanges();
 		});
 	};
+	const storeRectangleChanges = () =>
+		preferencesStore.update((value) => {
+			value.rectangles = rectangles;
+			return value;
+		});
 </script>
 
 <ModalConfirm bind:this={modalConfirm} />
@@ -195,12 +258,17 @@
 					}}
 				/>
 				{#each circles as circle}
-					<Circle bind:config={circle.konvaConfig} on:dblclick={() => dblClickCircle(circle)} />
+					<Circle
+						bind:config={circle.konvaConfig}
+						on:dblclick={() => dblClickCircle(circle)}
+						on:dragend={storeCircleChanges}
+					/>
 				{/each}
 				{#each rectangles as rectangle}
 					<Rect
 						bind:config={rectangle.konvaConfig}
 						on:dblclick={() => dblClickRectangle(rectangle)}
+						on:dragend={storeRectangleChanges}
 					/>
 				{/each}
 			</Layer>

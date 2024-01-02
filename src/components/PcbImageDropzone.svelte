@@ -1,31 +1,16 @@
-<script lang="ts" context="module">
-	export type ImageSize = { width: number; height: number };
-</script>
-
 <script lang="ts">
 	import { Dropzone } from 'flowbite-svelte';
 	import { onMount } from 'svelte';
 
-	export let onUpload: (image: HTMLImageElement, filename: string, size: ImageSize) => void;
+	export let onUpload: (imgData: string, filename: string) => void;
 
 	onMount(() => {});
 
 	const loadPCBImageFile = (file: File) => {
-		const pcbImage = document.createElement('img');
-
 		const reader = new FileReader();
 		reader.addEventListener('load', (event_) => {
-			if (
-				pcbImage &&
-				event_.target &&
-				event_.target.result &&
-				!(event_.target.result instanceof ArrayBuffer)
-			) {
-				pcbImage.src = event_.target.result;
-				pcbImage.addEventListener('load', () =>
-					onUpload(pcbImage, file.name, { width: pcbImage.width, height: pcbImage.height })
-				);
-			}
+			if (event_.target && event_.target.result && !(event_.target.result instanceof ArrayBuffer))
+				onUpload(event_.target.result, file.name);
 		});
 		reader.readAsDataURL(file);
 	};

@@ -7,9 +7,11 @@
 	import { onMount } from 'svelte';
 	import { Circle, Image, Layer, Stage } from 'svelte-konva';
 
+	import ModalCircleSettings from '$components/ModalCircleSettings.svelte';
 	import ModalConfirm from '$components/ModalConfirm.svelte';
 	import ModalPanelSettings, { type PanelSettings } from '$components/ModalPanelSettings.svelte';
 	import PcbImageDropzone, { type ImageSize } from '$components/PcbImageDropzone.svelte';
+	import type { CircleData } from '$types/circle';
 
 	onMount(() => {
 		const remoteImage = document.createElement('img');
@@ -22,12 +24,15 @@
 		);
 	});
 
+	let circles: CircleData[] = [];
+
 	let pcbImage: HTMLImageElement | undefined;
 	let filename: string = '';
 	let size: ImageSize | undefined;
 
 	let modalConfirm: ModalConfirm;
 	let modalPanelSettings: ModalPanelSettings;
+	let modalCircleSettings: ModalCircleSettings;
 
 	let panelSettings: PanelSettings = {
 		width: 100,
@@ -36,29 +41,58 @@
 		smdHeight: 3
 	};
 
-	const reset = () => {
+	const onImageUpload = (image: HTMLImageElement, name: string, imagesize: ImageSize) => {
+		pcbImage = image;
+		filename = name;
+		size = imagesize;
+		panelSettings.height = Math.round(panelSettings.width * (imagesize.height / imagesize.width));
+		openPanelSettings();
+	};
+
+	const reset = () =>
 		modalConfirm.open('Are you sure to reset PCB panel?', () => {
 			pcbImage = undefined;
 			filename = '';
 			size = undefined;
 		});
-	};
-
-	const onImageUpload = (image: HTMLImageElement, name: string, imagesize: ImageSize) => {
-		pcbImage = image;
-		filename = name;
-		size = imagesize;
-		openPanelSettings();
-	};
 
 	const openPanelSettings = () =>
-		modalPanelSettings.open(panelSettings, (recentSettings) => {
-			panelSettings = recentSettings;
+		modalPanelSettings.open(panelSettings, (recentSettings) => (panelSettings = recentSettings));
+
+	const addCircle = () => {
+		const circle: CircleData = {
+			depth: 5,
+			diameter: 10,
+			konvaConfig: {
+				draggable: true,
+				fill: 'orange',
+				opacity: 0.75,
+				x: panelSettings.width / 2,
+				y: panelSettings.height / 2,
+				radius: 50
+			}
+		};
+		circles.push(circle);
+		modalCircleSettings.open(circle, (recent) => {
+			circle.diameter = recent.diameter;
+			circle.depth = recent.depth;
+			circle.konvaConfig.radius = circle.diameter / 2;
+			circles = circles;
 		});
+	};
+	const dblClickCircle = (circle: CircleData) => {
+		modalCircleSettings.open(circle, (recent) => {
+			circle.diameter = recent.diameter;
+			circle.depth = recent.depth;
+			circle.konvaConfig.radius = circle.diameter / 2;
+			circles = circles;
+		});
+	};
 </script>
 
 <ModalConfirm bind:this={modalConfirm} />
 <ModalPanelSettings bind:this={modalPanelSettings} />
+<ModalCircleSettings bind:this={modalCircleSettings} />
 
 <Navbar>
 	<NavBrand href="/">
@@ -77,10 +111,10 @@
 				Add<ChevronDownOutline class="w-3 h-3 ms-2 text-primary-800 dark:text-white inline" />
 			</NavLi>
 			<Dropdown class="w-44 z-20">
-				<DropdownItem href="/">Dashboard</DropdownItem>
-				<DropdownItem href="/">Earnings</DropdownItem>
+				<DropdownItem href="/" on:click={addCircle}>Circle</DropdownItem>
+				<DropdownItem href="/">Rectangle</DropdownItem>
 				<DropdownDivider />
-				<DropdownItem href="/">Sign out</DropdownItem>
+				<DropdownItem href="/">Leg</DropdownItem>
 			</Dropdown>
 			<NavLi href="/" on:click={openPanelSettings}>Panel settings</NavLi>
 			<NavLi href="/" on:click={reset}>Reset</NavLi>
@@ -98,19 +132,27 @@
 	{#if !pcbImage}
 		<PcbImageDropzone onUpload={onImageUpload} />
 	{:else if typeof window !== 'undefined' && size}
-		<Stage config={{ width: size.width, height: size.height }}>
+		<Stage
+			config={{
+				width: size.width,
+				height: size.height,
+				scaleX: size.width / panelSettings.width,
+				scaleY: size.height / panelSettings.height
+			}}
+		>
 			<Layer>
-				<Image config={{ image: pcbImage, scaleY: -1, offsetY: size.height, opacity: 0.25 }} />
-				<Circle
+				<Image
 					config={{
-						radius: 30,
-						fill: 'red',
-						x: 20,
-						y: 30,
-						draggable: true,
-						opacity: 0.75
+						image: pcbImage,
+						scaleX: panelSettings.width / size.width,
+						scaleY: (-1 * panelSettings.height) / size.height,
+						offsetY: size.height,
+						opacity: 0.25
 					}}
 				/>
+				{#each circles as circle}
+					<Circle bind:config={circle.konvaConfig} on:dblclick={() => dblClickCircle(circle)} />
+				{/each}
 			</Layer>
 		</Stage>
 	{/if}

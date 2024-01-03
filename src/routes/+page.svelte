@@ -15,7 +15,8 @@
 	import ModalPanelSettings, { type PanelSettings } from '$components/ModalPanelSettings.svelte';
 	import ModalRectangleSettings from '$components/ModalRectangleSettings.svelte';
 	import PcbImageDropzone from '$components/PcbImageDropzone.svelte';
-	import { renderProjectToStl } from '$lib/3d/mesh';
+	import { generateMesh, polygonsToVertexArray } from '$lib/3d/mesh';
+	import { generateStl } from '$lib/3d/stl';
 	import type { CircleData } from '$types/CircleData';
 	import type { ImageSize } from '$types/ImageSize';
 	import type { RectangleData } from '$types/RectangleData';
@@ -23,16 +24,6 @@
 	import { preferencesStore } from '../store/projectStore';
 
 	onMount(() => {
-		/*
-		const remoteImage = document.createElement('img');
-		remoteImage.src = 'https://www.raypcb.com/wp-content/uploads/2023/08/image.avif';
-		remoteImage.addEventListener('load', () =>
-			onImageUpload(remoteImage, 'dummy.jpg', {
-				width: remoteImage.width,
-				height: remoteImage.height
-			})
-		);
-		*/
 		const preferences = get(preferencesStore);
 		if (preferences.image && preferences.filename) {
 			circles = preferences.circles;
@@ -198,15 +189,11 @@
 			return value;
 		});
 
-	const downloadData = () => {
-		const stlData = renderProjectToStl({ panelSettings, circles, rectangles }).join('\n');
-
-		const a = document.createElement('a');
-		document.body.append(a);
-		a.download = filename.slice(0, Math.max(0, filename.lastIndexOf('.'))) + '.stl';
-		a.href = URL.createObjectURL(new Blob([stlData]));
-		a.click();
-		a.remove();
+	const openDisplay = () => {
+		const meshPolygons = generateMesh({ panelSettings, rectangles, circles });
+		const vertices = polygonsToVertexArray(meshPolygons);
+		const stl = generateStl(meshPolygons);
+		modalDisplay.open(filename, vertices, stl);
 	};
 </script>
 
@@ -224,7 +211,7 @@
 		>
 	</NavBrand>
 	<div class="flex md:order-2">
-		<Button disabled={!pcbImage} on:click={() => modalDisplay.open()}>Display 3D</Button>
+		<Button disabled={!pcbImage} on:click={() => openDisplay()}>Display 3D</Button>
 		<NavHamburger />
 	</div>
 	<NavUl class="order-1">

@@ -4,23 +4,40 @@
 
 	import Scene from './Scene.svelte';
 
-	let _title: string;
+	let _filename: string;
+	let _vertices: Float32Array;
+	let _dimension: number;
+	let _stl: string[];
 	let isOpen: boolean = false;
 
-	export const open = (title: string = ''): void => {
-		_title = title;
+	export const open = (filename: string, vertices: Float32Array, stl: string[]): void => {
+		_filename = filename;
+		_vertices = vertices;
+		_dimension = Math.max(..._vertices.values());
+		_stl = stl;
 		isOpen = true;
+	};
+
+	const downloadData = () => {
+		const stlData = _stl.join('\n');
+
+		const a = document.createElement('a');
+		document.body.append(a);
+		a.download = _filename.slice(0, Math.max(0, _filename.lastIndexOf('.'))) + '.stl';
+		a.href = URL.createObjectURL(new Blob([stlData]));
+		a.click();
+		a.remove();
 	};
 </script>
 
 <Modal open={isOpen} size="lg" dismissable={false}>
 	<div class="flex justify-end">
-		<Button>Download STL</Button>
+		<Button on:click={() => downloadData()}>Download STL</Button>
 		<Button class="ml-2" on:click={() => (isOpen = false)} color="alternative">Close</Button>
 	</div>
 	<div class="canvasContainer">
 		<Canvas>
-			<Scene />
+			<Scene vertices={_vertices} dimension={_dimension} />
 		</Canvas>
 	</div>
 </Modal>
@@ -29,7 +46,7 @@
 	.canvasContainer {
 		width: 100%;
 		height: 75vh;
-		background: rgb(13, 19, 32);
-		background: linear-gradient(180deg, rgba(13, 19, 32, 1) 0%, rgba(8, 12, 21, 1) 100%);
+		background: #888;
+		background: linear-gradient(180deg, #888 0%, #ccc 100%);
 	}
 </style>

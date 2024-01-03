@@ -1,6 +1,6 @@
 <script lang="ts">
 	import { Canvas } from '@threlte/core';
-	import { Button, Modal } from 'flowbite-svelte';
+	import { Button, Modal, Toggle } from 'flowbite-svelte';
 
 	import Scene from './Scene.svelte';
 
@@ -9,6 +9,7 @@
 	let _dimension: number;
 	let _stl: string[];
 	let isOpen: boolean = false;
+	let wireframe: boolean = false;
 
 	export const open = (filename: string, vertices: Float32Array, stl: string[]): void => {
 		_filename = filename;
@@ -32,12 +33,13 @@
 
 <Modal open={isOpen} size="lg" dismissable={false}>
 	<div class="flex justify-end">
+		<Toggle class="mr-8" bind:checked={wireframe}>Wireframe</Toggle>
 		<Button on:click={() => downloadData()}>Download STL</Button>
 		<Button class="ml-2" on:click={() => (isOpen = false)} color="alternative">Close</Button>
 	</div>
 	<div class="canvasContainer">
 		<Canvas>
-			<Scene vertices={_vertices} dimension={_dimension} />
+			<Scene vertices={_vertices} dimension={_dimension} {wireframe} />
 		</Canvas>
 	</div>
 </Modal>

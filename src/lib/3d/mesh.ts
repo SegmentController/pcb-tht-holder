@@ -8,7 +8,6 @@ const BOTTOM_THICKNESS = 2;
 const EDGE_THICKNESS = 2;
 
 type Size = { w: number; h: number };
-
 export const generateMesh = (project: RenderableProject): Polygon[] => {
 	const size: Size = {
 		w: project.panelSettings.width + 2 * EDGE_THICKNESS,
@@ -24,19 +23,13 @@ export const generateMesh = (project: RenderableProject): Polygon[] => {
 	const height = BOTTOM_THICKNESS + heightNeed;
 	const deep = project.panelSettings.pcbThickness + project.panelSettings.smdHeight;
 
-	size;
-	height;
-	deep;
-
-	const box = new THREE.Mesh(new THREE.BoxGeometry(2, 2, 2), new THREE.MeshNormalMaterial());
-	const box2 = new THREE.Mesh(new THREE.BoxGeometry(1, 1, 4), new THREE.MeshNormalMaterial());
-	const box3 = new THREE.Mesh(new THREE.BoxGeometry(1, 4, 1), new THREE.MeshNormalMaterial());
+	const box = new THREE.Mesh(new THREE.BoxGeometry(size.w, height, size.h));
+	const box2 = new THREE.Mesh(
+		new THREE.BoxGeometry(project.panelSettings.width, deep * 10, project.panelSettings.height)
+	);
 	const a = CSG.subtract(box, box2);
-	const b = CSG.subtract(a, box3);
-	const csg = CSG.fromMesh(b);
-	//const csg = CSG.fromMesh(box).intersect(CSG.fromMesh(box2))
 
-	return csg.toPolygons();
+	return CSG.fromMesh(a).toPolygons();
 };
 
 export const polygonsToVertexArray = (polygons: Polygon[]): Float32Array => {

@@ -11,14 +11,10 @@
 	<OrbitControls />
 </T.PerspectiveCamera>
 
-<T.DirectionalLight
-	position={[0 * dimension, 5 * dimension, 0 * dimension]}
-	castShadow
-	color="white"
-/>
-<T.AmbientLight />
+<T.PointLight position={[200, 100, 100]} color="white" intensity={1} decay={0.1} castShadow />
+<T.AmbientLight intensity={0.5} />
 
-<T.Mesh receiveShadow castShadow>
+<T.Mesh rotation.x={-Math.PI / 2} castShadow>
 	<T.BufferGeometry>
 		<T.BufferAttribute
 			args={[vertices, 3]}
@@ -28,7 +24,7 @@
 			}}
 		/>
 	</T.BufferGeometry>
-	<T.MeshStandardMaterial color="#22ff22" opacity={0.3} {wireframe} />
+	<T.MeshStandardMaterial color="#22ff22" opacity={1} {wireframe} />
 </T.Mesh>
 
 <T.Mesh position={[0, -1.5 * dimension, 0]} rotation.x={-Math.PI / 2} receiveShadow>

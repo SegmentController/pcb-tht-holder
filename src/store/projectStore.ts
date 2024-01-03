@@ -1,18 +1,6 @@
 import { persisted } from 'svelte-persisted-store';
 
-import type { PanelSettings } from '$components/ModalPanelSettings.svelte';
-import type { CircleData } from '$types/circle';
-import type { RectangleData } from '$types/rectangle';
-
-export type Project = {
-	image: string;
-	filename: string;
-
-	panelSettings: PanelSettings;
-
-	circles: CircleData[];
-	rectangles: RectangleData[];
-};
+import type { Project } from '$types/Project';
 
 export const preferencesStore = persisted<Project>('project', {
 	image: '',

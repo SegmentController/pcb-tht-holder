@@ -12,5 +12,8 @@ export default defineConfig({
 		cssMinify: true,
 		emptyOutDir: true
 	},
+	ssr: {
+		noExternal: ['three']
+	},
 	clearScreen: true
 });

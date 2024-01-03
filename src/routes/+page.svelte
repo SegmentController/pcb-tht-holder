@@ -11,12 +11,14 @@
 	import { base } from '$app/paths';
 	import ModalCircleSettings from '$components/ModalCircleSettings.svelte';
 	import ModalConfirm from '$components/ModalConfirm.svelte';
+	import ModalDisplay from '$components/ModalDisplay.svelte';
 	import ModalPanelSettings, { type PanelSettings } from '$components/ModalPanelSettings.svelte';
 	import ModalRectangleSettings from '$components/ModalRectangleSettings.svelte';
 	import PcbImageDropzone from '$components/PcbImageDropzone.svelte';
-	import type { CircleData } from '$types/circle';
-	import type { ImageSize } from '$types/imageSize';
-	import type { RectangleData } from '$types/rectangle';
+	import { renderProjectToStl } from '$lib/3d/mesh';
+	import type { CircleData } from '$types/CircleData';
+	import type { ImageSize } from '$types/ImageSize';
+	import type { RectangleData } from '$types/RectangleData';
 
 	import { preferencesStore } from '../store/projectStore';
 
@@ -53,6 +55,7 @@
 	let modalPanelSettings: ModalPanelSettings;
 	let modalCircleSettings: ModalCircleSettings;
 	let modalRectangleSettings: ModalRectangleSettings;
+	let modalDisplay: ModalDisplay;
 
 	let panelSettings: PanelSettings = {
 		width: 100,
@@ -194,12 +197,24 @@
 			value.rectangles = rectangles;
 			return value;
 		});
+
+	const downloadData = () => {
+		const stlData = renderProjectToStl({ panelSettings, circles, rectangles }).join('\n');
+
+		const a = document.createElement('a');
+		document.body.append(a);
+		a.download = filename.slice(0, Math.max(0, filename.lastIndexOf('.'))) + '.stl';
+		a.href = URL.createObjectURL(new Blob([stlData]));
+		a.click();
+		a.remove();
+	};
 </script>
 
 <ModalConfirm bind:this={modalConfirm} />
 <ModalPanelSettings bind:this={modalPanelSettings} />
 <ModalCircleSettings bind:this={modalCircleSettings} />
 <ModalRectangleSettings bind:this={modalRectangleSettings} />
+<ModalDisplay bind:this={modalDisplay} />
 
 <Navbar>
 	<NavBrand href="#">
@@ -209,7 +224,7 @@
 		>
 	</NavBrand>
 	<div class="flex md:order-2">
-		<Button size="sm" disabled={!pcbImage}>Download STL</Button>
+		<Button disabled={!pcbImage} on:click={() => modalDisplay.open()}>Display 3D</Button>
 		<NavHamburger />
 	</div>
 	<NavUl class="order-1">

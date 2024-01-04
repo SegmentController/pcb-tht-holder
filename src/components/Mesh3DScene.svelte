@@ -6,7 +6,7 @@
 	export let dimension: number;
 	export let wireframe: boolean;
 
-	const CAMERA_FAR = 1.5;
+	const CAMERA_FAR = 2;
 </script>
 
 <T.PerspectiveCamera

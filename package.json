@@ -41,7 +41,7 @@
 		"flowbite": "^2.2.1",
 		"flowbite-svelte": "^0.44.21",
 		"flowbite-svelte-icons": "^0.4.5",
-		"postcss": "^8.4.32",
+		"postcss": "^8.4.33",
 		"postcss-load-config": "^5.0.2",
 		"prettier": "^3.1.1",
 		"prettier-plugin-svelte": "^3.1.2",
@@ -62,9 +62,9 @@
 		"canvas": "^2.11.2",
 		"konva": "^9.3.0",
 		"svelte-konva": "^0.3.1",
-		"svelte-persisted-store": "^0.8.0",
+		"svelte-persisted-store": "^0.8.1",
 		"three": "^0.160.0",
-		"three-csg-ts": "^3.1.13",
+		"three-bvh-csg": "^0.0.15",
 		"zod": "^3.22.4"
 	}
 }

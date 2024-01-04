@@ -1,14 +1,17 @@
 export const LEG_SIZE = 2;
 
-export type LegData = {
-	konvaConfig: {
-		x: number;
-		y: number;
-		width: number;
-		height: number;
+import { z } from 'zod';
 
-		fill: 'gray';
-		draggable: true;
-		opacity: 0.75;
-	};
-};
+export const LegData = z.object({
+	konvaConfig: z.object({
+		x: z.number(),
+		y: z.number(),
+		width: z.number(),
+		height: z.number(),
+
+		fill: z.literal('gray'),
+		draggable: z.literal(true),
+		opacity: z.literal(0.75)
+	})
+});
+export type LegData = z.infer<typeof LegData>;

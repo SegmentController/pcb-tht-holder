@@ -1,12 +1,9 @@
 <script lang="ts">
 	import { Dropzone } from 'flowbite-svelte';
-	import { onMount } from 'svelte';
 
-	export let onUpload: (imgData: string, filename: string) => void;
+	export let onUpload: (data: string, filename: string) => void;
 
-	onMount(() => {});
-
-	const loadPCBImageFile = (file: File) => {
+	const loadFile = (file: File) => {
 		const reader = new FileReader();
 		reader.addEventListener('load', (event_) => {
 			if (event_.target && event_.target.result && !(event_.target.result instanceof ArrayBuffer))
@@ -21,17 +18,17 @@
 			if (event.dataTransfer.items && event.dataTransfer.items.length > 0) {
 				if (event.dataTransfer.items[0].kind === 'file') {
 					const file = event.dataTransfer.items[0].getAsFile();
-					if (file) loadPCBImageFile(file);
+					if (file) loadFile(file);
 				}
 			} else if (event.dataTransfer.files && event.dataTransfer.files.length > 0) {
 				const file = event.dataTransfer.files[0];
-				if (file) loadPCBImageFile(file);
+				if (file) loadFile(file);
 			}
 	};
 
 	const handleChange = (event: Event) => {
 		const files = (event.target as HTMLInputElement).files;
-		if (files && files.length > 0) loadPCBImageFile(files[0]);
+		if (files && files.length > 0) loadFile(files[0]);
 	};
 </script>
 

@@ -9,17 +9,20 @@
 	import { Circle, Image, Layer, Rect, Stage } from 'svelte-konva';
 
 	import { base } from '$app/paths';
+	import FileDropzone from '$components/FileDropzone.svelte';
 	import ModalCircleSettings from '$components/ModalCircleSettings.svelte';
 	import ModalConfirm from '$components/ModalConfirm.svelte';
 	import ModalMeshDisplay from '$components/ModalMeshDisplay.svelte';
-	import ModalPanelSettings, { type PanelSettings } from '$components/ModalPanelSettings.svelte';
+	import ModalPanelSettings from '$components/ModalPanelSettings.svelte';
 	import ModalRectangleSettings from '$components/ModalRectangleSettings.svelte';
-	import PcbImageDropzone from '$components/PcbImageDropzone.svelte';
 	import { generateMesh, polygonsToVertexArray } from '$lib/3d/mesh';
 	import { generateStl } from '$lib/3d/stl';
+	import { virtualDownload } from '$lib/download';
 	import type { CircleData } from '$types/CircleData';
 	import type { ImageSize } from '$types/ImageSize';
 	import { LEG_SIZE, type LegData } from '$types/LegData';
+	import type { PanelSettings } from '$types/PanelSettings';
+	import { Project } from '$types/Project';
 	import type { RectangleData } from '$types/RectangleData';
 
 	import { preferencesStore } from '../store/projectStore';
@@ -30,9 +33,7 @@
 			circles = preferences.circles || [];
 			rectangles = preferences.rectangles || [];
 			legs = preferences.legs || [];
-
-			onImageUpload(preferences.image, preferences.filename, false);
-
+			onFileUpload(preferences.image, preferences.filename, false, false);
 			panelSettings = preferences.panelSettings;
 		}
 	});
@@ -42,6 +43,7 @@
 	let legs: LegData[] = [];
 
 	let pcbImage: HTMLImageElement | undefined;
+	let imageData: string;
 	let filename: string = '';
 	let imageSize: ImageSize | undefined;
 
@@ -58,7 +60,38 @@
 		smdHeight: 3
 	};
 
-	const onImageUpload = (_imageData: string, _filename: string, isManualUpload = true) => {
+	const onFileUpload = (
+		_fileData: string,
+		_filename: string,
+		isManualUpload: boolean,
+		forceSaveToStore: boolean
+	) => {
+		if (isManualUpload && _fileData.startsWith('data:application/octet-stream'))
+			try {
+				const fileDataRaw = atob(_fileData.replace('data:application/octet-stream;base64,', ''));
+
+				const projectFileData = JSON.parse(fileDataRaw);
+				const isValid = Project.safeParse(projectFileData);
+				if (isValid.success) {
+					circles = isValid.data.circles || [];
+					rectangles = isValid.data.rectangles || [];
+					legs = isValid.data.legs || [];
+					onFileUpload(isValid.data.image, isValid.data.filename, false, true);
+					panelSettings = isValid.data.panelSettings;
+
+					preferencesStore.update((value) => {
+						value.circles = circles;
+						value.rectangles = rectangles;
+						value.legs = legs;
+						value.panelSettings = panelSettings;
+						return value;
+					});
+					return;
+				}
+			} catch {
+				document;
+			}
+
 		pcbImage = document.createElement('img');
 		pcbImage.addEventListener('load', () => {
 			filename = _filename;
@@ -68,24 +101,45 @@
 					panelSettings.height = Math.round(
 						panelSettings.width * (imageSize.height / imageSize.width)
 					);
+				imageData = _fileData;
 			}
-			if (isManualUpload) {
+			if (isManualUpload || forceSaveToStore) {
 				preferencesStore.update((value) => {
-					value.image = _imageData;
+					value.image = _fileData;
 					value.filename = _filename;
 					return value;
 				});
-				openPanelSettings();
 			}
+			if (isManualUpload) openPanelSettings();
 		});
 		pcbImage.addEventListener('error', () => {
 			pcbImage = undefined;
+			imageData = '';
 			filename = '';
 		});
-		pcbImage.src = _imageData;
+		pcbImage.src = _fileData;
 	};
 
-	const reset = () =>
+	const downloadProjectFile = () => {
+		const projectData: Project = {
+			image: imageData,
+			filename,
+			panelSettings,
+			circles,
+			rectangles,
+			legs
+		};
+		const projectDataJsonString = JSON.stringify(projectData, undefined, 2);
+
+		virtualDownload(
+			filename.slice(0, Math.max(0, filename.lastIndexOf('.'))) + '.tht3d',
+			projectDataJsonString
+		);
+	};
+
+	const reset = () => {
+		if (!pcbImage && !filename) return;
+
 		modalConfirm.open('Are you sure to reset PCB panel?', () => {
 			pcbImage = undefined;
 			filename = '';
@@ -102,6 +156,7 @@
 				return value;
 			});
 		});
+	};
 
 	const openPanelSettings = () =>
 		modalPanelSettings.open(panelSettings, (recentSettings) => {
@@ -265,16 +320,23 @@
 	<NavUl class="order-1">
 		{#if pcbImage}
 			<NavLi class="cursor-pointer">
-				Add<ChevronDownOutline class="w-3 h-3 ms-2 text-primary-800 dark:text-white inline" />
+				File<ChevronDownOutline class="w-3 h-3 ms-2 text-primary-800 dark:text-white inline" />
 			</NavLi>
 			<Dropdown class="w-44 z-20">
-				<DropdownItem href="#" on:click={addCircle}>Circle</DropdownItem>
-				<DropdownItem href="#" on:click={addRectangle}>Rectangle</DropdownItem>
+				<DropdownItem href="#" on:click={reset}>New</DropdownItem>
 				<DropdownDivider />
-				<DropdownItem href="#" on:click={addLeg}>Leg</DropdownItem>
+				<DropdownItem href="#" on:click={downloadProjectFile}>Export project</DropdownItem>
+			</Dropdown>
+			<NavLi class="cursor-pointer">
+				Component<ChevronDownOutline class="w-3 h-3 ms-2 text-primary-800 dark:text-white inline" />
+			</NavLi>
+			<Dropdown class="w-44 z-20">
+				<DropdownItem href="#" on:click={addCircle}>Add circle</DropdownItem>
+				<DropdownItem href="#" on:click={addRectangle}>Add rectangle</DropdownItem>
+				<DropdownDivider />
+				<DropdownItem href="#" on:click={addLeg}>Add leg</DropdownItem>
 			</Dropdown>
 			<NavLi href="#" on:click={openPanelSettings}>Panel settings</NavLi>
-			<NavLi href="#" on:click={reset}>Reset</NavLi>
 		{/if}
 	</NavUl>
 </Navbar>
@@ -287,7 +349,7 @@
 </div>
 <div class="flex justify-center">
 	{#if !pcbImage}
-		<PcbImageDropzone onUpload={onImageUpload} />
+		<FileDropzone onUpload={(imgData, filename) => onFileUpload(imgData, filename, true, false)} />
 	{:else if typeof window !== 'undefined' && imageSize}
 		<Stage
 			config={{

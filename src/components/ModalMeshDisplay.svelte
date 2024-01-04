@@ -3,6 +3,7 @@
 	import { Button, Modal, Toggle } from 'flowbite-svelte';
 
 	import type { MeshDimensionInfo } from '$lib/3d/mesh';
+	import { virtualDownload } from '$lib/download';
 	import { MathMax } from '$lib/Math';
 
 	import Mesh3DScene from './Mesh3DScene.svelte';
@@ -32,15 +33,9 @@
 	const generateFilename = () =>
 		_filename.slice(0, Math.max(0, _filename.lastIndexOf('.'))) + '.stl';
 
-	const downloadData = () => {
+	const downloadStlFile = () => {
 		const stlData = _stl.join('\n');
-
-		const a = document.createElement('a');
-		document.body.append(a);
-		a.download = generateFilename();
-		a.href = URL.createObjectURL(new Blob([stlData]));
-		a.click();
-		a.remove();
+		virtualDownload(generateFilename(), stlData);
 	};
 </script>
 
@@ -56,7 +51,7 @@
 	</div>
 	<div class="flex justify-end">
 		<Toggle id="wireframe" class="mr-8" bind:checked={wireframe}>Wireframe</Toggle>
-		<Button on:click={() => downloadData()}>Download STL</Button>
+		<Button on:click={downloadStlFile}>Download STL</Button>
 		<Button class="ml-2" on:click={() => (isOpen = false)} color="alternative">Close</Button>
 	</div>
 	<div class="canvasContainer">

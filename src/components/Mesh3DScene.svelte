@@ -6,7 +6,7 @@
 	export let dimension: number;
 	export let wireframe: boolean;
 
-	const CAMERA_FAR = 1.33;
+	const CAMERA_FAR = 1.5;
 </script>
 
 <T.PerspectiveCamera
@@ -35,9 +35,4 @@
 		/>
 	</T.BufferGeometry>
 	<T.MeshStandardMaterial color="#22ff22" opacity={0.5} {wireframe} />
-</T.Mesh>
-
-<T.Mesh position={[0, 0, 0]} rotation.x={-Math.PI / 2}>
-	<T.CircleGeometry args={[1.25 * dimension, 64]} />
-	<T.MeshStandardMaterial color="#ccc" opacity={1} />
 </T.Mesh>

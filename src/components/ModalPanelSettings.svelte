@@ -1,14 +1,7 @@
-<script lang="ts" context="module">
-	export type PanelSettings = {
-		width: number;
-		height: number;
-		pcbThickness: number;
-		smdHeight: number;
-	};
-</script>
-
 <script lang="ts">
 	import { Button, Label, Modal, NumberInput } from 'flowbite-svelte';
+
+	import type { PanelSettings } from '$types/PanelSettings';
 
 	let _settings: PanelSettings;
 	let _onOK: (settings: PanelSettings) => void;

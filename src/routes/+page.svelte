@@ -40,7 +40,7 @@
 
 	let pcbImage: HTMLImageElement | undefined;
 	let filename: string = '';
-	let size: ImageSize | undefined;
+	let imageSize: ImageSize | undefined;
 
 	let modalConfirm: ModalConfirm;
 	let modalPanelSettings: ModalPanelSettings;
@@ -60,9 +60,11 @@
 		pcbImage.addEventListener('load', () => {
 			filename = _filename;
 			if (pcbImage) {
-				size = { width: pcbImage.width, height: pcbImage.height };
+				imageSize = { width: pcbImage.width, height: pcbImage.height };
 				if (isManualUpload)
-					panelSettings.height = Math.round(panelSettings.width * (size.height / size.width));
+					panelSettings.height = Math.round(
+						panelSettings.width * (imageSize.height / imageSize.width)
+					);
 			}
 			if (isManualUpload) {
 				preferencesStore.update((value) => {
@@ -84,7 +86,7 @@
 		modalConfirm.open('Are you sure to reset PCB panel?', () => {
 			pcbImage = undefined;
 			filename = '';
-			size = undefined;
+			imageSize = undefined;
 			circles = [];
 			rectangles = [];
 			preferencesStore.update((value) => {
@@ -130,13 +132,20 @@
 		});
 	};
 	const dblClickCircle = (circle: CircleData) => {
-		modalCircleSettings.open(circle, (recent) => {
-			circle.diameter = recent.diameter;
-			circle.depth = recent.depth;
-			circle.konvaConfig.radius = circle.diameter / 2;
-			circles = circles;
-			storeCircleChanges();
-		});
+		modalCircleSettings.open(
+			circle,
+			(recent) => {
+				circle.diameter = recent.diameter;
+				circle.depth = recent.depth;
+				circle.konvaConfig.radius = circle.diameter / 2;
+				circles = circles;
+				storeCircleChanges();
+			},
+			() => {
+				circles = circles.filter((c) => c != circle);
+				storeCircleChanges();
+			}
+		);
 	};
 	const storeCircleChanges = () =>
 		preferencesStore.update((value) => {
@@ -173,15 +182,22 @@
 		});
 	};
 	const dblClickRectangle = (rectangle: RectangleData) => {
-		modalRectangleSettings.open(rectangle, (recent) => {
-			rectangle.sizeX = recent.sizeX;
-			rectangle.sizeY = recent.sizeY;
-			rectangle.depth = recent.depth;
-			rectangle.konvaConfig.width = rectangle.sizeX;
-			rectangle.konvaConfig.height = rectangle.sizeY;
-			rectangles = rectangles;
-			storeRectangleChanges();
-		});
+		modalRectangleSettings.open(
+			rectangle,
+			(recent) => {
+				rectangle.sizeX = recent.sizeX;
+				rectangle.sizeY = recent.sizeY;
+				rectangle.depth = recent.depth;
+				rectangle.konvaConfig.width = rectangle.sizeX;
+				rectangle.konvaConfig.height = rectangle.sizeY;
+				rectangles = rectangles;
+				storeRectangleChanges();
+			},
+			() => {
+				rectangles = rectangles.filter((r) => r != rectangle);
+				storeRectangleChanges();
+			}
+		);
 	};
 	const storeRectangleChanges = () =>
 		preferencesStore.update((value) => {
@@ -190,10 +206,11 @@
 		});
 
 	const openDisplay = () => {
-		const meshPolygons = generateMesh({ panelSettings, rectangles, circles });
-		const vertices = polygonsToVertexArray(meshPolygons);
-		const stl = generateStl(meshPolygons);
-		modalMeshDisplay.open(filename, vertices, stl);
+		if (!imageSize) return;
+		const meshPolygons = generateMesh({ panelSettings, rectangles, circles, imageSize });
+		const vertices = polygonsToVertexArray(meshPolygons.polygons);
+		const stl = generateStl(meshPolygons.polygons);
+		modalMeshDisplay.open(filename, meshPolygons.dimensions, vertices, stl);
 	};
 </script>
 
@@ -233,29 +250,29 @@
 
 <div class="flex justify-center">
 	<p class="text-sm">{filename}</p>
-	{#if size}
-		<p class="text-sm text-gray-500">({size.width}x{size.height})</p>
+	{#if imageSize}
+		<p class="text-sm text-gray-500">({imageSize.width}x{imageSize.height})</p>
 	{/if}
 </div>
 <div class="flex justify-center">
 	{#if !pcbImage}
 		<PcbImageDropzone onUpload={onImageUpload} />
-	{:else if typeof window !== 'undefined' && size}
+	{:else if typeof window !== 'undefined' && imageSize}
 		<Stage
 			config={{
-				width: size.width,
-				height: size.height,
-				scaleX: size.width / panelSettings.width,
-				scaleY: size.height / panelSettings.height
+				width: imageSize.width,
+				height: imageSize.height,
+				scaleX: imageSize.width / panelSettings.width,
+				scaleY: imageSize.height / panelSettings.height
 			}}
 		>
 			<Layer>
 				<Image
 					config={{
 						image: pcbImage,
-						scaleX: panelSettings.width / size.width,
-						scaleY: (-1 * panelSettings.height) / size.height,
-						offsetY: size.height,
+						scaleX: panelSettings.width / imageSize.width,
+						scaleY: (-1 * panelSettings.height) / imageSize.height,
+						offsetY: imageSize.height,
 						opacity: 0.25
 					}}
 				/>

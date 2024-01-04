@@ -7,6 +7,16 @@ import type { RenderableProject } from '$types/Project';
 const BOTTOM_THICKNESS = 2;
 const EDGE_THICKNESS = 2;
 
+export type MeshDimensionInfo = {
+	x: number;
+	y: number;
+	depth: number;
+};
+export type MeshInfo = {
+	polygons: Polygon[];
+	dimensions: MeshDimensionInfo;
+};
+
 export const polygonsToVertexArray = (polygons: Polygon[]): Float32Array => {
 	const result: number[] = [];
 
@@ -20,32 +30,75 @@ export const polygonsToVertexArray = (polygons: Polygon[]): Float32Array => {
 
 	return new Float32Array(result);
 };
-const Mesh = (geometry: THREE.BufferGeometry) => new THREE.Mesh(geometry.translate(0, 0, 0.5)); //
-export const generateMesh = (project: RenderableProject): Polygon[] => {
-	const size = {
-		x: project.panelSettings.width + 2 * EDGE_THICKNESS,
-		y: project.panelSettings.height + 2 * EDGE_THICKNESS
-	};
+
+const Mesh = (geometry: THREE.BoxGeometry | THREE.CylinderGeometry) => {
+	const result = new THREE.Mesh(geometry.translate(0, 0, 0));
+	if (geometry instanceof THREE.BoxGeometry) result.position.z = geometry.parameters.depth / 2;
+	else if (geometry instanceof THREE.CylinderGeometry)
+		result.position.z = geometry.parameters.height / 2;
+	result.updateMatrix();
+	return result;
+};
+const Box = (width: number, height: number, depth: number) =>
+	new THREE.BoxGeometry(width, height, depth);
+const Cylinder = (radius: number, height: number) =>
+	new THREE.CylinderGeometry(radius, radius, height);
+
+export const generateMesh = (project: RenderableProject): MeshInfo => {
+	// Constant helper values
+	const panel = project.panelSettings;
 	const heightNeed =
-		project.panelSettings.pcbThickness +
+		panel.pcbThickness +
 		Math.max(
-			project.panelSettings.smdHeight,
+			panel.smdHeight,
 			...project.rectangles.map((r) => r.depth),
 			...project.circles.map((c) => c.depth)
 		);
-	const height = BOTTOM_THICKNESS + heightNeed;
-	const deep = project.panelSettings.pcbThickness + project.panelSettings.smdHeight;
 
-	const box = Mesh(new THREE.BoxGeometry(size.x, size.y, height));
-	box.updateMatrix();
+	const scale = {
+		width: project.imageSize.width / panel.width,
+		height: project.imageSize.height / panel.height
+	};
 
-	const box2 = Mesh(
-		new THREE.BoxGeometry(project.panelSettings.width, project.panelSettings.height, deep)
+	// Lets create mesh...
+	let mesh: THREE.Mesh = Mesh(
+		Box(
+			panel.width + 2 * EDGE_THICKNESS,
+			panel.height + 2 * EDGE_THICKNESS,
+			heightNeed + BOTTOM_THICKNESS
+		)
 	);
-	box2.position.z += (height - deep) / 2;
-	box2.updateMatrix();
 
-	const a = CSG.subtract(box, box2);
+	const emptySpace = Mesh(Box(panel.width, panel.height, heightNeed));
+	{
+		emptySpace.position.z += BOTTOM_THICKNESS * 3;
+		emptySpace.updateMatrix();
+		mesh = CSG.subtract(mesh, emptySpace);
+	}
+	for (const rectangle of project.rectangles) {
+		const box = Mesh(Box(rectangle.sizeX, rectangle.sizeY, rectangle.depth));
+		box.position.x += rectangle.konvaConfig.x / scale.width;
+		box.position.y += rectangle.konvaConfig.y / scale.height;
+		box.position.z += BOTTOM_THICKNESS;
+		box.updateMatrix();
+		mesh = CSG.subtract(mesh, box);
+	}
+	/*
+	for (const circle of project.circles) {
+		const cylinder = Mesh(Cylinder(circle.diameter / 2, circle.depth));
+		cylinder.position.x += circle.konvaConfig.x;
+		cylinder.position.y += circle.konvaConfig.y;
+		cylinder.updateMatrix();
+		mesh = CSG.subtract(mesh, cylinder);
+	}
+	*/
 
-	return CSG.fromMesh(a).toPolygons();
+	return {
+		polygons: CSG.fromMesh(mesh).toPolygons(),
+		dimensions: {
+			x: panel.width + 2 * EDGE_THICKNESS,
+			y: panel.height + 2 * EDGE_THICKNESS,
+			depth: heightNeed + BOTTOM_THICKNESS
+		}
+	};
 };

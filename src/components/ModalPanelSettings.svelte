@@ -26,20 +26,20 @@
 		<h3 class="text-xl font-medium text-gray-900 dark:text-white">PCB settings</h3>
 		<div class="grid gap-6 mb-6 md:grid-cols-2">
 			<div>
-				<Label class="mb-2">Panel width (mm)</Label>
-				<NumberInput bind:value={_settings.width} />
+				<Label for="width" class="mb-2">Panel width (mm)</Label>
+				<NumberInput id="width" bind:value={_settings.width} />
 			</div>
 			<div>
-				<Label class="mb-2">Panel height (mm)</Label>
-				<NumberInput bind:value={_settings.height} />
+				<Label for="height" class="mb-2">Panel height (mm)</Label>
+				<NumberInput id="height" bind:value={_settings.height} />
 			</div>
 			<div>
-				<Label class="mb-2">PCB thickness (mm)</Label>
-				<NumberInput bind:value={_settings.pcbThickness} />
+				<Label for="pcbThickness" class="mb-2">PCB thickness (mm)</Label>
+				<NumberInput id="pcbThickness" bind:value={_settings.pcbThickness} />
 			</div>
 			<div>
-				<Label class="mb-2">SMD height (mm)</Label>
-				<NumberInput bind:value={_settings.smdHeight} />
+				<Label for="smdHeight" class="mb-2">SMD height (mm)</Label>
+				<NumberInput id="smdHeight" bind:value={_settings.smdHeight} />
 			</div>
 		</div>
 	</div>

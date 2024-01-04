@@ -10,29 +10,32 @@
 
 	let _settings: CircleSettings;
 	let _onOK: (settings: CircleSettings) => void;
+	let _onDelete: (() => void) | undefined;
 	let isOpen: boolean = false;
 
 	export const open = (
 		settings: CircleSettings,
-		onOK: (settings: CircleSettings) => void
+		onOK: (settings: CircleSettings) => void,
+		onDelete?: () => void
 	): void => {
 		_settings = settings;
 		_onOK = onOK;
+		_onDelete = onDelete;
 		isOpen = true;
 	};
 </script>
 
 <Modal open={isOpen} size="xs" dismissable={false}>
 	<div class="flex flex-col space-y-6">
-		<h3 class="text-xl font-medium text-gray-900 dark:text-white">PCB settings</h3>
+		<h3 class="text-xl font-medium text-gray-900 dark:text-white">Circle settings</h3>
 		<div class="grid gap-6 mb-6 md:grid-cols-2">
 			<div>
-				<Label class="mb-2">Diameter (mm)</Label>
-				<NumberInput bind:value={_settings.diameter} />
+				<Label for="diameter" class="mb-2">Diameter (mm)</Label>
+				<NumberInput id="diameter" bind:value={_settings.diameter} />
 			</div>
 			<div>
-				<Label class="mb-2">Depth (mm)</Label>
-				<NumberInput bind:value={_settings.depth} />
+				<Label for="depth" class="mb-2">Depth (mm)</Label>
+				<NumberInput id="depth" bind:value={_settings.depth} />
 			</div>
 		</div>
 	</div>
@@ -45,6 +48,16 @@
 			color="green"
 			class="me-2">OK</Button
 		>
-		<Button on:click={() => (isOpen = false)} color="alternative">Cancel</Button>
+		<Button on:click={() => (isOpen = false)} color="alternative" class="me-2">Cancel</Button>
+		{#if _onDelete}
+			<Button
+				on:click={() => {
+					isOpen = false;
+					_onDelete && _onDelete();
+				}}
+				color="red"
+				class="me-2 float-right">Remove</Button
+			>
+		{/if}
 	</div>
 </Modal>

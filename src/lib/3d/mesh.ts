@@ -1,4 +1,5 @@
 import * as THREE from 'three';
+import { mergeVertices } from 'three/examples/jsm/utils/BufferGeometryUtils.js';
 import { CSG } from 'three-csg-ts';
 import type { Polygon } from 'three-csg-ts/lib/esm/Polygon';
 
@@ -71,13 +72,13 @@ export const generateMesh = (project: RenderableProject): MeshInfo => {
 		emptySpace.updateMatrix();
 		mesh = CSG.subtract(mesh, emptySpace);
 	}
-	for (const leg of project.legs) {
-		const box = MESH(BOX(leg.konvaConfig.width, leg.konvaConfig.height, componentHeigh));
-		box.position.x += leg.konvaConfig.x + leg.konvaConfig.width / 2 - panel.width / 2;
-		box.position.y -= leg.konvaConfig.y + leg.konvaConfig.height / 2 - panel.height / 2;
-		box.position.z += BOTTOM_THICKNESS;
-		box.updateMatrix();
-		mesh = CSG.union(mesh, box);
+	for (const circle of project.circles) {
+		const cylinder = MESH(CYLINDER(circle.diameter / 2, circle.depth));
+		cylinder.position.x += circle.konvaConfig.x - panel.width / 2;
+		cylinder.position.y -= circle.konvaConfig.y - panel.height / 2;
+		cylinder.position.z += BOTTOM_THICKNESS + (componentHeigh - circle.depth);
+		cylinder.updateMatrix();
+		mesh = CSG.subtract(mesh, cylinder);
 	}
 	for (const rectangle of project.rectangles) {
 		const box = MESH(BOX(rectangle.sizeX, rectangle.sizeY, rectangle.depth));
@@ -87,14 +88,17 @@ export const generateMesh = (project: RenderableProject): MeshInfo => {
 		box.updateMatrix();
 		mesh = CSG.subtract(mesh, box);
 	}
-	for (const circle of project.circles) {
-		const cylinder = MESH(CYLINDER(circle.diameter / 2, circle.depth));
-		cylinder.position.x += circle.konvaConfig.x - panel.width / 2;
-		cylinder.position.y -= circle.konvaConfig.y - panel.height / 2;
-		cylinder.position.z += BOTTOM_THICKNESS + (componentHeigh - circle.depth);
-		cylinder.updateMatrix();
-		mesh = CSG.subtract(mesh, cylinder);
+	for (const leg of project.legs) {
+		const box = MESH(BOX(leg.konvaConfig.width, leg.konvaConfig.height, componentHeigh));
+		box.position.x += leg.konvaConfig.x + leg.konvaConfig.width / 2 - panel.width / 2;
+		box.position.y -= leg.konvaConfig.y + leg.konvaConfig.height / 2 - panel.height / 2;
+		box.position.z += BOTTOM_THICKNESS;
+		box.updateMatrix();
+		mesh = CSG.union(mesh, box);
 	}
+
+	// Normalize vertices
+	mesh = new THREE.Mesh(mergeVertices(mesh.geometry));
 
 	return {
 		polygons: CSG.fromMesh(mesh).toPolygons(),

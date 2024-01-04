@@ -44,7 +44,7 @@ const MESH = (geometry: THREE.BoxGeometry | THREE.CylinderGeometry) => {
 const BOX = (width: number, height: number, depth: number) =>
 	new THREE.BoxGeometry(width, height, depth);
 const CYLINDER = (radius: number, height: number) =>
-	new THREE.CylinderGeometry(radius, radius, height, 64);
+	new THREE.CylinderGeometry(radius, radius, height, 32);
 export const generateMesh = (project: RenderableProject): MeshInfo => {
 	// Constant helper values
 	const panel = project.panelSettings;
@@ -70,6 +70,14 @@ export const generateMesh = (project: RenderableProject): MeshInfo => {
 		emptySpace.position.z += BOTTOM_THICKNESS + needHeight - emptyHeight;
 		emptySpace.updateMatrix();
 		mesh = CSG.subtract(mesh, emptySpace);
+	}
+	for (const leg of project.legs) {
+		const box = MESH(BOX(leg.konvaConfig.width, leg.konvaConfig.height, componentHeigh));
+		box.position.x += leg.konvaConfig.x + leg.konvaConfig.width / 2 - panel.width / 2;
+		box.position.y -= leg.konvaConfig.y + leg.konvaConfig.height / 2 - panel.height / 2;
+		box.position.z += BOTTOM_THICKNESS;
+		box.updateMatrix();
+		mesh = CSG.union(mesh, box);
 	}
 	for (const rectangle of project.rectangles) {
 		const box = MESH(BOX(rectangle.sizeX, rectangle.sizeY, rectangle.depth));

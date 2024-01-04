@@ -14,5 +14,6 @@ export const preferencesStore = persisted<Project>('project', {
 	},
 
 	circles: [],
-	rectangles: []
+	rectangles: [],
+	legs: []
 });

@@ -3,6 +3,7 @@
 	import { Button, Modal, Toggle } from 'flowbite-svelte';
 
 	import type { MeshDimensionInfo } from '$lib/3d/mesh';
+	import { MathMax } from '$lib/Math';
 
 	import Mesh3DScene from './Mesh3DScene.svelte';
 
@@ -23,7 +24,7 @@
 		_filename = filename;
 		_meshInfo = meshInfo;
 		_vertices = vertices;
-		_dimension = Math.max(..._vertices.values());
+		_dimension = MathMax([..._vertices.values()]);
 		_stl = stl;
 		isOpen = true;
 	};
@@ -50,7 +51,8 @@
 		</span>
 		{_meshInfo.x} x
 		{_meshInfo.y} x
-		{_meshInfo.depth} mm
+		{_meshInfo.depth} mm |
+		{_vertices.length / 3} polygons
 	</div>
 	<div class="flex justify-end">
 		<Toggle id="wireframe" class="mr-8" bind:checked={wireframe}>Wireframe</Toggle>

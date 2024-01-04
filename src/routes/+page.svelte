@@ -19,6 +19,7 @@
 	import { generateStl } from '$lib/3d/stl';
 	import type { CircleData } from '$types/CircleData';
 	import type { ImageSize } from '$types/ImageSize';
+	import { LEG_SIZE, type LegData } from '$types/LegData';
 	import type { RectangleData } from '$types/RectangleData';
 
 	import { preferencesStore } from '../store/projectStore';
@@ -26,8 +27,9 @@
 	onMount(() => {
 		const preferences = get(preferencesStore);
 		if (preferences.image && preferences.filename) {
-			circles = preferences.circles;
-			rectangles = preferences.rectangles;
+			circles = preferences.circles || [];
+			rectangles = preferences.rectangles || [];
+			legs = preferences.legs || [];
 
 			onImageUpload(preferences.image, preferences.filename, false);
 
@@ -37,6 +39,7 @@
 
 	let circles: CircleData[] = [];
 	let rectangles: RectangleData[] = [];
+	let legs: LegData[] = [];
 
 	let pcbImage: HTMLImageElement | undefined;
 	let filename: string = '';
@@ -89,11 +92,13 @@
 			imageSize = undefined;
 			circles = [];
 			rectangles = [];
+			legs = [];
 			preferencesStore.update((value) => {
 				value.image = '';
 				value.filename = '';
 				value.circles = [];
 				value.rectangles = [];
+				value.legs = [];
 				return value;
 			});
 		});
@@ -205,9 +210,35 @@
 			return value;
 		});
 
+	const addLeg = () => {
+		const leg: LegData = {
+			konvaConfig: {
+				draggable: true,
+				fill: 'gray',
+				opacity: 0.75,
+				x: panelSettings.width / 2,
+				y: panelSettings.height / 2,
+				width: LEG_SIZE,
+				height: LEG_SIZE
+			}
+		};
+		legs.push(leg);
+		legs = legs;
+		storeLegChanges();
+	};
+	const dblClickLeg = (leg: LegData) => {
+		legs = legs.filter((l) => l != leg);
+		storeLegChanges();
+	};
+	const storeLegChanges = () =>
+		preferencesStore.update((value) => {
+			value.legs = legs;
+			return value;
+		});
+
 	const openDisplay = () => {
 		if (!imageSize) return;
-		const meshPolygons = generateMesh({ panelSettings, rectangles, circles, imageSize });
+		const meshPolygons = generateMesh({ panelSettings, rectangles, circles, legs, imageSize });
 		const vertices = polygonsToVertexArray(meshPolygons.polygons);
 		const stl = generateStl(meshPolygons.polygons);
 		modalMeshDisplay.open(filename, meshPolygons.dimensions, vertices, stl);
@@ -240,7 +271,7 @@
 				<DropdownItem href="#" on:click={addCircle}>Circle</DropdownItem>
 				<DropdownItem href="#" on:click={addRectangle}>Rectangle</DropdownItem>
 				<DropdownDivider />
-				<DropdownItem href="#">Leg</DropdownItem>
+				<DropdownItem href="#" on:click={addLeg}>Leg</DropdownItem>
 			</Dropdown>
 			<NavLi href="#" on:click={openPanelSettings}>Panel settings</NavLi>
 			<NavLi href="#" on:click={reset}>Reset</NavLi>
@@ -288,6 +319,13 @@
 						bind:config={rectangle.konvaConfig}
 						on:dblclick={() => dblClickRectangle(rectangle)}
 						on:dragend={storeRectangleChanges}
+					/>
+				{/each}
+				{#each legs as leg}
+					<Rect
+						bind:config={leg.konvaConfig}
+						on:dblclick={() => dblClickLeg(leg)}
+						on:dragend={storeLegChanges}
 					/>
 				{/each}
 			</Layer>

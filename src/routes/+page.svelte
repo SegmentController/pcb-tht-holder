@@ -15,7 +15,7 @@
 	import ModalMeshDisplay from '$components/ModalMeshDisplay.svelte';
 	import ModalPanelSettings from '$components/ModalPanelSettings.svelte';
 	import ModalRectangleSettings from '$components/ModalRectangleSettings.svelte';
-	import { generateMesh, polygonsToVertexArray } from '$lib/3d/mesh';
+	import { generateMesh } from '$lib/3d/mesh';
 	import { virtualDownload } from '$lib/download';
 	import type { CircleData } from '$types/CircleData';
 	import type { ImageSize } from '$types/ImageSize';
@@ -292,9 +292,8 @@
 
 	const openDisplay = () => {
 		if (!imageSize) return;
-		const meshPolygons = generateMesh({ panelSettings, rectangles, circles, legs, imageSize });
-		const vertices = polygonsToVertexArray(meshPolygons.polygons);
-		modalMeshDisplay.open(filename, meshPolygons.dimensions, vertices);
+		const meshInfo = generateMesh({ panelSettings, rectangles, circles, legs, imageSize });
+		modalMeshDisplay.open(filename, meshInfo);
 	};
 </script>
 

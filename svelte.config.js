@@ -13,9 +13,10 @@ const config = {
 	],
 	kit: {
 		adapter: adapter({
-			precompress: true,
+			precompress: false,
 			polyfill: false,
-			pages: 'docs'
+			pages: 'docs',
+			fallback: 'index.html'
 		}),
 		paths: {
 			base: process.env.NODE_ENV === 'production' ? '/pcb-tht-holder' : ''

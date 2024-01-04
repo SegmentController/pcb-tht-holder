@@ -3,7 +3,7 @@
 	import { Button, ButtonGroup, Modal, Toggle } from 'flowbite-svelte';
 	import { DownloadSolid } from 'flowbite-svelte-icons';
 
-	import type { MeshDimensionInfo } from '$lib/3d/mesh';
+	import type { MeshInfo } from '$lib/3d/mesh';
 	import { generateBinaryStlFromVertices, generateStlFromVertices } from '$lib/3d/stl';
 	import { virtualDownload } from '$lib/download';
 	import { MathMax } from '$lib/Math';
@@ -11,34 +11,30 @@
 	import Mesh3DScene from './Mesh3DScene.svelte';
 
 	let _filename: string;
-	let _meshInfo: MeshDimensionInfo;
-	let _vertices: Float32Array;
+	let _meshInfo: Promise<MeshInfo>;
 	let _dimension: number;
 	let isOpen: boolean = false;
 	let wireframe: boolean = false;
 
-	export const open = (
-		filename: string,
-		meshInfo: MeshDimensionInfo,
-		vertices: Float32Array
-	): void => {
+	export const open = async (filename: string, meshInfo: Promise<MeshInfo>) => {
 		_filename = filename;
 		_meshInfo = meshInfo;
-		_vertices = vertices;
-		_dimension = MathMax([..._vertices.values()]);
+		meshInfo.then((m) => (_dimension = MathMax([...m.vertexArray.values()])));
 		isOpen = true;
 	};
 
 	const generateFilename = () =>
 		_filename.slice(0, Math.max(0, _filename.lastIndexOf('.'))) + '.stl';
 
-	const downloadStlFile = (isBinary: boolean) =>
+	const downloadStlFile = async (isBinary: boolean) => {
+		const meshinfo = await _meshInfo;
 		virtualDownload(
 			generateFilename(),
 			isBinary
-				? generateBinaryStlFromVertices(_vertices)
-				: generateStlFromVertices(_vertices).join('\n')
+				? generateBinaryStlFromVertices(meshinfo.vertexArray)
+				: generateStlFromVertices(meshinfo.vertexArray).join('\n')
 		);
+	};
 </script>
 
 <Modal open={isOpen} size="lg" dismissable={false}>
@@ -46,25 +42,38 @@
 		<span class="font-semibold mr-4">
 			{generateFilename()}
 		</span>
-		{_meshInfo.x} x
-		{_meshInfo.y} x
-		{_meshInfo.depth} mm |
-		{_vertices.length / 9} polygons
-		<Toggle id="wireframe" class="ml-8" bind:checked={wireframe}>Wireframe</Toggle>
+
+		{#await _meshInfo}
+			<p>Generating mesh...</p>
+		{:then meshInfo}
+			{meshInfo.dimensions.x} x
+			{meshInfo.dimensions.y} x
+			{meshInfo.dimensions.depth} mm |
+			{meshInfo.vertexArray.length / 9} polygons
+			<Toggle id="wireframe" class="ml-8" bind:checked={wireframe}>Wireframe</Toggle>
+		{/await}
 	</div>
 	<div class="flex justify-end">
-		<ButtonGroup>
-			<Button color="primary" on:click={() => downloadStlFile(true)}
-				><DownloadSolid class="mr-2" /> Download STL</Button
-			>
-			<Button on:click={() => downloadStlFile(false)}>Text STL</Button>
-		</ButtonGroup>
+		{#await _meshInfo}
+			{''}
+		{:then}
+			<ButtonGroup>
+				<Button color="primary" on:click={() => downloadStlFile(true)}
+					><DownloadSolid class="mr-2" /> Download STL</Button
+				>
+				<Button on:click={() => downloadStlFile(false)}>Text STL</Button>
+			</ButtonGroup>
+		{/await}
 		<Button class="ml-2" on:click={() => (isOpen = false)} color="alternative">Close</Button>
 	</div>
 	<div class="canvasContainer">
-		<Canvas>
-			<Mesh3DScene vertices={_vertices} dimension={_dimension} {wireframe} />
-		</Canvas>
+		{#await _meshInfo}
+			{''}
+		{:then meshInfo}
+			<Canvas>
+				<Mesh3DScene vertices={meshInfo.vertexArray} dimension={_dimension} {wireframe} />
+			</Canvas>
+		{/await}
 	</div>
 </Modal>
 

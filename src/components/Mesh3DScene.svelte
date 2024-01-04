@@ -5,9 +5,14 @@
 	export let vertices: Float32Array;
 	export let dimension: number;
 	export let wireframe: boolean;
+
+	const CAMERA_FAR = 1.33;
 </script>
 
-<T.PerspectiveCamera makeDefault position={[2 * dimension, 2 * dimension, 2 * dimension]}>
+<T.PerspectiveCamera
+	makeDefault
+	position={[CAMERA_FAR * dimension, CAMERA_FAR * dimension, CAMERA_FAR * dimension]}
+>
 	<OrbitControls />
 </T.PerspectiveCamera>
 

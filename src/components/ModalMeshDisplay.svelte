@@ -2,7 +2,7 @@
 	import { Canvas } from '@threlte/core';
 	import { Button, Modal, Toggle } from 'flowbite-svelte';
 
-	import Scene from './Scene.svelte';
+	import Mesh3DScene from './Mesh3DScene.svelte';
 
 	let _filename: string;
 	let _vertices: Float32Array;
@@ -39,7 +39,7 @@
 	</div>
 	<div class="canvasContainer">
 		<Canvas>
-			<Scene vertices={_vertices} dimension={_dimension} {wireframe} />
+			<Mesh3DScene vertices={_vertices} dimension={_dimension} {wireframe} />
 		</Canvas>
 	</div>
 </Modal>
@@ -49,6 +49,6 @@
 		width: 100%;
 		height: 75vh;
 		background: #888;
-		background: linear-gradient(180deg, #888 0%, #ccc 100%);
+		background: linear-gradient(-45deg, #888 0%, #ccc 100%);
 	}
 </style>

@@ -11,7 +11,7 @@
 	import { base } from '$app/paths';
 	import ModalCircleSettings from '$components/ModalCircleSettings.svelte';
 	import ModalConfirm from '$components/ModalConfirm.svelte';
-	import ModalDisplay from '$components/ModalDisplay.svelte';
+	import ModalMeshDisplay from '$components/ModalMeshDisplay.svelte';
 	import ModalPanelSettings, { type PanelSettings } from '$components/ModalPanelSettings.svelte';
 	import ModalRectangleSettings from '$components/ModalRectangleSettings.svelte';
 	import PcbImageDropzone from '$components/PcbImageDropzone.svelte';
@@ -46,7 +46,7 @@
 	let modalPanelSettings: ModalPanelSettings;
 	let modalCircleSettings: ModalCircleSettings;
 	let modalRectangleSettings: ModalRectangleSettings;
-	let modalDisplay: ModalDisplay;
+	let modalMeshDisplay: ModalMeshDisplay;
 
 	let panelSettings: PanelSettings = {
 		width: 100,
@@ -193,7 +193,7 @@
 		const meshPolygons = generateMesh({ panelSettings, rectangles, circles });
 		const vertices = polygonsToVertexArray(meshPolygons);
 		const stl = generateStl(meshPolygons);
-		modalDisplay.open(filename, vertices, stl);
+		modalMeshDisplay.open(filename, vertices, stl);
 	};
 </script>
 
@@ -201,7 +201,7 @@
 <ModalPanelSettings bind:this={modalPanelSettings} />
 <ModalCircleSettings bind:this={modalCircleSettings} />
 <ModalRectangleSettings bind:this={modalRectangleSettings} />
-<ModalDisplay bind:this={modalDisplay} />
+<ModalMeshDisplay bind:this={modalMeshDisplay} />
 
 <Navbar>
 	<NavBrand href="#">

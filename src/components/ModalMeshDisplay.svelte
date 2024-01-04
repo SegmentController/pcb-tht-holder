@@ -1,8 +1,10 @@
 <script lang="ts">
 	import { Canvas } from '@threlte/core';
-	import { Button, Modal, Toggle } from 'flowbite-svelte';
+	import { Button, ButtonGroup, Modal, Toggle } from 'flowbite-svelte';
+	import { DownloadSolid } from 'flowbite-svelte-icons';
 
 	import type { MeshDimensionInfo } from '$lib/3d/mesh';
+	import { generateBinaryStlFromVertices, generateStlFromVertices } from '$lib/3d/stl';
 	import { virtualDownload } from '$lib/download';
 	import { MathMax } from '$lib/Math';
 
@@ -12,31 +14,31 @@
 	let _meshInfo: MeshDimensionInfo;
 	let _vertices: Float32Array;
 	let _dimension: number;
-	let _stl: string[];
 	let isOpen: boolean = false;
 	let wireframe: boolean = false;
 
 	export const open = (
 		filename: string,
 		meshInfo: MeshDimensionInfo,
-		vertices: Float32Array,
-		stl: string[]
+		vertices: Float32Array
 	): void => {
 		_filename = filename;
 		_meshInfo = meshInfo;
 		_vertices = vertices;
 		_dimension = MathMax([..._vertices.values()]);
-		_stl = stl;
 		isOpen = true;
 	};
 
 	const generateFilename = () =>
 		_filename.slice(0, Math.max(0, _filename.lastIndexOf('.'))) + '.stl';
 
-	const downloadStlFile = () => {
-		const stlData = _stl.join('\n');
-		virtualDownload(generateFilename(), stlData);
-	};
+	const downloadStlFile = (isBinary: boolean) =>
+		virtualDownload(
+			generateFilename(),
+			isBinary
+				? generateBinaryStlFromVertices(_vertices)
+				: generateStlFromVertices(_vertices).join('\n')
+		);
 </script>
 
 <Modal open={isOpen} size="lg" dismissable={false}>
@@ -47,11 +49,16 @@
 		{_meshInfo.x} x
 		{_meshInfo.y} x
 		{_meshInfo.depth} mm |
-		{_vertices.length / 3} polygons
+		{_vertices.length / 9} polygons
+		<Toggle id="wireframe" class="ml-8" bind:checked={wireframe}>Wireframe</Toggle>
 	</div>
 	<div class="flex justify-end">
-		<Toggle id="wireframe" class="mr-8" bind:checked={wireframe}>Wireframe</Toggle>
-		<Button on:click={downloadStlFile}>Download STL</Button>
+		<ButtonGroup>
+			<Button color="primary" on:click={() => downloadStlFile(true)}
+				><DownloadSolid class="mr-2" /> Download STL</Button
+			>
+			<Button on:click={() => downloadStlFile(false)}>Text STL</Button>
+		</ButtonGroup>
 		<Button class="ml-2" on:click={() => (isOpen = false)} color="alternative">Close</Button>
 	</div>
 	<div class="canvasContainer">

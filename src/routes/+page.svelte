@@ -3,7 +3,7 @@
 
 	import { Button, Dropdown, DropdownDivider, DropdownItem } from 'flowbite-svelte';
 	import { Navbar, NavBrand, NavHamburger, NavLi, NavUl } from 'flowbite-svelte';
-	import { ChevronDownOutline } from 'flowbite-svelte-icons';
+	import { ChevronDownOutline, VideoSolid } from 'flowbite-svelte-icons';
 	import { onMount } from 'svelte';
 	import { get } from 'svelte/store';
 	import { Circle, Image, Layer, Rect, Stage } from 'svelte-konva';
@@ -16,7 +16,6 @@
 	import ModalPanelSettings from '$components/ModalPanelSettings.svelte';
 	import ModalRectangleSettings from '$components/ModalRectangleSettings.svelte';
 	import { generateMesh, polygonsToVertexArray } from '$lib/3d/mesh';
-	import { generateStl } from '$lib/3d/stl';
 	import { virtualDownload } from '$lib/download';
 	import type { CircleData } from '$types/CircleData';
 	import type { ImageSize } from '$types/ImageSize';
@@ -295,8 +294,7 @@
 		if (!imageSize) return;
 		const meshPolygons = generateMesh({ panelSettings, rectangles, circles, legs, imageSize });
 		const vertices = polygonsToVertexArray(meshPolygons.polygons);
-		const stl = generateStl(meshPolygons.polygons);
-		modalMeshDisplay.open(filename, meshPolygons.dimensions, vertices, stl);
+		modalMeshDisplay.open(filename, meshPolygons.dimensions, vertices);
 	};
 </script>
 
@@ -314,7 +312,9 @@
 		>
 	</NavBrand>
 	<div class="flex md:order-2">
-		<Button disabled={!pcbImage} on:click={() => openDisplay()}>Display 3D</Button>
+		<Button disabled={!pcbImage} on:click={() => openDisplay()}
+			><VideoSolid class="mr-2" /> Display 3D</Button
+		>
 		<NavHamburger />
 	</div>
 	<NavUl class="order-1">
@@ -349,7 +349,11 @@
 </div>
 <div class="flex justify-center">
 	{#if !pcbImage}
-		<FileDropzone onUpload={(imgData, filename) => onFileUpload(imgData, filename, true, false)} />
+		<FileDropzone
+			title="Top view of PCB image or a project file"
+			description="Click to upload or drag and drop a file. Image files (png, jpg) begin a new project, a .tht3d file restores a previously saved project."
+			onUpload={(imgData, filename) => onFileUpload(imgData, filename, true, false)}
+		/>
 	{:else if typeof window !== 'undefined' && imageSize}
 		<Stage
 			config={{

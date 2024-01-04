@@ -27,9 +27,9 @@
 		"@sveltejs/adapter-static": "^3.0.1",
 		"@sveltejs/kit": "^2.0.6",
 		"@sveltejs/vite-plugin-svelte": "^3.0.1",
+		"@types/three": "^0.160.0",
 		"@typescript-eslint/eslint-plugin": "^6.17.0",
 		"@typescript-eslint/parser": "^6.17.0",
-		"@types/three": "^0.160.0",
 		"autoprefixer": "^10.4.16",
 		"eslint": "^8.56.0",
 		"eslint-config-prettier": "^9.1.0",
@@ -53,11 +53,12 @@
 		"type-fest": "^4.9.0",
 		"typescript": "^5.3.3",
 		"vite": "^5.0.10",
-		"vitest": "^1.1.1"
+		"vitest": "^1.1.2"
 	},
 	"dependencies": {
 		"@threlte/core": "^7.0.12",
 		"@threlte/extras": "^8.1.1",
+		"buffer": "^6.0.3",
 		"canvas": "^2.11.2",
 		"konva": "^9.3.0",
 		"svelte-konva": "^0.3.1",

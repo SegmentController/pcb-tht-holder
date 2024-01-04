@@ -1,6 +1,8 @@
 <script lang="ts">
 	import { Dropzone } from 'flowbite-svelte';
 
+	export let title: string;
+	export let description: string;
 	export let onUpload: (data: string, filename: string) => void;
 
 	const loadFile = (file: File) => {
@@ -38,7 +40,7 @@
 	on:change={handleChange}
 	class="max-w-96"
 >
-	<p class="mb-2 text-lg text-gray-500 dark:text-gray-400"><b>Top view</b> PCB image</p>
+	<p class="mb-2 text-lg text-gray-500 dark:text-gray-400 font-semibold">{title}</p>
 	<svg
 		aria-hidden="true"
 		class="mb-3 w-10 h-10 text-gray-400"
@@ -53,8 +55,5 @@
 			d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12"
 		/></svg
 	>
-	<p class="mb-2 text-sm text-gray-500 dark:text-gray-400">
-		<span class="font-semibold">Click to upload</span> or drag and drop an image
-	</p>
-	<p class="text-xs text-gray-500 dark:text-gray-400">PNG, JPG or SVG</p>
+	<p class="mb-2 text-sm text-gray-500 dark:text-gray-400">{description}</p>
 </Dropzone>

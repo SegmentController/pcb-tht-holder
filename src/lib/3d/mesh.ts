@@ -5,6 +5,7 @@ import type { RenderableProject } from '$types/Project';
 
 const BOTTOM_THICKNESS = 2;
 const EDGE_THICKNESS = 2;
+const ROUND_CORRECTION = 1;
 
 export type MeshDimensionInfo = {
 	x: number;
@@ -51,14 +52,14 @@ export const generateMesh = (project: RenderableProject): MeshInfo => {
 	);
 
 	const evaluator = new Evaluator();
-	const emptySpace = MESH(BOX(panel.width, panel.height, emptyHeight));
+	const emptySpace = MESH(BOX(panel.width, panel.height, emptyHeight + ROUND_CORRECTION));
 	{
 		emptySpace.position.z += BOTTOM_THICKNESS + needHeight - emptyHeight;
 		emptySpace.updateMatrixWorld();
 		mesh = evaluator.evaluate(mesh, emptySpace, SUBTRACTION);
 	}
 	for (const rectangle of project.rectangles) {
-		const box = MESH(BOX(rectangle.sizeX, rectangle.sizeY, rectangle.depth));
+		const box = MESH(BOX(rectangle.sizeX, rectangle.sizeY, rectangle.depth + ROUND_CORRECTION));
 		box.position.x += rectangle.konvaConfig.x + rectangle.sizeX / 2 - panel.width / 2;
 		box.position.y -= rectangle.konvaConfig.y + rectangle.sizeY / 2 - panel.height / 2;
 		box.position.z += BOTTOM_THICKNESS + (componentHeigh - rectangle.depth);
@@ -66,7 +67,7 @@ export const generateMesh = (project: RenderableProject): MeshInfo => {
 		mesh = evaluator.evaluate(mesh, box, SUBTRACTION);
 	}
 	for (const circle of project.circles) {
-		const cylinder = MESH(CYLINDER(circle.diameter / 2, circle.depth));
+		const cylinder = MESH(CYLINDER(circle.diameter / 2, circle.depth + ROUND_CORRECTION));
 		cylinder.position.x += circle.konvaConfig.x - panel.width / 2;
 		cylinder.position.y -= circle.konvaConfig.y - panel.height / 2;
 		cylinder.position.z += BOTTOM_THICKNESS + (componentHeigh - circle.depth);

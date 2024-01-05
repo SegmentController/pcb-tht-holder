@@ -6,7 +6,9 @@
 </script>
 
 <script lang="ts">
-	import { Button, Label, Modal, NumberInput } from 'flowbite-svelte';
+	import { Button, Label, Modal } from 'flowbite-svelte';
+
+	import NumberInputBound from '$components/NumberInputBound.svelte';
 
 	let _settings: CircleSettings;
 	let _onOK: (settings: CircleSettings) => void;
@@ -31,11 +33,11 @@
 		<div class="grid gap-6 mb-6 md:grid-cols-2">
 			<div>
 				<Label for="diameter" class="mb-2">Diameter (mm)</Label>
-				<NumberInput id="diameter" bind:value={_settings.diameter} />
+				<NumberInputBound id="diameter" min={0.5} max={99} bind:value={_settings.diameter} />
 			</div>
 			<div>
 				<Label for="depth" class="mb-2">Depth (mm)</Label>
-				<NumberInput id="depth" bind:value={_settings.depth} />
+				<NumberInputBound id="depth" min={0.5} max={99} bind:value={_settings.depth} />
 			</div>
 		</div>
 	</div>

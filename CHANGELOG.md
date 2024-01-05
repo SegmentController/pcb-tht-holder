@@ -1,5 +1,17 @@
 # Change log
 
+## Unreleased
+
+### Added
+
+### Changed
+
+- Input values use boundaries
+
+### Fixed
+
+### Removed
+
 ## [1.0.5] - 2024-01-05
 
 ### Added

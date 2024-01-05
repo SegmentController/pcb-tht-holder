@@ -23,7 +23,7 @@ In its current state, it facilitates the installation of circular and oblong com
 
 Click here: https://segmentcontroller.github.io/pcb-tht-holder/
 
-#### Set up a PCB image
+### Set up a PCB image
 
 Enter a PCB image with drag and drop or file selection, which will automatically flip and become transparent.
 

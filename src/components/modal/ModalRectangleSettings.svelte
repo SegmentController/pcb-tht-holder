@@ -7,7 +7,9 @@
 </script>
 
 <script lang="ts">
-	import { Button, Label, Modal, NumberInput } from 'flowbite-svelte';
+	import { Button, Label, Modal } from 'flowbite-svelte';
+
+	import NumberInputBound from '$components/NumberInputBound.svelte';
 
 	let _settings: RectangleSettings;
 	let _onOK: (settings: RectangleSettings) => void;
@@ -32,15 +34,15 @@
 		<div class="grid gap-6 mb-6 md:grid-cols-2">
 			<div>
 				<Label for="sizeX" class="mb-2">Size X (mm)</Label>
-				<NumberInput id="sizeX" bind:value={_settings.sizeX} />
+				<NumberInputBound id="sizeX" min={0.5} max={99} bind:value={_settings.sizeX} />
 			</div>
 			<div>
 				<Label for="sizeY" class="mb-2">Size Y (mm)</Label>
-				<NumberInput id="sizeY" bind:value={_settings.sizeY} />
+				<NumberInputBound id="sizeY" min={0.5} max={99} bind:value={_settings.sizeY} />
 			</div>
 			<div>
 				<Label for="depth" class="mb-2">Depth (mm)</Label>
-				<NumberInput id="depth" bind:value={_settings.depth} />
+				<NumberInputBound id="depth" min={0.5} max={99} bind:value={_settings.depth} />
 			</div>
 		</div>
 	</div>

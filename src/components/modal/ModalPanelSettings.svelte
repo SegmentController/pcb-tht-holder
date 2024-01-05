@@ -1,6 +1,7 @@
 <script lang="ts">
-	import { Button, Label, Modal, NumberInput } from 'flowbite-svelte';
+	import { Button, Label, Modal } from 'flowbite-svelte';
 
+	import NumberInputBound from '$components/NumberInputBound.svelte';
 	import type { PanelSettings } from '$types/PanelSettings';
 
 	let _settings: PanelSettings;
@@ -20,19 +21,24 @@
 		<div class="grid gap-6 mb-6 md:grid-cols-2">
 			<div>
 				<Label for="width" class="mb-2">Panel width (mm)</Label>
-				<NumberInput id="width" bind:value={_settings.width} />
+				<NumberInputBound id="width" min={10} max={999} bind:value={_settings.width} />
 			</div>
 			<div>
 				<Label for="height" class="mb-2">Panel height (mm)</Label>
-				<NumberInput id="height" bind:value={_settings.height} />
+				<NumberInputBound id="height" min={10} max={999} bind:value={_settings.height} />
 			</div>
 			<div>
 				<Label for="pcbThickness" class="mb-2">PCB thickness (mm)</Label>
-				<NumberInput id="pcbThickness" bind:value={_settings.pcbThickness} />
+				<NumberInputBound
+					id="pcbThickness"
+					min={0.1}
+					max={10}
+					bind:value={_settings.pcbThickness}
+				/>
 			</div>
 			<div>
 				<Label for="smdHeight" class="mb-2">SMD height (mm)</Label>
-				<NumberInput id="smdHeight" bind:value={_settings.smdHeight} />
+				<NumberInputBound id="smdHeight" min={0.1} max={10} bind:value={_settings.smdHeight} />
 			</div>
 		</div>
 	</div>

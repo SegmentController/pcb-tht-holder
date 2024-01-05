@@ -22,7 +22,8 @@ export const generateStlFromVertices = (vertices: Float32Array): string[] => {
 
 	return lines;
 };
-
+export const getBinaryStlSizeKbFromVertices = (verticesLength: number) =>
+	Math.round((80 + 4 + 50 * (verticesLength / 9)) / 1024);
 export const generateBinaryStlFromVertices = (vertices: Float32Array): Buffer => {
 	const buffer = Buffer.allocUnsafe(80 + 4 + 50 * (vertices.length / 9));
 

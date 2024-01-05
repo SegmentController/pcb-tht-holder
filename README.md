@@ -1,5 +1,7 @@
 # PCB THT holder
 
+[Changelog](CHANGELOG.md)
+
 3D STL file generator for THT PCB panels, online access: https://segmentcontroller.github.io/pcb-tht-holder/
 
 I make almost all of my printed circuit boards with online design software and entrust the manufacturing company to install the SMD components. I install the THT (through hole technology) components at home for two reasons:

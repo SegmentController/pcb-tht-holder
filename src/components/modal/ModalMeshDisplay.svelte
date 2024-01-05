@@ -4,7 +4,11 @@
 	import { DownloadSolid } from 'flowbite-svelte-icons';
 
 	import type { MeshInfo } from '$lib/3d/mesh';
-	import { generateBinaryStlFromVertices, generateStlFromVertices } from '$lib/3d/stl';
+	import {
+		generateBinaryStlFromVertices,
+		generateStlFromVertices,
+		getBinaryStlSizeKbFromVertices
+	} from '$lib/3d/stl';
 	import { virtualDownload } from '$lib/download';
 	import { MathMax } from '$lib/Math';
 
@@ -49,22 +53,31 @@
 			{meshInfo.dimensions.x} x
 			{meshInfo.dimensions.y} x
 			{meshInfo.dimensions.depth} mm |
-			{meshInfo.vertexArray.length / 9} polygons
-			<Toggle id="wireframe" class="ml-8" bind:checked={wireframe}>Wireframe</Toggle>
+			{meshInfo.vertexArray.length / 9} polygons |
+			{getBinaryStlSizeKbFromVertices(meshInfo.vertexArray.length)} kB
 		{/await}
 	</div>
-	<div class="flex justify-end">
-		{#await _meshInfo}
-			{''}
-		{:then}
-			<ButtonGroup>
-				<Button color="primary" on:click={() => downloadStlFile(true)}
-					><DownloadSolid class="mr-2" /> Download STL</Button
-				>
-				<Button on:click={() => downloadStlFile(false)}>Text STL</Button>
-			</ButtonGroup>
-		{/await}
-		<Button class="ml-2" on:click={() => (isOpen = false)} color="alternative">Close</Button>
+	<div class="grid grid-cols-2">
+		<div class="flex justify-start">
+			{#await _meshInfo}
+				{''}
+			{:then}
+				<Toggle id="wireframe" bind:checked={wireframe}>Wireframe</Toggle>
+			{/await}
+		</div>
+		<div class="flex justify-end">
+			{#await _meshInfo}
+				{''}
+			{:then}
+				<ButtonGroup>
+					<Button color="primary" on:click={() => downloadStlFile(true)}
+						><DownloadSolid class="mr-2" /> Download STL</Button
+					>
+					<Button on:click={() => downloadStlFile(false)}>Text STL</Button>
+				</ButtonGroup>
+			{/await}
+			<Button class="ml-2" on:click={() => (isOpen = false)} color="alternative">Close</Button>
+		</div>
 	</div>
 	<div class="canvasContainer">
 		{#await _meshInfo}

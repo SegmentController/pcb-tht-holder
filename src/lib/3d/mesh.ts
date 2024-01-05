@@ -58,6 +58,29 @@ export const generateMesh = (project: RenderableProject): MeshInfo => {
 		emptySpace.updateMatrixWorld();
 		mesh = evaluator.evaluate(mesh, emptySpace, SUBTRACTION);
 	}
+	const remover = MESH(BOX(panel.width / 3, panel.height / 3, emptyHeight + ROUND_CORRECTION));
+	{
+		remover.position.z += BOTTOM_THICKNESS + needHeight - emptyHeight;
+		remover.updateMatrixWorld();
+
+		const deltas = [
+			{ dx: panel.width / 2, dy: 0 },
+			{ dx: -panel.width / 2, dy: 0 },
+			{ dx: 0, dy: panel.height / 2 },
+			{ dx: 0, dy: -panel.height / 2 }
+		];
+		for (const delta of deltas) {
+			remover.position.x += delta.dx;
+			remover.position.y += delta.dy;
+			try {
+				remover.updateMatrixWorld();
+				mesh = evaluator.evaluate(mesh, remover, SUBTRACTION);
+			} finally {
+				remover.position.x -= delta.dx;
+				remover.position.y -= delta.dy;
+			}
+		}
+	}
 	for (const rectangle of project.rectangles) {
 		const box = MESH(BOX(rectangle.sizeX, rectangle.sizeY, rectangle.depth + ROUND_CORRECTION));
 		box.position.x += rectangle.konvaConfig.x + rectangle.sizeX / 2 - panel.width / 2;

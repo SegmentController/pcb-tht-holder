@@ -10,6 +10,8 @@
 
 ### Fixed
 
+- Handle mesh generation errors
+
 ### Removed
 
 ## [1.0.5] - 2024-01-05

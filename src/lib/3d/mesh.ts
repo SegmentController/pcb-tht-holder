@@ -117,4 +117,12 @@ export const generateMesh = (project: RenderableProject): MeshInfo => {
 };
 
 export const generateMeshLazy = async (project: RenderableProject): Promise<MeshInfo> =>
-	new Promise((resolve) => setTimeout(() => resolve(generateMesh(project))));
+	new Promise((resolve, reject) =>
+		setTimeout(() => {
+			try {
+				resolve(generateMesh(project));
+			} catch (error) {
+				reject(error instanceof Error ? error.message : error);
+			}
+		})
+	);

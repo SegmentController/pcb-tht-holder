@@ -23,7 +23,9 @@
 	export const open = async (filename: string, meshInfo: Promise<MeshInfo>) => {
 		_filename = filename;
 		_meshInfo = meshInfo;
-		meshInfo.then((m) => (_dimension = MathMax([...m.vertexArray.values()])));
+		meshInfo
+			.then((m) => (_dimension = MathMax([...m.vertexArray.values()])))
+			.catch(() => (_dimension = 1));
 		isOpen = true;
 	};
 
@@ -31,13 +33,17 @@
 		_filename.slice(0, Math.max(0, _filename.lastIndexOf('.'))) + '.stl';
 
 	const downloadStlFile = async (isBinary: boolean) => {
-		const meshinfo = await _meshInfo;
-		virtualDownload(
-			generateFilename(),
-			isBinary
-				? generateBinaryStlFromVertices(meshinfo.vertexArray)
-				: generateStlFromVertices(meshinfo.vertexArray).join('\n')
-		);
+		try {
+			const meshinfo = await _meshInfo;
+			virtualDownload(
+				generateFilename(),
+				isBinary
+					? generateBinaryStlFromVertices(meshinfo.vertexArray)
+					: generateStlFromVertices(meshinfo.vertexArray).join('\n')
+			);
+		} catch {
+			0;
+		}
 	};
 </script>
 
@@ -55,6 +61,8 @@
 			{meshInfo.dimensions.depth} mm |
 			{meshInfo.vertexArray.length / 9} polygons |
 			{getBinaryStlSizeKbFromVertices(meshInfo.vertexArray.length)} kB
+		{:catch message}
+			<span class="text-red-500 text-xl">Error '{message}' occured while rendering mesh</span>
 		{/await}
 	</div>
 	<div class="grid grid-cols-2">
@@ -63,6 +71,8 @@
 				{''}
 			{:then}
 				<Toggle id="wireframe" bind:checked={wireframe}>Wireframe</Toggle>
+			{:catch}
+				{''}
 			{/await}
 		</div>
 		<div class="flex justify-end">
@@ -75,6 +85,8 @@
 					>
 					<Button on:click={() => downloadStlFile(false)}>Text STL</Button>
 				</ButtonGroup>
+			{:catch}
+				{''}
 			{/await}
 			<Button class="ml-2" on:click={() => (isOpen = false)} color="alternative">Close</Button>
 		</div>
@@ -86,6 +98,8 @@
 			<Canvas>
 				<Mesh3DScene vertices={meshInfo.vertexArray} dimension={_dimension} {wireframe} />
 			</Canvas>
+		{:catch}
+			{''}
 		{/await}
 	</div>
 </Modal>

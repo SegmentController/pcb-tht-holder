@@ -8,7 +8,7 @@
 	import { virtualDownload } from '$lib/download';
 	import { MathMax } from '$lib/Math';
 
-	import Mesh3DScene from './Mesh3DScene.svelte';
+	import Mesh3DScene from '../Mesh3DScene.svelte';
 
 	let _filename: string;
 	let _meshInfo: Promise<MeshInfo>;

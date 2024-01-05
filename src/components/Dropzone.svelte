@@ -38,7 +38,7 @@
 	on:dragover={(event) => event.preventDefault()}
 	on:drop={dropHandle}
 	on:change={handleChange}
-	class="max-w-96"
+	class="m-4"
 >
 	<p class="mb-2 text-lg text-gray-500 dark:text-gray-400 font-semibold">{title}</p>
 	<svg

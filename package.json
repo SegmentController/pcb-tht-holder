@@ -1,6 +1,6 @@
 {
 	"name": "pcb-tht-holder",
-	"version": "0.0.1",
+	"version": "1.0.4",
 	"type": "module",
 	"main": "build/index.js",
 	"engines": {
@@ -52,8 +52,8 @@
 		"tslib": "^2.6.2",
 		"type-fest": "^4.9.0",
 		"typescript": "^5.3.3",
-		"vite": "^5.0.10",
-		"vitest": "^1.1.2"
+		"vite": "^5.0.11",
+		"vitest": "^1.1.3"
 	},
 	"dependencies": {
 		"@threlte/core": "^7.0.12",

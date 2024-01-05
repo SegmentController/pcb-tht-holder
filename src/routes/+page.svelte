@@ -6,25 +6,24 @@
 	import { ChevronDownOutline, VideoSolid } from 'flowbite-svelte-icons';
 	import { onMount } from 'svelte';
 	import { get } from 'svelte/store';
-	import { Circle, Image, Layer, Rect, Stage } from 'svelte-konva';
+	import { Circle, Image, type KonvaDragTransformEvent, Layer, Rect, Stage } from 'svelte-konva';
 
 	import { base } from '$app/paths';
-	import FileDropzone from '$components/FileDropzone.svelte';
-	import ModalCircleSettings from '$components/ModalCircleSettings.svelte';
-	import ModalConfirm from '$components/ModalConfirm.svelte';
-	import ModalMeshDisplay from '$components/ModalMeshDisplay.svelte';
-	import ModalPanelSettings from '$components/ModalPanelSettings.svelte';
-	import ModalRectangleSettings from '$components/ModalRectangleSettings.svelte';
+	import Dropzone from '$components/Dropzone.svelte';
+	import ModalCircleSettings from '$components/modal/ModalCircleSettings.svelte';
+	import ModalConfirm from '$components/modal/ModalConfirm.svelte';
+	import ModalMeshDisplay from '$components/modal/ModalMeshDisplay.svelte';
+	import ModalPanelSettings from '$components/modal/ModalPanelSettings.svelte';
+	import ModalRectangleSettings from '$components/modal/ModalRectangleSettings.svelte';
 	import { generateMeshLazy } from '$lib/3d/mesh';
 	import { virtualDownload } from '$lib/download';
+	import { preferencesStore } from '$stores/projectStore';
 	import type { CircleData } from '$types/CircleData';
 	import type { ImageSize } from '$types/ImageSize';
 	import { LEG_SIZE, type LegData } from '$types/LegData';
 	import type { PanelSettings } from '$types/PanelSettings';
 	import { Project } from '$types/Project';
-	import type { RectangleData } from '$types/RectangleData';
-
-	import { preferencesStore } from '../store/projectStore';
+	import { RectangleData } from '$types/RectangleData';
 
 	onMount(() => {
 		const preferences = get(preferencesStore);
@@ -36,6 +35,8 @@
 			panelSettings = preferences.panelSettings;
 		}
 	});
+	/*global __PKG_VERSION__*/
+	const APP_VERSION = __PKG_VERSION__;
 
 	let circles: CircleData[] = [];
 	let rectangles: RectangleData[] = [];
@@ -295,6 +296,29 @@
 		const meshInfo = generateMeshLazy({ panelSettings, rectangles, circles, legs, imageSize });
 		modalMeshDisplay.open(filename, meshInfo);
 	};
+
+	const limitBox = (event: KonvaDragTransformEvent, box: RectangleData | LegData) => {
+		const target = event.detail.target;
+		const maxX = panelSettings.width - ('sizeX' in box ? box.sizeX : LEG_SIZE);
+		const maxY = panelSettings.height - ('sizeY' in box ? box.sizeY : LEG_SIZE);
+
+		if (target.x() < 0) target.x(0);
+		if (target.x() > maxX) target.x(maxX);
+		if (target.y() < 0) target.y(0);
+		if (target.y() > maxY) target.y(maxY);
+	};
+	const limitCircle = (event: KonvaDragTransformEvent, circle: CircleData) => {
+		const target = event.detail.target;
+		const minX = circle.diameter / 2;
+		const minY = circle.diameter / 2;
+		const maxX = panelSettings.width - circle.diameter / 2;
+		const maxY = panelSettings.height - circle.diameter / 2;
+
+		if (target.x() < minX) target.x(minX);
+		if (target.x() > maxX) target.x(maxX);
+		if (target.y() < minY) target.y(minY);
+		if (target.y() > maxY) target.y(maxY);
+	};
 </script>
 
 <ModalConfirm bind:this={modalConfirm} />
@@ -309,6 +333,7 @@
 		<span class="self-center whitespace-nowrap text-xl font-semibold dark:text-white"
 			>PCB THT Holder</span
 		>
+		<span class="ml-2 self-center whitespace-nowrap text-sm dark:text-white">v{APP_VERSION}</span>
 	</NavBrand>
 	<div class="flex md:order-2">
 		<Button disabled={!pcbImage} on:click={() => openDisplay()}
@@ -323,8 +348,9 @@
 			</NavLi>
 			<Dropdown class="w-44 z-20">
 				<DropdownItem href="#" on:click={reset}>New</DropdownItem>
+				<DropdownItem href="#" on:click={downloadProjectFile}>Save project...</DropdownItem>
 				<DropdownDivider />
-				<DropdownItem href="#" on:click={downloadProjectFile}>Export project</DropdownItem>
+				<DropdownItem href="#" on:click={openPanelSettings}>Panel settings</DropdownItem>
 			</Dropdown>
 			<NavLi class="cursor-pointer">
 				Component<ChevronDownOutline class="w-3 h-3 ms-2 text-primary-800 dark:text-white inline" />
@@ -335,7 +361,6 @@
 				<DropdownDivider />
 				<DropdownItem href="#" on:click={addLeg}>Add leg</DropdownItem>
 			</Dropdown>
-			<NavLi href="#" on:click={openPanelSettings}>Panel settings</NavLi>
 		{/if}
 	</NavUl>
 </Navbar>
@@ -348,7 +373,7 @@
 </div>
 <div class="flex justify-center">
 	{#if !pcbImage}
-		<FileDropzone
+		<Dropzone
 			title="Top view of PCB image or a project file"
 			description="Click to upload or drag and drop a file. Image files (png, jpg) begin a new project, a .tht3d file restores a previously saved project."
 			onUpload={(imgData, filename) => onFileUpload(imgData, filename, true, false)}
@@ -377,6 +402,7 @@
 						bind:config={circle.konvaConfig}
 						on:dblclick={() => dblClickCircle(circle)}
 						on:dragend={storeCircleChanges}
+						on:dragmove={(event) => limitCircle(event, circle)}
 					/>
 				{/each}
 				{#each rectangles as rectangle}
@@ -384,6 +410,7 @@
 						bind:config={rectangle.konvaConfig}
 						on:dblclick={() => dblClickRectangle(rectangle)}
 						on:dragend={storeRectangleChanges}
+						on:dragmove={(event) => limitBox(event, rectangle)}
 					/>
 				{/each}
 				{#each legs as leg}
@@ -391,6 +418,7 @@
 						bind:config={leg.konvaConfig}
 						on:dblclick={() => dblClickLeg(leg)}
 						on:dragend={storeLegChanges}
+						on:dragmove={(event) => limitBox(event, leg)}
 					/>
 				{/each}
 			</Layer>

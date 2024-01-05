@@ -25,6 +25,7 @@ const config = {
 			$assets: './src/lib/assets',
 			$components: './src/components',
 			$lib: './src/lib',
+			$stores: './src/stores',
 			$types: './src/types'
 		}
 	}

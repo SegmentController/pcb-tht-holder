@@ -1,5 +1,4 @@
-// eslint-disable-next-line unicorn/prefer-node-protocol
-import { Buffer } from 'buffer';
+import { writeFloatLE, writeInt16LE, writeInt32LE } from '$lib/buffer';
 
 const SOLID_NAME = 'THT-holder';
 
@@ -22,19 +21,20 @@ export const generateStlFromVertices = (vertices: Float32Array): string[] => {
 
 	return lines;
 };
+
 export const getBinaryStlSizeKbFromVertices = (verticesLength: number) =>
 	Math.round((80 + 4 + 50 * (verticesLength / 9)) / 1024);
-export const generateBinaryStlFromVertices = (vertices: Float32Array): Buffer => {
-	const buffer = Buffer.allocUnsafe(80 + 4 + 50 * (vertices.length / 9));
+export const generateBinaryStlFromVertices = (vertices: Float32Array): Uint8Array => {
+	const buffer = new Uint8Array(80 + 4 + 50 * (vertices.length / 9));
 
-	let pos = buffer.writeInt32LE(vertices.length / 9, 80);
+	let pos = writeInt32LE(buffer, vertices.length / 9, 80);
 	if (vertices.length % 9 === 0) {
 		let index = 0;
 		while (index < vertices.length) {
-			for (let pointIndex = 0; pointIndex < 3; pointIndex++) pos = buffer.writeFloatLE(0, pos);
+			for (let pointIndex = 0; pointIndex < 3; pointIndex++) pos = writeFloatLE(buffer, 0, pos);
 			for (let pointIndex = 0; pointIndex < 9; pointIndex++)
-				pos = buffer.writeFloatLE(vertices.at(index++)!, pos);
-			pos = buffer.writeInt16LE(0, pos);
+				pos = writeFloatLE(buffer, vertices.at(index++)!, pos);
+			pos = writeInt16LE(buffer, 0, pos);
 		}
 	}
 

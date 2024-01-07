@@ -1,7 +1,4 @@
-// eslint-disable-next-line unicorn/prefer-node-protocol
-import { Buffer } from 'buffer';
-
-export const virtualDownload = (filename: string, data: string | Buffer) => {
+export const virtualDownload = (filename: string, data: string | Uint8Array) => {
 	const a = document.createElement('a');
 	try {
 		document.body.append(a);

@@ -3,7 +3,7 @@
 
 	import { Button, Dropdown, DropdownDivider, DropdownItem } from 'flowbite-svelte';
 	import { Navbar, NavBrand, NavHamburger, NavLi, NavUl } from 'flowbite-svelte';
-	import { ChevronDownOutline, VideoSolid } from 'flowbite-svelte-icons';
+	import { ChevronDownOutline, ChevronRightSolid, VideoSolid } from 'flowbite-svelte-icons';
 	import { nanoid } from 'nanoid';
 	import { onMount } from 'svelte';
 	import { get } from 'svelte/store';
@@ -23,14 +23,17 @@
 	import ModalCircleSettings from '$components/modal/ModalCircleSettings.svelte';
 	import ModalConfirm from '$components/modal/ModalConfirm.svelte';
 	import ModalMeshDisplay from '$components/modal/ModalMeshDisplay.svelte';
+	import ModalNameEdit from '$components/modal/ModalNameEdit.svelte';
 	import ModalPanelSettings from '$components/modal/ModalPanelSettings.svelte';
 	import ModalRectangleSettings from '$components/modal/ModalRectangleSettings.svelte';
 	import { generateMeshLazy } from '$lib/3d/mesh';
 	import { virtualDownload } from '$lib/download';
+	import { libraryStore } from '$stores/libraryStore';
 	import { preferencesStore } from '$stores/projectStore';
 	import type { CircleData } from '$types/CircleData';
 	import type { ImageSize } from '$types/ImageSize';
 	import { LEG_SIZE, type LegData } from '$types/LegData';
+	import { LibraryItem } from '$types/Library';
 	import type { PanelSettings } from '$types/PanelSettings';
 	import { Project } from '$types/Project';
 	import { RectangleData } from '$types/RectangleData';
@@ -58,6 +61,7 @@
 	let imageSize: ImageSize | undefined;
 
 	let modalConfirm: ModalConfirm;
+	let modalNameEdit: ModalNameEdit;
 	let modalPanelSettings: ModalPanelSettings;
 	let modalCircleSettings: ModalCircleSettings;
 	let modalRectangleSettings: ModalRectangleSettings;
@@ -177,7 +181,7 @@
 			});
 		});
 
-	const addCircle = (source?: CircleData) => {
+	const addCircle = (source?: Omit<CircleData, 'konvaConfig'>) => {
 		const circle: CircleData = {
 			depth: source?.depth || 5,
 			diameter: source?.diameter || 10,
@@ -188,7 +192,7 @@
 				opacity: 0.75,
 				x: panelSettings.width / 2,
 				y: panelSettings.height / 2,
-				radius: source?.konvaConfig.radius || 10
+				radius: (source?.diameter || 20) / 2
 			}
 		};
 		circles.push(circle);
@@ -204,6 +208,17 @@
 			});
 	};
 	const duplicateCircle = (source: CircleData) => addCircle(source);
+	const addCircleToLibrary = (source: CircleData) => {
+		modalNameEdit.open('circle', (name) => {
+			$libraryStore.push({
+				name,
+				type: 'circle',
+				diameter: source.diameter,
+				depth: source.depth
+			});
+			$libraryStore = $libraryStore;
+		});
+	};
 	const dblClickCircle = (circle: CircleData) => {
 		modalCircleSettings.open(circle, (recent) => {
 			circle.diameter = recent.diameter;
@@ -219,7 +234,7 @@
 			return value;
 		});
 
-	const addRectangle = (source?: RectangleData) => {
+	const addRectangle = (source?: Omit<RectangleData, 'konvaConfig'>) => {
 		const rectangle: RectangleData = {
 			depth: source?.depth || 5,
 			sizeX: source?.sizeX || 10,
@@ -231,8 +246,8 @@
 				opacity: 0.75,
 				x: panelSettings.width / 2,
 				y: panelSettings.height / 2,
-				width: source?.konvaConfig.width || 10,
-				height: source?.konvaConfig.height || 5
+				width: source?.sizeX || 10,
+				height: source?.sizeY || 5
 			}
 		};
 		rectangles.push(rectangle);
@@ -250,6 +265,18 @@
 			});
 	};
 	const duplicateRectangle = (source: RectangleData) => addRectangle(source);
+	const addRectangleToLibrary = (source: RectangleData) => {
+		modalNameEdit.open('rectangle', (name) => {
+			$libraryStore.push({
+				name,
+				type: 'rectangle',
+				sizeX: source.sizeX,
+				sizeY: source.sizeY,
+				depth: source.depth
+			});
+			$libraryStore = $libraryStore;
+		});
+	};
 	const dblClickRectangle = (rectangle: RectangleData) => {
 		modalRectangleSettings.open(rectangle, (recent) => {
 			rectangle.sizeX = recent.sizeX;
@@ -294,6 +321,26 @@
 			return value;
 		});
 
+	const addItemFromLibrary = (libraryItem: LibraryItem) => {
+		switch (libraryItem.type) {
+			case 'circle': {
+				addCircle({
+					diameter: libraryItem.diameter,
+					depth: libraryItem.depth
+				});
+				break;
+			}
+			case 'rectangle': {
+				addRectangle({
+					sizeX: libraryItem.sizeX,
+					sizeY: libraryItem.sizeY,
+					depth: libraryItem.depth
+				});
+				break;
+			}
+		}
+	};
+
 	const openDisplay = () => {
 		if (!imageSize) return;
 		const meshInfo = generateMeshLazy({ panelSettings, rectangles, circles, legs, imageSize });
@@ -331,12 +378,13 @@
 				const circle = circles.find((c) => c.konvaConfig.id === id);
 				if (circle) {
 					contextMenu.setItems([
-						{ name: `Circle ${circle.diameter}x${circle.depth} mm` },
+						{ name: `Circle ${circle.diameter}x${circle.depth}mm` },
 						{
 							name: 'Properties...',
 							onClick: () => dblClickCircle(circle)
 						},
 						{ name: 'Duplicate', onClick: () => duplicateCircle(circle) },
+						{ name: 'Add to library...', onClick: () => addCircleToLibrary(circle) },
 						{ name: '' },
 						{
 							name: 'Delete',
@@ -354,12 +402,13 @@
 				const rectangle = rectangles.find((r) => r.konvaConfig.id === id);
 				if (rectangle) {
 					contextMenu.setItems([
-						{ name: `Rectangle ${rectangle.sizeX}x${rectangle.sizeY}x${rectangle.depth} mm` },
+						{ name: `Rectangle ${rectangle.sizeX}x${rectangle.sizeY}x${rectangle.depth}mm` },
 						{
 							name: 'Properties...',
 							onClick: () => dblClickRectangle(rectangle)
 						},
 						{ name: 'Duplicate', onClick: () => duplicateRectangle(rectangle) },
+						{ name: 'Add to library...', onClick: () => addRectangleToLibrary(rectangle) },
 						{ name: '' },
 						{
 							name: 'Delete',
@@ -395,6 +444,7 @@
 </script>
 
 <ModalConfirm bind:this={modalConfirm} />
+<ModalNameEdit bind:this={modalNameEdit} />
 <ModalPanelSettings bind:this={modalPanelSettings} />
 <ModalCircleSettings bind:this={modalCircleSettings} />
 <ModalRectangleSettings bind:this={modalRectangleSettings} />
@@ -429,10 +479,25 @@
 				Component<ChevronDownOutline class="w-3 h-3 ms-2 text-primary-800 dark:text-white inline" />
 			</NavLi>
 			<Dropdown class="w-44 z-20">
-				<DropdownItem href="#" on:click={() => addCircle()}>Add circle</DropdownItem>
-				<DropdownItem href="#" on:click={() => addRectangle()}>Add rectangle</DropdownItem>
-				<DropdownDivider />
+				<DropdownItem href="#" on:click={() => addCircle()}>Add circle...</DropdownItem>
+				<DropdownItem href="#" on:click={() => addRectangle()}>Add rectangle...</DropdownItem>
 				<DropdownItem href="#" on:click={addLeg}>Add leg</DropdownItem>
+				{#if $libraryStore.length}
+					<DropdownItem class="flex items-center justify-between">
+						Add from library<ChevronRightSolid
+							class="w-3 h-3 ms-2 text-primary-700 dark:text-white"
+						/>
+					</DropdownItem>
+					<Dropdown class="w-auto min-w-44 z-20" placement="right-start">
+						{#each $libraryStore.sort((a, b) => a.name.localeCompare(b.name)) as libraryItem}
+							<DropdownItem on:click={() => addItemFromLibrary(libraryItem)}
+								>{libraryItem.name} ({libraryItem.type})</DropdownItem
+							>
+						{/each}
+					</Dropdown>
+				{/if}
+				<DropdownDivider />
+				<DropdownItem href="#" on:click={() => {}}>Library...</DropdownItem>
 			</Dropdown>
 		{/if}
 	</NavUl>
@@ -476,24 +541,24 @@
 					<Circle
 						bind:config={circle.konvaConfig}
 						on:dblclick={() => dblClickCircle(circle)}
-						on:dragend={storeCircleChanges}
 						on:dragmove={(event) => limitCircle(event, circle)}
+						on:dragend={storeCircleChanges}
 					/>
 				{/each}
 				{#each rectangles as rectangle}
 					<Rect
 						bind:config={rectangle.konvaConfig}
 						on:dblclick={() => dblClickRectangle(rectangle)}
-						on:dragend={storeRectangleChanges}
 						on:dragmove={(event) => limitBox(event, rectangle)}
+						on:dragend={storeRectangleChanges}
 					/>
 				{/each}
 				{#each legs as leg}
 					<Rect
 						bind:config={leg.konvaConfig}
 						on:dblclick={() => dblClickLeg(leg)}
-						on:dragend={storeLegChanges}
 						on:dragmove={(event) => limitBox(event, leg)}
+						on:dragend={storeLegChanges}
 					/>
 				{/each}
 			</Layer>

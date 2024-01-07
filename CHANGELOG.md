@@ -4,6 +4,16 @@
 
 ### Added
 
+### Changed
+
+### Removed
+
+### Fixed
+
+## [1.1.0] - 2024-01-07
+
+### Added
+
 - Shape context menu: Properties, Duplicate and Delete
 - Library, favorite items
 - Rotate rectangle

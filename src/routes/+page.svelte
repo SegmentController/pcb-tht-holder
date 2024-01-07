@@ -4,11 +4,21 @@
 	import { Button, Dropdown, DropdownDivider, DropdownItem } from 'flowbite-svelte';
 	import { Navbar, NavBrand, NavHamburger, NavLi, NavUl } from 'flowbite-svelte';
 	import { ChevronDownOutline, VideoSolid } from 'flowbite-svelte-icons';
+	import { nanoid } from 'nanoid';
 	import { onMount } from 'svelte';
 	import { get } from 'svelte/store';
-	import { Circle, Image, type KonvaDragTransformEvent, Layer, Rect, Stage } from 'svelte-konva';
+	import {
+		Circle,
+		Image,
+		type KonvaDragTransformEvent,
+		type KonvaMouseEvent,
+		Layer,
+		Rect,
+		Stage
+	} from 'svelte-konva';
 
 	import { base } from '$app/paths';
+	import ContextMenu from '$components/ContextMenu.svelte';
 	import Dropzone from '$components/Dropzone.svelte';
 	import ModalCircleSettings from '$components/modal/ModalCircleSettings.svelte';
 	import ModalConfirm from '$components/modal/ModalConfirm.svelte';
@@ -167,22 +177,34 @@
 			});
 		});
 
-	const addCircle = () => {
+	const addCircle = (source?: CircleData) => {
 		const circle: CircleData = {
-			depth: 5,
-			diameter: 10,
+			depth: source?.depth || 5,
+			diameter: source?.diameter || 10,
 			konvaConfig: {
+				id: nanoid(),
 				draggable: true,
 				fill: 'orange',
 				opacity: 0.75,
 				x: panelSettings.width / 2,
 				y: panelSettings.height / 2,
-				radius: 10
+				radius: source?.konvaConfig.radius || 10
 			}
 		};
 		circles.push(circle);
 		circles = circles;
 		storeCircleChanges();
+		if (!source)
+			modalCircleSettings.open(circle, (recent) => {
+				circle.diameter = recent.diameter;
+				circle.depth = recent.depth;
+				circle.konvaConfig.radius = circle.diameter / 2;
+				circles = circles;
+				storeCircleChanges();
+			});
+	};
+	const duplicateCircle = (source: CircleData) => addCircle(source);
+	const dblClickCircle = (circle: CircleData) => {
 		modalCircleSettings.open(circle, (recent) => {
 			circle.diameter = recent.diameter;
 			circle.depth = recent.depth;
@@ -191,46 +213,44 @@
 			storeCircleChanges();
 		});
 	};
-	const dblClickCircle = (circle: CircleData) => {
-		modalCircleSettings.open(
-			circle,
-			(recent) => {
-				circle.diameter = recent.diameter;
-				circle.depth = recent.depth;
-				circle.konvaConfig.radius = circle.diameter / 2;
-				circles = circles;
-				storeCircleChanges();
-			},
-			() => {
-				circles = circles.filter((c) => c != circle);
-				storeCircleChanges();
-			}
-		);
-	};
 	const storeCircleChanges = () =>
 		preferencesStore.update((value) => {
 			value.circles = circles;
 			return value;
 		});
 
-	const addRectangle = () => {
+	const addRectangle = (source?: RectangleData) => {
 		const rectangle: RectangleData = {
-			depth: 5,
-			sizeX: 10,
-			sizeY: 5,
+			depth: source?.depth || 5,
+			sizeX: source?.sizeX || 10,
+			sizeY: source?.sizeY || 5,
 			konvaConfig: {
+				id: nanoid(),
 				draggable: true,
 				fill: 'green',
 				opacity: 0.75,
 				x: panelSettings.width / 2,
 				y: panelSettings.height / 2,
-				width: 10,
-				height: 5
+				width: source?.konvaConfig.width || 10,
+				height: source?.konvaConfig.height || 5
 			}
 		};
 		rectangles.push(rectangle);
 		rectangles = rectangles;
 		storeRectangleChanges();
+		if (!source)
+			modalRectangleSettings.open(rectangle, (recent) => {
+				rectangle.sizeX = recent.sizeX;
+				rectangle.sizeY = recent.sizeY;
+				rectangle.depth = recent.depth;
+				rectangle.konvaConfig.width = rectangle.sizeX;
+				rectangle.konvaConfig.height = rectangle.sizeY;
+				rectangles = rectangles;
+				storeRectangleChanges();
+			});
+	};
+	const duplicateRectangle = (source: RectangleData) => addRectangle(source);
+	const dblClickRectangle = (rectangle: RectangleData) => {
 		modalRectangleSettings.open(rectangle, (recent) => {
 			rectangle.sizeX = recent.sizeX;
 			rectangle.sizeY = recent.sizeY;
@@ -241,24 +261,6 @@
 			storeRectangleChanges();
 		});
 	};
-	const dblClickRectangle = (rectangle: RectangleData) => {
-		modalRectangleSettings.open(
-			rectangle,
-			(recent) => {
-				rectangle.sizeX = recent.sizeX;
-				rectangle.sizeY = recent.sizeY;
-				rectangle.depth = recent.depth;
-				rectangle.konvaConfig.width = rectangle.sizeX;
-				rectangle.konvaConfig.height = rectangle.sizeY;
-				rectangles = rectangles;
-				storeRectangleChanges();
-			},
-			() => {
-				rectangles = rectangles.filter((r) => r != rectangle);
-				storeRectangleChanges();
-			}
-		);
-	};
 	const storeRectangleChanges = () =>
 		preferencesStore.update((value) => {
 			value.rectangles = rectangles;
@@ -268,6 +270,7 @@
 	const addLeg = () => {
 		const leg: LegData = {
 			konvaConfig: {
+				id: nanoid(),
 				draggable: true,
 				fill: 'gray',
 				opacity: 0.75,
@@ -319,6 +322,76 @@
 		if (target.y() < minY) target.y(minY);
 		if (target.y() > maxY) target.y(maxY);
 	};
+
+	let contextMenu: ContextMenu;
+	const stageClick = (event: KonvaMouseEvent) => {
+		if (event.detail.evt.button === 2) {
+			const id = event.detail.target.id();
+			{
+				const circle = circles.find((c) => c.konvaConfig.id === id);
+				if (circle) {
+					contextMenu.setItems([
+						{ name: `Circle ${circle.diameter}x${circle.depth} mm` },
+						{
+							name: 'Properties...',
+							onClick: () => dblClickCircle(circle)
+						},
+						{ name: 'Duplicate', onClick: () => duplicateCircle(circle) },
+						{ name: '' },
+						{
+							name: 'Delete',
+							onClick: () => {
+								circles = circles.filter((c) => c != circle);
+								storeCircleChanges();
+							}
+						}
+					]);
+					contextMenu.toggleAt(event.detail.evt.pageX, event.detail.evt.pageY);
+					return;
+				}
+			}
+			{
+				const rectangle = rectangles.find((r) => r.konvaConfig.id === id);
+				if (rectangle) {
+					contextMenu.setItems([
+						{ name: `Rectangle ${rectangle.sizeX}x${rectangle.sizeY}x${rectangle.depth} mm` },
+						{
+							name: 'Properties...',
+							onClick: () => dblClickRectangle(rectangle)
+						},
+						{ name: 'Duplicate', onClick: () => duplicateRectangle(rectangle) },
+						{ name: '' },
+						{
+							name: 'Delete',
+							onClick: () => {
+								rectangles = rectangles.filter((r) => r != rectangle);
+								storeRectangleChanges();
+							}
+						}
+					]);
+					contextMenu.toggleAt(event.detail.evt.pageX, event.detail.evt.pageY);
+					return;
+				}
+			}
+			{
+				const leg = legs.find((c) => c.konvaConfig.id === id);
+				if (leg) {
+					contextMenu.setItems([
+						{ name: 'Leg' },
+						{
+							name: 'Delete',
+							onClick: () => {
+								legs = legs.filter((l) => l != leg);
+								storeLegChanges();
+							}
+						}
+					]);
+					contextMenu.toggleAt(event.detail.evt.pageX, event.detail.evt.pageY);
+					return;
+				}
+			}
+		}
+	};
 </script>
 
 <ModalConfirm bind:this={modalConfirm} />
@@ -356,8 +429,8 @@
 				Component<ChevronDownOutline class="w-3 h-3 ms-2 text-primary-800 dark:text-white inline" />
 			</NavLi>
 			<Dropdown class="w-44 z-20">
-				<DropdownItem href="#" on:click={addCircle}>Add circle</DropdownItem>
-				<DropdownItem href="#" on:click={addRectangle}>Add rectangle</DropdownItem>
+				<DropdownItem href="#" on:click={() => addCircle()}>Add circle</DropdownItem>
+				<DropdownItem href="#" on:click={() => addRectangle()}>Add rectangle</DropdownItem>
 				<DropdownDivider />
 				<DropdownItem href="#" on:click={addLeg}>Add leg</DropdownItem>
 			</Dropdown>
@@ -375,11 +448,12 @@
 	{#if !pcbImage}
 		<Dropzone
 			title="Top view of PCB image or a project file"
-			description="Click to upload or drag and drop a file. Image files (png, jpg) begin a new project, a .tht3d file restores a previously saved project."
+			description="Click to upload or drag and drop a file. Image file (png, jpg) begins a new project, a .tht3d file restores a previously saved project."
 			onUpload={(imgData, filename) => onFileUpload(imgData, filename, true, false)}
 		/>
 	{:else if typeof window !== 'undefined' && imageSize}
 		<Stage
+			on:click={stageClick}
 			config={{
 				width: imageSize.width,
 				height: imageSize.height,
@@ -397,6 +471,7 @@
 						opacity: 0.25
 					}}
 				/>
+				<ContextMenu bind:this={contextMenu} items={[]} />
 				{#each circles as circle}
 					<Circle
 						bind:config={circle.konvaConfig}

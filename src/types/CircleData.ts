@@ -9,6 +9,7 @@ export const CircleData = z.object({
 
 		radius: z.number(),
 
+		id: z.string(),
 		fill: z.literal('orange'),
 		draggable: z.literal(true),
 		opacity: z.literal(0.75)

@@ -10,6 +10,7 @@ export const RectangleData = z.object({
 		width: z.number(),
 		height: z.number(),
 
+		id: z.string(),
 		fill: z.literal('green'),
 		draggable: z.literal(true),
 		opacity: z.literal(0.75)

@@ -13,17 +13,14 @@
 
 	let _settings: RectangleSettings;
 	let _onOK: (settings: RectangleSettings) => void;
-	let _onDelete: (() => void) | undefined;
 	let isOpen: boolean = false;
 
 	export const open = (
 		settings: RectangleSettings,
-		onOK: (settings: RectangleSettings) => void,
-		onDelete?: () => void
+		onOK: (settings: RectangleSettings) => void
 	): void => {
 		_settings = settings;
 		_onOK = onOK;
-		_onDelete = onDelete;
 		isOpen = true;
 	};
 </script>
@@ -56,15 +53,5 @@
 			class="me-2">OK</Button
 		>
 		<Button on:click={() => (isOpen = false)} color="alternative" class="me-2">Cancel</Button>
-		{#if _onDelete}
-			<Button
-				on:click={() => {
-					isOpen = false;
-					_onDelete && _onDelete();
-				}}
-				color="red"
-				class="me-2 float-right">Remove</Button
-			>
-		{/if}
 	</div>
 </Modal>

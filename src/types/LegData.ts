@@ -9,6 +9,7 @@ export const LegData = z.object({
 		width: z.number(),
 		height: z.number(),
 
+		id: z.string(),
 		fill: z.literal('gray'),
 		draggable: z.literal(true),
 		opacity: z.literal(0.75)

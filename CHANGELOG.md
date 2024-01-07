@@ -4,6 +4,8 @@
 
 ### Added
 
+- Shape context menu: Properties, Duplicate and Delete
+
 ### Changed
 
 - Input values use boundaries

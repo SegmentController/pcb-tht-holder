@@ -516,7 +516,7 @@
 			description="Click to upload or drag and drop a file. Image file (png, jpg) begins a new project, a .tht3d file restores a previously saved project."
 			onUpload={(imgData, filename) => onFileUpload(imgData, filename, true, false)}
 		/>
-	{:else if typeof window !== 'undefined' && imageSize}
+	{:else if imageSize}
 		<Stage
 			on:click={stageClick}
 			config={{

@@ -5,6 +5,8 @@
 ### Added
 
 - Shape context menu: Properties, Duplicate and Delete
+- Library, favorite items
+- Rotate rectangle
 
 ### Changed
 

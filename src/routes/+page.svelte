@@ -22,6 +22,7 @@
 	import Dropzone from '$components/Dropzone.svelte';
 	import ModalCircleSettings from '$components/modal/ModalCircleSettings.svelte';
 	import ModalConfirm from '$components/modal/ModalConfirm.svelte';
+	import ModalLibrary from '$components/modal/ModalLibrary.svelte';
 	import ModalMeshDisplay from '$components/modal/ModalMeshDisplay.svelte';
 	import ModalNameEdit from '$components/modal/ModalNameEdit.svelte';
 	import ModalPanelSettings from '$components/modal/ModalPanelSettings.svelte';
@@ -66,6 +67,7 @@
 	let modalCircleSettings: ModalCircleSettings;
 	let modalRectangleSettings: ModalRectangleSettings;
 	let modalMeshDisplay: ModalMeshDisplay;
+	let modalLibrary: ModalLibrary;
 
 	let panelSettings: PanelSettings = {
 		width: 100,
@@ -265,6 +267,15 @@
 			});
 	};
 	const duplicateRectangle = (source: RectangleData) => addRectangle(source);
+	const rotateRectangle = (rectangle: RectangleData) => {
+		const oldX = rectangle.sizeX;
+		rectangle.sizeX = rectangle.sizeY;
+		rectangle.sizeY = oldX;
+		rectangle.konvaConfig.width = rectangle.sizeX;
+		rectangle.konvaConfig.height = rectangle.sizeY;
+		rectangles = rectangles;
+		storeRectangleChanges();
+	};
 	const addRectangleToLibrary = (source: RectangleData) => {
 		modalNameEdit.open('rectangle', (name) => {
 			$libraryStore.push({
@@ -407,6 +418,7 @@
 							name: 'Properties...',
 							onClick: () => dblClickRectangle(rectangle)
 						},
+						{ name: 'Rotate', onClick: () => rotateRectangle(rectangle) },
 						{ name: 'Duplicate', onClick: () => duplicateRectangle(rectangle) },
 						{ name: 'Add to library...', onClick: () => addRectangleToLibrary(rectangle) },
 						{ name: '' },
@@ -449,6 +461,7 @@
 <ModalCircleSettings bind:this={modalCircleSettings} />
 <ModalRectangleSettings bind:this={modalRectangleSettings} />
 <ModalMeshDisplay bind:this={modalMeshDisplay} />
+<ModalLibrary bind:this={modalLibrary} />
 
 <Navbar>
 	<NavBrand href="#">
@@ -497,7 +510,12 @@
 					</Dropdown>
 				{/if}
 				<DropdownDivider />
-				<DropdownItem href="#" on:click={() => {}}>Library...</DropdownItem>
+				<DropdownItem
+					href="#"
+					on:click={() => {
+						modalLibrary.open();
+					}}>Library...</DropdownItem
+				>
 			</Dropdown>
 		{/if}
 	</NavUl>

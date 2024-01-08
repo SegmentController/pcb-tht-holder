@@ -4,14 +4,14 @@ export const LibraryItem = z.union([
 	z.object({
 		type: z.literal('circle'),
 		name: z.string(),
-		diameter: z.number(),
+		radius: z.number(),
 		depth: z.number()
 	}),
 	z.object({
 		type: z.literal('rectangle'),
 		name: z.string(),
-		sizeX: z.number(),
-		sizeY: z.number(),
+		width: z.number(),
+		height: z.number(),
 		depth: z.number()
 	})
 ]);

@@ -1,57 +1,56 @@
 <script lang="ts" context="module">
 	export type RectangleSettings = {
-		sizeX: number;
-		sizeY: number;
+		width: number;
+		height: number;
 		depth: number;
 	};
 </script>
 
 <script lang="ts">
-	import { Button, Label, Modal } from 'flowbite-svelte';
+	import { Modal } from '@svelte-put/modal';
+	import { Button, Card, Label } from 'flowbite-svelte';
 
 	import NumberInputBound from '$components/NumberInputBound.svelte';
+	import { createEventDispatcher } from 'svelte';
 
-	let _settings: RectangleSettings;
-	let _onOK: (settings: RectangleSettings) => void;
-	let isOpen: boolean = false;
-
-	export const open = (
-		settings: RectangleSettings,
-		onOK: (settings: RectangleSettings) => void
-	): void => {
-		_settings = settings;
-		_onOK = onOK;
-		isOpen = true;
-	};
+	const dispatch = createEventDispatcher<{
+		resolve: {
+			trigger: 'custom';
+			confirmed: boolean;
+			settings: RectangleSettings;
+		};
+	}>();
+	const resolve = (confirmed: boolean) =>
+		dispatch('resolve', {
+			trigger: 'custom',
+			confirmed,
+			settings
+		});
+	export let settings: RectangleSettings;
 </script>
 
-<Modal open={isOpen} size="xs" dismissable={false}>
-	<div class="flex flex-col space-y-6">
-		<h3 class="text-xl font-medium text-gray-900 dark:text-white">Rectangle settings</h3>
-		<div class="grid gap-6 mb-6 md:grid-cols-2">
-			<div>
-				<Label for="sizeX" class="mb-2">Size X (mm)</Label>
-				<NumberInputBound id="sizeX" min={0.5} max={99} bind:value={_settings.sizeX} />
-			</div>
-			<div>
-				<Label for="sizeY" class="mb-2">Size Y (mm)</Label>
-				<NumberInputBound id="sizeY" min={0.5} max={99} bind:value={_settings.sizeY} />
-			</div>
-			<div>
-				<Label for="depth" class="mb-2">Depth (mm)</Label>
-				<NumberInputBound id="depth" min={0.5} max={99} bind:value={_settings.depth} />
+<Modal>
+	<Card>
+		<div class="flex flex-col space-y-6">
+			<h3 class="text-xl font-medium text-gray-900 dark:text-white">Rectangle settings</h3>
+			<div class="grid gap-6 mb-6 md:grid-cols-2">
+				<div>
+					<Label for="width" class="mb-2">Width (mm)</Label>
+					<NumberInputBound id="width" min={0.5} max={99} bind:value={settings.width} />
+				</div>
+				<div>
+					<Label for="height" class="mb-2">Height (mm)</Label>
+					<NumberInputBound id="height" min={0.5} max={99} bind:value={settings.height} />
+				</div>
+				<div>
+					<Label for="depth" class="mb-2">Depth (mm)</Label>
+					<NumberInputBound id="depth" min={0.5} max={99} bind:value={settings.depth} />
+				</div>
 			</div>
 		</div>
-	</div>
-	<div class="text-center">
-		<Button
-			on:click={() => {
-				isOpen = false;
-				_onOK(_settings);
-			}}
-			color="green"
-			class="me-2">OK</Button
-		>
-		<Button on:click={() => (isOpen = false)} color="alternative" class="me-2">Cancel</Button>
-	</div>
+		<div class="text-center mt-4">
+			<Button on:click={() => resolve(true)} color="green" class="me-2">OK</Button>
+			<Button on:click={() => resolve(false)} color="alternative" class="me-2">Cancel</Button>
+		</div>
+	</Card>
 </Modal>

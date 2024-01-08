@@ -56,6 +56,7 @@
 		"vitest": "^1.1.3"
 	},
 	"dependencies": {
+		"@svelte-put/modal": "^1.0.5",
 		"@threlte/core": "^7.0.12",
 		"@threlte/extras": "^8.1.1",
 		"canvas": "^2.11.2",

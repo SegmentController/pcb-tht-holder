@@ -8,7 +8,7 @@
 
 <script lang="ts">
 	const MARGIN_DELTA = 16;
-	export let items: ContextMenuItem[];
+	let items: ContextMenuItem[];
 
 	export const toggleAt = (x: number, y: number) => {
 		if (items.length === 0) return;

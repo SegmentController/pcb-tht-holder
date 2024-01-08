@@ -1,33 +1,36 @@
 <script lang="ts">
-	import { Button, Input, Label, Modal } from 'flowbite-svelte';
+	import { Modal } from '@svelte-put/modal';
+	import { Button, Card, Input, Label } from 'flowbite-svelte';
+	import { createEventDispatcher } from 'svelte';
 
-	let _name: string;
-	let _onOK: (name: string) => void;
-	let isOpen: boolean = false;
+	const dispatch = createEventDispatcher<{
+		resolve: {
+			trigger: 'custom';
+			confirmed: boolean;
+			name: string;
+		};
+	}>();
+	const resolve = (confirmed: boolean) =>
+		dispatch('resolve', {
+			trigger: 'custom',
+			confirmed,
+			name
+		});
 
-	export const open = (name: string, onOK: (name: string) => void): void => {
-		_name = name;
-		_onOK = onOK;
-		isOpen = true;
-	};
+	export let name: string;
 </script>
 
-<Modal open={isOpen} size="xs" dismissable={false}>
-	<div class="flex flex-col space-y-6">
-		<div>
-			<Label for="name" class="mb-2">Name</Label>
-			<Input id="name" bind:value={_name} />
+<Modal>
+	<Card>
+		<div class="flex flex-col space-y-6">
+			<div>
+				<Label for="name" class="mb-2">Name</Label>
+				<Input id="name" bind:value={name} />
+			</div>
 		</div>
-	</div>
-	<div class="text-center">
-		<Button
-			on:click={() => {
-				isOpen = false;
-				_onOK(_name);
-			}}
-			color="green"
-			class="me-2">OK</Button
-		>
-		<Button on:click={() => (isOpen = false)} color="alternative" class="me-2">Cancel</Button>
-	</div>
+		<div class="text-center mt-4">
+			<Button on:click={() => resolve(true)} color="green" class="me-2">OK</Button>
+			<Button on:click={() => resolve(false)} color="alternative" class="me-2">Cancel</Button>
+		</div>
+	</Card>
 </Modal>

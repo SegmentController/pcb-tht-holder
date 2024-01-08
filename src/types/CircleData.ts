@@ -1,18 +1,17 @@
 import { z } from 'zod';
 
 export const CircleData = z.object({
-	diameter: z.number(),
 	depth: z.number(),
-	konvaConfig: z.object({
-		x: z.number(),
-		y: z.number(),
 
-		radius: z.number(),
+	id: z.string(),
+	x: z.number(),
+	y: z.number(),
+	radius: z.number(),
 
-		id: z.string(),
-		fill: z.literal('orange'),
-		draggable: z.literal(true),
-		opacity: z.literal(0.75)
-	})
+	fill: z.literal('orange').default('orange'),
+	draggable: z.literal(true).default(true),
+	opacity: z.literal(0.75).default(0.75),
 });
 export type CircleData = z.infer<typeof CircleData>;
+
+export const CircleSkipJsonProperties = ['fill', 'draggable', 'opacity'];

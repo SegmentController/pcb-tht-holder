@@ -1,52 +1,52 @@
 <script lang="ts" context="module">
 	export type CircleSettings = {
-		diameter: number;
+		radius: number;
 		depth: number;
 	};
 </script>
 
 <script lang="ts">
-	import { Button, Label, Modal } from 'flowbite-svelte';
+	import { Modal } from '@svelte-put/modal';
+	import { Button, Card, Label } from 'flowbite-svelte';
 
 	import NumberInputBound from '$components/NumberInputBound.svelte';
+	import { createEventDispatcher } from 'svelte';
 
-	let _settings: CircleSettings;
-	let _onOK: (settings: CircleSettings) => void;
-	let isOpen: boolean = false;
+	const dispatch = createEventDispatcher<{
+		resolve: {
+			trigger: 'custom';
+			confirmed: boolean;
+			settings: CircleSettings;
+		};
+	}>();
+	const resolve = (confirmed: boolean) =>
+		dispatch('resolve', {
+			trigger: 'custom',
+			confirmed,
+			settings
+		});
 
-	export const open = (
-		settings: CircleSettings,
-		onOK: (settings: CircleSettings) => void
-	): void => {
-		_settings = settings;
-		_onOK = onOK;
-		isOpen = true;
-	};
+	export let settings: CircleSettings;
 </script>
 
-<Modal open={isOpen} size="xs" dismissable={false}>
-	<div class="flex flex-col space-y-6">
-		<h3 class="text-xl font-medium text-gray-900 dark:text-white">Circle settings</h3>
-		<div class="grid gap-6 mb-6 md:grid-cols-2">
-			<div>
-				<Label for="diameter" class="mb-2">Diameter (mm)</Label>
-				<NumberInputBound id="diameter" min={0.5} max={99} bind:value={_settings.diameter} />
-			</div>
-			<div>
-				<Label for="depth" class="mb-2">Depth (mm)</Label>
-				<NumberInputBound id="depth" min={0.5} max={99} bind:value={_settings.depth} />
+<Modal>
+	<Card>
+		<div class="flex flex-col space-y-6">
+			<h3 class="text-xl font-medium text-gray-900 dark:text-white">Circle settings</h3>
+			<div class="grid gap-6 mb-6 md:grid-cols-2">
+				<div>
+					<Label for="radius" class="mb-2">Radius (mm)</Label>
+					<NumberInputBound id="radius" min={0.5} max={99} bind:value={settings.radius} />
+				</div>
+				<div>
+					<Label for="depth" class="mb-2">Depth (mm)</Label>
+					<NumberInputBound id="depth" min={0.5} max={99} bind:value={settings.depth} />
+				</div>
 			</div>
 		</div>
-	</div>
-	<div class="text-center">
-		<Button
-			on:click={() => {
-				isOpen = false;
-				_onOK(_settings);
-			}}
-			color="green"
-			class="me-2">OK</Button
-		>
-		<Button on:click={() => (isOpen = false)} color="alternative" class="me-2">Cancel</Button>
-	</div>
+		<div class="text-center mt-4">
+			<Button on:click={() => resolve(true)} color="green" class="me-2">OK</Button>
+			<Button on:click={() => resolve(false)} color="alternative" class="me-2">Cancel</Button>
+		</div>
+	</Card>
 </Modal>

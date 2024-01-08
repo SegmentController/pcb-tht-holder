@@ -1,32 +1,33 @@
 <script lang="ts">
-	import { Button, Modal } from 'flowbite-svelte';
+	import { Modal } from '@svelte-put/modal';
+	import { Button, Card } from 'flowbite-svelte';
 	import { ExclamationCircleOutline } from 'flowbite-svelte-icons';
+	import { createEventDispatcher } from 'svelte';
 
-	let _title: string;
-	let _onOk: () => void;
-	let isOpen: boolean = false;
+	const dispatch = createEventDispatcher<{
+		resolve: {
+			trigger: 'custom';
+			confirmed: boolean;
+		};
+	}>();
+	const resolve = (confirmed: boolean) =>
+		dispatch('resolve', {
+			trigger: 'custom',
+			confirmed
+		});
 
-	export const open = (title: string, onOk: () => void): void => {
-		_title = title;
-		_onOk = onOk;
-		isOpen = true;
-	};
+	export let title: string;
 </script>
 
-<Modal open={isOpen} size="xs" dismissable={false}>
-	<div class="text-center">
-		<ExclamationCircleOutline class="mx-auto mb-4 text-gray-400 w-12 h-12 dark:text-gray-200" />
-		<h3 class="mb-5 text-lg font-normal text-gray-500 dark:text-gray-400">
-			{_title}
-		</h3>
-		<Button
-			on:click={() => {
-				isOpen = false;
-				_onOk && _onOk();
-			}}
-			color="red"
-			class="me-2">Yes</Button
-		>
-		<Button on:click={() => (isOpen = false)} color="alternative">Cancel</Button>
-	</div>
+<Modal>
+	<Card>
+		<div class="text-center">
+			<ExclamationCircleOutline class="mx-auto mb-4 text-gray-400 w-12 h-12 dark:text-gray-200" />
+			<h3 class="mb-5 text-lg font-normal text-gray-500 dark:text-gray-400">
+				{title}
+			</h3>
+			<Button on:click={() => resolve(true)} color="red" class="me-2">Yes</Button>
+			<Button on:click={() => resolve(false)} color="alternative">Cancel</Button>
+		</div>
+	</Card>
 </Modal>

@@ -4,7 +4,6 @@
 	import { Button, Dropdown, DropdownDivider, DropdownItem } from 'flowbite-svelte';
 	import { Navbar, NavBrand, NavHamburger, NavLi, NavUl } from 'flowbite-svelte';
 	import { ChevronDownOutline, ChevronRightSolid, VideoSolid } from 'flowbite-svelte-icons';
-	import { nanoid } from 'nanoid';
 	import { onMount } from 'svelte';
 	import { get } from 'svelte/store';
 	import {
@@ -20,32 +19,21 @@
 	import { base } from '$app/paths';
 	import ContextMenu from '$components/ContextMenu.svelte';
 	import Dropzone from '$components/Dropzone.svelte';
-	import ModalCircleSettings from '$components/modal/ModalCircleSettings.svelte';
-	import ModalConfirm from '$components/modal/ModalConfirm.svelte';
-	import ModalLibrary from '$components/modal/ModalLibrary.svelte';
-	import ModalMeshDisplay from '$components/modal/ModalMeshDisplay.svelte';
-	import ModalNameEdit from '$components/modal/ModalNameEdit.svelte';
-	import ModalPanelSettings from '$components/modal/ModalPanelSettings.svelte';
-	import ModalRectangleSettings from '$components/modal/ModalRectangleSettings.svelte';
-	import { generateMeshLazy } from '$lib/3d/mesh';
-	import { virtualDownload } from '$lib/download';
-	import { libraryStore } from '$stores/libraryStore';
-	import { projectStore } from '$stores/projectStore';
-	import type { CircleData } from '$types/CircleData';
-	import type { ImageSize } from '$types/ImageSize';
-	import { LEG_SIZE, type LegData } from '$types/LegData';
-	import { LibraryItem } from '$types/Library';
-	import type { PanelSettings } from '$types/PanelSettings';
-	import { Project } from '$types/Project';
-	import { RectangleData } from '$types/RectangleData';
 	import { addNewCircle, modifyCircle, updateCircleChanges } from '$lib/elements/circle';
+	import { addNewLeg, deleteLeg, updateLegChanges } from '$lib/elements/leg';
 	import {
 		addNewRectangle,
 		modifyRectangle,
 		updateRectangleChanges
 	} from '$lib/elements/rectangle';
-	import { addNewLeg, deleteLeg, updateLegChanges } from '$lib/elements/leg';
-	import { showModalLibrary } from '$stores/modalStore';
+	import { libraryStore } from '$stores/libraryStore';
+	import { showModalLibrary, showModalPanelSettings } from '$stores/modalStore';
+	import { projectStore } from '$stores/projectStore';
+	import type { CircleData } from '$types/CircleData';
+	import type { ImageSize } from '$types/ImageSize';
+	import { LEG_SIZE, type LegData } from '$types/LegData';
+	import { LibraryItem } from '$types/Library';
+	import { RectangleData } from '$types/RectangleData';
 
 	onMount(() => {
 		const preferences = get(projectStore);
@@ -162,38 +150,34 @@
 		*/
 	};
 
-	const openPanelSettings = () => {
-		/*
-		modalPanelSettings.open(panelSettings, (recentSettings) => {
-			panelSettings = recentSettings;
+	const openPanelSettings = async () => {
+		const { confirmed, settings } = await showModalPanelSettings($projectStore.panelSettings);
+		if (confirmed) {
 			projectStore.update((value) => {
-				value.panelSettings = recentSettings;
+				value.panelSettings = settings;
 				return value;
 			});
-		});
-		*/
+		}
 	};
 
 	const addItemFromLibrary = (libraryItem: LibraryItem) => {
-		/*
 		switch (libraryItem.type) {
 			case 'circle': {
-				addCircle({
-					diameter: libraryItem.diameter,
+				addNewCircle({
+					radius: libraryItem.radius,
 					depth: libraryItem.depth
 				});
 				break;
 			}
 			case 'rectangle': {
-				addRectangle({
-					sizeX: libraryItem.sizeX,
-					sizeY: libraryItem.sizeY,
+				addNewRectangle({
+					width: libraryItem.width,
+					height: libraryItem.height,
 					depth: libraryItem.depth
 				});
 				break;
 			}
 		}
-*/
 	};
 
 	const openDisplay = () => {

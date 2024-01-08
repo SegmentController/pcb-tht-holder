@@ -9,9 +9,9 @@
 <script lang="ts">
 	import { Modal } from '@svelte-put/modal';
 	import { Button, Card, Label } from 'flowbite-svelte';
+	import { createEventDispatcher } from 'svelte';
 
 	import NumberInputBound from '$components/NumberInputBound.svelte';
-	import { createEventDispatcher } from 'svelte';
 
 	const dispatch = createEventDispatcher<{
 		resolve: {

@@ -2,14 +2,13 @@
 	import { Modal } from '@svelte-put/modal';
 	import { A, Button, ButtonGroup, Card } from 'flowbite-svelte';
 	import { EditOutline, TrashBinOutline } from 'flowbite-svelte-icons';
+	import { createEventDispatcher } from 'svelte';
 
 	import FileInput from '$components/FileInput.svelte';
 	import { virtualDownload } from '$lib/download';
 	import { libraryStore } from '$stores/libraryStore';
-	import { Library, LibraryItem } from '$types/Library';
-
 	import { showModalNameEdit } from '$stores/modalStore';
-	import { createEventDispatcher } from 'svelte';
+	import { Library, LibraryItem } from '$types/Library';
 
 	const dispatch = createEventDispatcher<{ resolve: { trigger: 'custom' } }>();
 	const resolve = () => dispatch('resolve', { trigger: 'custom' });

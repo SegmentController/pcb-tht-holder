@@ -1,10 +1,10 @@
+import { get } from 'svelte/store';
 import { persisted } from 'svelte-persisted-store';
 
 import { CircleSkipJsonProperties } from '$types/CircleData';
 import { LegSkipJsonProperties } from '$types/LegData';
 import { Project } from '$types/Project';
 import { RectangleSkipJsonProperties } from '$types/RectangleData';
-import { get } from 'svelte/store';
 
 const emptyProject: Project = {
 	image: '',
@@ -27,14 +27,25 @@ export const projectStore = persisted<Project>('project', emptyProject, {
 	storage: 'local',
 	serializer: {
 		parse: (text: string) => {
-			try { return Project.parse(JSON.parse(text)) }
-			catch { return emptyProject; }
+			try {
+				return Project.parse(JSON.parse(text));
+			} catch {
+				return emptyProject;
+			}
 		},
-		stringify: (object: Project) => JSON.stringify(object, (key, value) => {
-			if (![...CircleSkipJsonProperties, ...RectangleSkipJsonProperties, ...LegSkipJsonProperties].includes(key))
-				return value;
-		}),
-	},
+		stringify: (object: Project) =>
+			JSON.stringify(object, (key, value) => {
+				if (
+					![
+						...CircleSkipJsonProperties,
+						...RectangleSkipJsonProperties,
+						...LegSkipJsonProperties
+					].includes(key)
+				)
+					return value;
+			})
+	}
 });
 
 export const getProjectStoreValue = (): Project => get(projectStore);
+export const updateProjectStoreValue = (project: Project) => projectStore.set(project);

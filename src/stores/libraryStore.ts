@@ -7,4 +7,3 @@ export const libraryStore = persisted<Library>('library', []);
 
 export const getLibraryStoreValue = (): Library => get(libraryStore);
 export const updateLibraryStoreValue = (library: Library) => libraryStore.set(library);
-

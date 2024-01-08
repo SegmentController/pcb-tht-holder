@@ -1,6 +1,7 @@
 <script lang="ts">
-	import { modalStore } from '$stores/modalStore';
 	import { ModalPortal } from '@svelte-put/modal';
+
+	import { modalStore } from '$stores/modalStore';
 </script>
 
 <slot />

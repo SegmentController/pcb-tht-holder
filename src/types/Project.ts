@@ -1,7 +1,6 @@
 import { z } from 'zod';
 
 import { CircleData } from './CircleData';
-import { ImageSize } from './ImageSize';
 import { LegData } from './LegData';
 import { PanelSettings } from './PanelSettings';
 import { RectangleData } from './RectangleData';
@@ -18,4 +17,4 @@ export const Project = z.object({
 });
 export type Project = z.infer<typeof Project>;
 
-export type RenderableProject = Omit<Omit<Project, 'image'>, 'filename'> & { imageSize: ImageSize };
+export type RenderableProject = Omit<Omit<Project, 'image'>, 'filename'>;

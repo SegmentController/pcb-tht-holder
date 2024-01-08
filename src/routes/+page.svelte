@@ -51,7 +51,7 @@
 	import type { ImageSize } from '$types/ImageSize';
 	import { LEG_SIZE, type LegData } from '$types/LegData';
 	import { LibraryItem } from '$types/Library';
-	import type { Project } from '$types/Project';
+	import { Project } from '$types/Project';
 	import { RectangleData } from '$types/RectangleData';
 
 	onMount(() => {
@@ -72,7 +72,6 @@
 		isManualUpload: boolean,
 		forceSaveToStore: boolean
 	) => {
-		/*		
 		if (isManualUpload && _fileData.startsWith('data:application/octet-stream'))
 			try {
 				const fileDataRaw = atob(_fileData.replace('data:application/octet-stream;base64,', ''));
@@ -80,25 +79,17 @@
 				const projectFileData = JSON.parse(fileDataRaw);
 				const isValid = Project.safeParse(projectFileData);
 				if (isValid.success) {
-					circles = isValid.data.circles || [];
-					rectangles = isValid.data.rectangles || [];
-					legs = isValid.data.legs || [];
+					$projectStore.circles = isValid.data.circles || [];
+					$projectStore.rectangles = isValid.data.rectangles || [];
+					$projectStore.legs = isValid.data.legs || [];
 					onFileUpload(isValid.data.image, isValid.data.filename, false, true);
-					panelSettings = isValid.data.panelSettings;
-
-					projectStore.update((value) => {
-						value.circles = circles;
-						value.rectangles = rectangles;
-						value.legs = legs;
-						value.panelSettings = panelSettings;
-						return value;
-					});
+					$projectStore.panelSettings = isValid.data.panelSettings;
 					return;
 				}
 			} catch {
 				document;
 			}
-*/
+
 		pcbImage = document.createElement('img');
 		pcbImage.addEventListener('load', () => {
 			$projectStore.filename = _filename;
@@ -197,8 +188,7 @@
 			panelSettings: $projectStore.panelSettings,
 			rectangles: $projectStore.rectangles,
 			circles: $projectStore.circles,
-			legs: $projectStore.legs,
-			imageSize
+			legs: $projectStore.legs
 		});
 		showModalMesh($projectStore.filename, meshInfo);
 	};

@@ -6,6 +6,17 @@
 
 ### Changed
 
+### Removed
+
+### Fixed
+
+## [1.2.0] - 2024-01-08
+
+### Added
+
+### Changed
+
+- Restructure export and import formats
 - UI improvement
 - Library export to JSON file
 - Library import from JSON file

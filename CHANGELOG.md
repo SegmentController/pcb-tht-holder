@@ -6,6 +6,10 @@
 
 ### Changed
 
+- UI improvement
+- Library export to JSON file
+- Library import from JSON file
+
 ### Removed
 
 ### Fixed

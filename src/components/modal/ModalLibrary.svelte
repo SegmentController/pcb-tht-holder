@@ -2,6 +2,7 @@
 	import { A, Button, ButtonGroup, Card, Modal } from 'flowbite-svelte';
 	import { EditOutline, TrashBinOutline } from 'flowbite-svelte-icons';
 
+	import FileInput from '$components/FileInput.svelte';
 	import { virtualDownload } from '$lib/download';
 	import { libraryStore } from '$stores/libraryStore';
 	import { Library } from '$types/Library';
@@ -15,27 +16,26 @@
 	};
 
 	let modalNameEdit: ModalNameEdit;
-	let fileInput: HTMLInputElement;
+	let fileInput: FileInput;
 
 	const exportLibrary = () =>
-		virtualDownload('library.thtlib', JSON.stringify($libraryStore, undefined, 2));
+		virtualDownload('tht3d_library.json', JSON.stringify($libraryStore, undefined, 2));
 
-	const importLibrary = async (event: Event) => {
-		const files = (event.target as HTMLInputElement).files;
-		if (files && files.length > 0) {
-			try {
-				const textData = await files[0].text();
-				const parseResult = Library.safeParse(JSON.parse(textData));
-				if (parseResult.success) $libraryStore = parseResult.data;
-			} catch (error) {
-				error;
-			}
-		}
-	};
+	const importLibrary = () =>
+		fileInput.selectTextFile((filename, data) => {
+			const parseResult = Library.safeParse(JSON.parse(data));
+			if (parseResult.success) $libraryStore = parseResult.data;
+		});
 </script>
 
 <Modal open={isOpen} size="md" dismissable={false}>
-	<h3 class="text-xl font-medium text-gray-900 dark:text-white">Library</h3>
+	<div class="grid grid-cols-2">
+		<h3 class="text-xl font-medium text-gray-900 dark:text-white">Library</h3>
+		<ButtonGroup class="justify-self-end">
+			<Button on:click={() => importLibrary()}>Import</Button>
+			<Button on:click={() => exportLibrary()}>Export</Button>
+		</ButtonGroup>
+	</div>
 	<div class="grid grid-cols-3 gap-2">
 		{#each $libraryStore.sort((a, b) => a.name.localeCompare(b.name)) as libraryItem}
 			<Card class="relative">
@@ -69,20 +69,10 @@
 		{/each}
 	</div>
 	<div class="text-right">
-		<ButtonGroup>
-			<Button on:click={() => fileInput.click()}>Import</Button>
-			<Button on:click={() => exportLibrary()}>Export</Button>
-		</ButtonGroup>
 		<Button on:click={() => (isOpen = false)} color="alternative" class="ml-2">Close</Button>
 	</div>
 </Modal>
 
 <ModalNameEdit bind:this={modalNameEdit} />
 
-<input type="file" bind:this={fileInput} on:change={importLibrary} />
-
-<style>
-	input {
-		display: none;
-	}
-</style>
+<FileInput accept="application/json" bind:this={fileInput} />

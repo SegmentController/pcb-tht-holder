@@ -2,6 +2,7 @@
 	import { Canvas } from '@threlte/core';
 	import { Button, ButtonGroup, Modal, Toggle } from 'flowbite-svelte';
 	import { DownloadSolid } from 'flowbite-svelte-icons';
+	import { createEventDispatcher, onMount } from 'svelte';
 
 	import type { MeshInfo } from '$lib/3d/mesh';
 	import {
@@ -14,27 +15,26 @@
 
 	import Mesh3DScene from '../Mesh3DScene.svelte';
 
-	let _filename: string;
-	let _meshInfo: Promise<MeshInfo>;
-	let _dimension: number;
-	let isOpen: boolean = false;
+	const dispatch = createEventDispatcher<{ resolve: { trigger: 'custom' } }>();
+	const resolve = () => dispatch('resolve', { trigger: 'custom' });
+
+	export let filename: string;
+	export let meshInfo: Promise<MeshInfo>;
+
+	let volume: number;
+	onMount(async () => {
+		await meshInfo
+			.then((m) => (volume = MathMax([...m.vertexArray.values()])))
+			.catch(() => (volume = 1));
+	});
+
 	let wireframe: boolean = false;
 
-	export const open = async (filename: string, meshInfo: Promise<MeshInfo>) => {
-		_filename = filename;
-		_meshInfo = meshInfo;
-		meshInfo
-			.then((m) => (_dimension = MathMax([...m.vertexArray.values()])))
-			.catch(() => (_dimension = 1));
-		isOpen = true;
-	};
-
-	const generateFilename = () =>
-		_filename.slice(0, Math.max(0, _filename.lastIndexOf('.'))) + '.stl';
+	const generateFilename = () => filename.slice(0, Math.max(0, filename.lastIndexOf('.'))) + '.stl';
 
 	const downloadStlFile = async (isBinary: boolean) => {
 		try {
-			const meshinfo = await _meshInfo;
+			const meshinfo = await meshInfo;
 			virtualDownload(
 				generateFilename(),
 				isBinary
@@ -47,13 +47,13 @@
 	};
 </script>
 
-<Modal open={isOpen} size="lg" dismissable={false}>
+<Modal open={true} size="lg" dismissable={false}>
 	<div class="flex justify-start">
 		<span class="font-semibold mr-4">
 			{generateFilename()}
 		</span>
 
-		{#await _meshInfo}
+		{#await meshInfo}
 			<p>Generating mesh...</p>
 		{:then meshInfo}
 			{meshInfo.dimensions.x} x
@@ -67,7 +67,7 @@
 	</div>
 	<div class="grid grid-cols-2">
 		<div class="flex justify-start">
-			{#await _meshInfo}
+			{#await meshInfo}
 				{''}
 			{:then}
 				<Toggle id="wireframe" bind:checked={wireframe}>Wireframe</Toggle>
@@ -76,7 +76,7 @@
 			{/await}
 		</div>
 		<div class="flex justify-end">
-			{#await _meshInfo}
+			{#await meshInfo}
 				{''}
 			{:then}
 				<ButtonGroup>
@@ -88,19 +88,19 @@
 			{:catch}
 				{''}
 			{/await}
-			<Button class="ml-2" on:click={() => (isOpen = false)} color="alternative">Close</Button>
+			<Button class="ml-2" on:click={() => resolve()} color="alternative">Close</Button>
 		</div>
 	</div>
 	<div class="canvasContainer">
-		{#await _meshInfo}
-			{''}
-		{:then meshInfo}
-			<Canvas>
-				<Mesh3DScene vertices={meshInfo.vertexArray} dimension={_dimension} {wireframe} />
-			</Canvas>
-		{:catch}
-			{''}
-		{/await}
+		<Canvas>
+			{#await meshInfo}
+				{''}
+			{:then meshInfo}
+				<Mesh3DScene vertices={meshInfo.vertexArray} {volume} {wireframe} />
+			{:catch}
+				{''}
+			{/await}
+		</Canvas>
 	</div>
 </Modal>
 

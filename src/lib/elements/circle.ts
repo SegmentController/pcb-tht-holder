@@ -1,5 +1,6 @@
 import { nanoid } from 'nanoid';
 
+import type { ContextMenuItem } from '$components/ContextMenu.svelte';
 import type { CircleSettings } from '$components/modal/ModalCircleSettings.svelte';
 import { getLibraryStoreValue, updateLibraryStoreValue } from '$stores/libraryStore';
 import { showModalCircleSettings, showModalNameEdit } from '$stores/modalStore';
@@ -59,3 +60,27 @@ export const updateCircleChanges = (circles?: CircleData[]) =>
 		if (circles) value.circles = circles;
 		return value;
 	});
+
+export const getContextMenuItemForCircle = (id: string): ContextMenuItem[] | undefined => {
+	const project = getProjectStoreValue();
+
+	const circle = project.circles.find((c) => c.id === id);
+	if (circle)
+		return [
+			{ name: `Circle ${circle.radius}x${circle.depth}mm` },
+			{
+				name: 'Properties...',
+				onClick: () => modifyCircle(circle)
+			},
+			{ name: 'Duplicate', onClick: () => duplicateCircle(circle) },
+			{ name: 'Add to library...', onClick: () => addCircleToLibrary(circle) },
+			{ name: '' },
+			{
+				name: 'Delete',
+				onClick: () => {
+					project.circles = project.circles.filter((c) => c != circle);
+					updateCircleChanges();
+				}
+			}
+		];
+};

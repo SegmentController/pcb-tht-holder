@@ -82,25 +82,25 @@ export const generateMesh = (project: RenderableProject): MeshInfo => {
 		}
 	}
 	for (const rectangle of project.rectangles) {
-		const box = MESH(BOX(rectangle.sizeX, rectangle.sizeY, rectangle.depth + ROUND_CORRECTION));
-		box.position.x += rectangle.konvaConfig.x + rectangle.sizeX / 2 - panel.width / 2;
-		box.position.y -= rectangle.konvaConfig.y + rectangle.sizeY / 2 - panel.height / 2;
+		const box = MESH(BOX(rectangle.width, rectangle.height, rectangle.depth + ROUND_CORRECTION));
+		box.position.x += rectangle.x + rectangle.width / 2 - panel.width / 2;
+		box.position.y -= rectangle.y + rectangle.height / 2 - panel.height / 2;
 		box.position.z += BOTTOM_THICKNESS + (componentHeigh - rectangle.depth);
 		box.updateMatrixWorld();
 		mesh = evaluator.evaluate(mesh, box, SUBTRACTION);
 	}
 	for (const circle of project.circles) {
-		const cylinder = MESH(CYLINDER(circle.diameter / 2, circle.depth + ROUND_CORRECTION));
-		cylinder.position.x += circle.konvaConfig.x - panel.width / 2;
-		cylinder.position.y -= circle.konvaConfig.y - panel.height / 2;
+		const cylinder = MESH(CYLINDER(circle.radius, circle.depth + ROUND_CORRECTION));
+		cylinder.position.x += circle.x - panel.width / 2;
+		cylinder.position.y -= circle.y - panel.height / 2;
 		cylinder.position.z += BOTTOM_THICKNESS + (componentHeigh - circle.depth);
 		cylinder.updateMatrixWorld();
 		mesh = evaluator.evaluate(mesh, cylinder, SUBTRACTION);
 	}
 	for (const leg of project.legs) {
-		const box = MESH(BOX(leg.konvaConfig.width, leg.konvaConfig.height, componentHeigh));
-		box.position.x += leg.konvaConfig.x + leg.konvaConfig.width / 2 - panel.width / 2;
-		box.position.y -= leg.konvaConfig.y + leg.konvaConfig.height / 2 - panel.height / 2;
+		const box = MESH(BOX(leg.width, leg.height, componentHeigh));
+		box.position.x += leg.x + leg.width / 2 - panel.width / 2;
+		box.position.y -= leg.y + leg.height / 2 - panel.height / 2;
 		box.position.z += BOTTOM_THICKNESS;
 		box.updateMatrixWorld();
 		mesh = evaluator.evaluate(mesh, box, ADDITION);

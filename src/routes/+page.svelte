@@ -19,20 +19,39 @@
 	import { base } from '$app/paths';
 	import ContextMenu from '$components/ContextMenu.svelte';
 	import Dropzone from '$components/Dropzone.svelte';
-	import { addNewCircle, modifyCircle, updateCircleChanges } from '$lib/elements/circle';
-	import { addNewLeg, deleteLeg, updateLegChanges } from '$lib/elements/leg';
+	import { generateMeshLazy } from '$lib/3d/mesh';
+	import { virtualDownload } from '$lib/download';
+	import {
+		addNewCircle,
+		getContextMenuItemForCircle,
+		modifyCircle,
+		updateCircleChanges
+	} from '$lib/elements/circle';
+	import {
+		addNewLeg,
+		deleteLeg,
+		getContextMenuItemForLeg,
+		updateLegChanges
+	} from '$lib/elements/leg';
 	import {
 		addNewRectangle,
+		getContextMenuItemForRectangle,
 		modifyRectangle,
 		updateRectangleChanges
 	} from '$lib/elements/rectangle';
 	import { libraryStore } from '$stores/libraryStore';
-	import { showModalConfirm, showModalLibrary, showModalPanelSettings } from '$stores/modalStore';
-	import { projectStore } from '$stores/projectStore';
+	import {
+		showModalConfirm,
+		showModalLibrary,
+		showModalMesh,
+		showModalPanelSettings
+	} from '$stores/modalStore';
+	import { projectJsonSerializer, projectStore } from '$stores/projectStore';
 	import type { CircleData } from '$types/CircleData';
 	import type { ImageSize } from '$types/ImageSize';
 	import { LEG_SIZE, type LegData } from '$types/LegData';
 	import { LibraryItem } from '$types/Library';
+	import type { Project } from '$types/Project';
 	import { RectangleData } from '$types/RectangleData';
 
 	onMount(() => {
@@ -109,27 +128,28 @@
 	};
 
 	const downloadProjectFile = () => {
-		/*
 		const projectData: Project = {
-			image: imageData,
-			filename,
-			panelSettings,
-			circles,
-			rectangles,
-			legs
+			image: $projectStore.image,
+			filename: $projectStore.filename,
+			panelSettings: $projectStore.panelSettings,
+			circles: $projectStore.circles,
+			rectangles: $projectStore.rectangles,
+			legs: $projectStore.legs
 		};
-		const projectDataJsonString = JSON.stringify(projectData, undefined, 2);
+		const projectDataJsonString = projectJsonSerializer.stringify(projectData);
 
 		virtualDownload(
-			filename.slice(0, Math.max(0, filename.lastIndexOf('.'))) + '.tht3d',
+			$projectStore.filename.slice(0, Math.max(0, $projectStore.filename.lastIndexOf('.'))) +
+				'.tht3d',
 			projectDataJsonString
 		);
-		*/
 	};
 
 	const reset = async () => {
 		const { confirmed } = await showModalConfirm('Are you sure to reset PCB panel?');
-		if (confirmed)
+		if (confirmed) {
+			pcbImage = undefined;
+			imageSize = undefined;
 			projectStore.update((value) => {
 				value.image = '';
 				value.filename = '';
@@ -138,6 +158,7 @@
 				value.legs = [];
 				return value;
 			});
+		}
 	};
 
 	const openPanelSettings = async () => {
@@ -171,11 +192,15 @@
 	};
 
 	const openDisplay = () => {
-		/*
 		if (!imageSize) return;
-		const meshInfo = generateMeshLazy({ panelSettings, rectangles, circles, legs, imageSize });
-		modalMeshDisplay.open(filename, meshInfo);
-*/
+		const meshInfo = generateMeshLazy({
+			panelSettings: $projectStore.panelSettings,
+			rectangles: $projectStore.rectangles,
+			circles: $projectStore.circles,
+			legs: $projectStore.legs,
+			imageSize
+		});
+		showModalMesh($projectStore.filename, meshInfo);
 	};
 
 	const limitBox = (event: KonvaDragTransformEvent, box: RectangleData | LegData) => {
@@ -200,80 +225,25 @@
 		if (target.y() < minY) target.y(minY);
 		if (target.y() > maxY) target.y(maxY);
 	};
+
 	let contextMenu: ContextMenu;
 	const stageClick = (event: KonvaMouseEvent) => {
-		event;
-		/*		
 		if (event.detail.evt.button === 2) {
 			const id = event.detail.target.id();
-			{
-				const circle = circles.find((c) => c.konvaConfig.id === id);
-				if (circle) {
-					contextMenu.setItems([
-						{ name: `Circle ${circle.diameter}x${circle.depth}mm` },
-						{
-							name: 'Properties...',
-							onClick: () => dblClickCircle(circle)
-						},
-						{ name: 'Duplicate', onClick: () => duplicateCircle(circle) },
-						{ name: 'Add to library...', onClick: () => addCircleToLibrary(circle) },
-						{ name: '' },
-						{
-							name: 'Delete',
-							onClick: () => {
-								circles = circles.filter((c) => c != circle);
-								storeCircleChanges();
-							}
-						}
-					]);
-					contextMenu.toggleAt(event.detail.evt.pageX, event.detail.evt.pageY);
-					return;
-				}
-			}
-			{
-				const rectangle = rectangles.find((r) => r.konvaConfig.id === id);
-				if (rectangle) {
-					contextMenu.setItems([
-						{ name: `Rectangle ${rectangle.sizeX}x${rectangle.sizeY}x${rectangle.depth}mm` },
-						{
-							name: 'Properties...',
-							onClick: () => dblClickRectangle(rectangle)
-						},
-						{ name: 'Rotate', onClick: () => rotateRectangle(rectangle) },
-						{ name: 'Duplicate', onClick: () => duplicateRectangle(rectangle) },
-						{ name: 'Add to library...', onClick: () => addRectangleToLibrary(rectangle) },
-						{ name: '' },
-						{
-							name: 'Delete',
-							onClick: () => {
-								rectangles = rectangles.filter((r) => r != rectangle);
-								storeRectangleChanges();
-							}
-						}
-					]);
-					contextMenu.toggleAt(event.detail.evt.pageX, event.detail.evt.pageY);
-					return;
-				}
-			}
-			{
-				const leg = legs.find((c) => c.konvaConfig.id === id);
-				if (leg) {
-					contextMenu.setItems([
-						{ name: 'Leg' },
-						{
-							name: 'Delete',
-							onClick: () => {
-								legs = legs.filter((l) => l != leg);
-								storeLegChanges();
-							}
-						}
-					]);
+
+			for (const retriever of [
+				getContextMenuItemForCircle,
+				getContextMenuItemForRectangle,
+				getContextMenuItemForLeg
+			]) {
+				const items = retriever(id);
+				if (items !== undefined) {
+					contextMenu.setItems(items);
 					contextMenu.toggleAt(event.detail.evt.pageX, event.detail.evt.pageY);
 					return;
 				}
 			}
 		}
-		*/
 	};
 </script>
 

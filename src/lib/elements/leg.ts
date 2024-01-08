@@ -1,5 +1,6 @@
 import { nanoid } from 'nanoid';
 
+import type { ContextMenuItem } from '$components/ContextMenu.svelte';
 import { getProjectStoreValue, projectStore } from '$stores/projectStore';
 import { LEG_SIZE, type LegData } from '$types/LegData';
 
@@ -29,3 +30,20 @@ export const updateLegChanges = (legs?: LegData[]) =>
 		if (legs) value.legs = legs;
 		return value;
 	});
+
+export const getContextMenuItemForLeg = (id: string): ContextMenuItem[] | undefined => {
+	const project = getProjectStoreValue();
+
+	const leg = project.legs.find((c) => c.id === id);
+	if (leg)
+		return [
+			{ name: 'Leg' },
+			{
+				name: 'Delete',
+				onClick: () => {
+					project.legs = project.legs.filter((l) => l != leg);
+					updateLegChanges();
+				}
+			}
+		];
+};

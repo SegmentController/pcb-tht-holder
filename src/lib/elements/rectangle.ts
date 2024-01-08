@@ -1,5 +1,6 @@
 import { nanoid } from 'nanoid';
 
+import type { ContextMenuItem } from '$components/ContextMenu.svelte';
 import type { RectangleSettings } from '$components/modal/ModalRectangleSettings.svelte';
 import { getLibraryStoreValue, updateLibraryStoreValue } from '$stores/libraryStore';
 import { showModalNameEdit, showModalRectangleSettings } from '$stores/modalStore';
@@ -69,3 +70,28 @@ export const updateRectangleChanges = (rectangles?: RectangleData[]) =>
 		if (rectangles) value.rectangles = rectangles;
 		return value;
 	});
+
+export const getContextMenuItemForRectangle = (id: string): ContextMenuItem[] | undefined => {
+	const project = getProjectStoreValue();
+
+	const rectangle = project.rectangles.find((r) => r.id === id);
+	if (rectangle)
+		return [
+			{ name: `Rectangle ${rectangle.width}x${rectangle.height}x${rectangle.depth}mm` },
+			{
+				name: 'Properties...',
+				onClick: () => modifyRectangle(rectangle)
+			},
+			{ name: 'Rotate', onClick: () => rotateRectangle(rectangle) },
+			{ name: 'Duplicate', onClick: () => duplicateRectangle(rectangle) },
+			{ name: 'Add to library...', onClick: () => addRectangleToLibrary(rectangle) },
+			{ name: '' },
+			{
+				name: 'Delete',
+				onClick: () => {
+					project.rectangles = project.rectangles.filter((r) => r != rectangle);
+					updateRectangleChanges();
+				}
+			}
+		];
+};

@@ -5,11 +5,13 @@ import ModalCircleSettings, {
 } from '$components/modal/ModalCircleSettings.svelte';
 import ModalConfirm from '$components/modal/ModalConfirm.svelte';
 import ModalLibrary from '$components/modal/ModalLibrary.svelte';
+import ModalMeshDisplay from '$components/modal/ModalMeshDisplay.svelte';
 import ModalNameEdit from '$components/modal/ModalNameEdit.svelte';
 import ModalPanelSettings from '$components/modal/ModalPanelSettings.svelte';
 import ModalRectangleSettings, {
 	type RectangleSettings
 } from '$components/modal/ModalRectangleSettings.svelte';
+import type { MeshInfo } from '$lib/3d/mesh';
 import type { PanelSettings } from '$types/PanelSettings';
 
 export const modalStore = createModalStore();
@@ -37,3 +39,9 @@ export const showModalRectangleSettings = async (
 
 export const showModalLibrary = async (): Promise<object> =>
 	await modalStore.push({ component: ModalLibrary }).resolve();
+
+export const showModalMesh = async (
+	filename: string,
+	meshInfo: Promise<MeshInfo>
+): Promise<object> =>
+	await modalStore.push({ component: ModalMeshDisplay, props: { filename, meshInfo } }).resolve();

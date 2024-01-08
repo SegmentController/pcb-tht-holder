@@ -11,10 +11,10 @@ const emptyProject: Project = {
 	filename: '',
 
 	panelSettings: {
-		width: 0,
-		height: 0,
-		pcbThickness: 0,
-		smdHeight: 0
+		width: 100,
+		height: 100,
+		pcbThickness: 1.6,
+		smdHeight: 3
 	},
 
 	circles: [],
@@ -22,19 +22,18 @@ const emptyProject: Project = {
 	legs: []
 };
 
-export const projectStore = persisted<Project>('project', emptyProject, {
-	syncTabs: true,
-	storage: 'local',
-	serializer: {
-		parse: (text: string) => {
-			try {
-				return Project.parse(JSON.parse(text));
-			} catch {
-				return emptyProject;
-			}
-		},
-		stringify: (object: Project) =>
-			JSON.stringify(object, (key, value) => {
+export const projectJsonSerializer = {
+	parse: (text: string) => {
+		try {
+			return Project.parse(JSON.parse(text));
+		} catch {
+			return emptyProject;
+		}
+	},
+	stringify: (object: Project) =>
+		JSON.stringify(
+			object,
+			(key, value) => {
 				if (
 					![
 						...CircleSkipJsonProperties,
@@ -43,8 +42,15 @@ export const projectStore = persisted<Project>('project', emptyProject, {
 					].includes(key)
 				)
 					return value;
-			})
-	}
+			},
+			2
+		)
+};
+
+export const projectStore = persisted<Project>('project', emptyProject, {
+	syncTabs: true,
+	storage: 'local',
+	serializer: projectJsonSerializer
 });
 
 export const getProjectStoreValue = (): Project => get(projectStore);

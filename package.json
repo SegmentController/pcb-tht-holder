@@ -8,6 +8,7 @@
 		"npm": ">=10.0.0"
 	},
 	"scripts": {
+		"postinstall": "patch-package",
 		"dev": "vite dev --host",
 		"build": "vite build",
 		"preview": "vite preview",
@@ -25,7 +26,7 @@
 	"devDependencies": {
 		"@playwright/test": "^1.40.1",
 		"@sveltejs/adapter-static": "^3.0.1",
-		"@sveltejs/kit": "^2.0.6",
+		"@sveltejs/kit": "^2.0.7",
 		"@sveltejs/vite-plugin-svelte": "^3.0.1",
 		"@types/three": "^0.160.0",
 		"@typescript-eslint/eslint-plugin": "^6.18.0",
@@ -41,6 +42,7 @@
 		"flowbite": "^2.2.1",
 		"flowbite-svelte": "^0.44.21",
 		"flowbite-svelte-icons": "^0.4.5",
+		"patch-package": "^8.0.0",
 		"postcss": "^8.4.33",
 		"postcss-load-config": "^5.0.2",
 		"prettier": "^3.1.1",
@@ -64,7 +66,7 @@
 		"konva": "^9.3.0",
 		"nanoid": "^5.0.4",
 		"svelte-konva": "^0.3.1",
-		"svelte-persisted-store": "^0.8.1",
+		"svelte-persisted-store": "^0.9.0",
 		"three": "^0.160.0",
 		"three-bvh-csg": "^0.0.16",
 		"zod": "^3.22.4"

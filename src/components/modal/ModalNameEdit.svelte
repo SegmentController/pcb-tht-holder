@@ -1,6 +1,5 @@
 <script lang="ts">
-	import { Modal } from '@svelte-put/modal';
-	import { Button, Card, Input, Label } from 'flowbite-svelte';
+	import { Button, Input, Label, Modal } from 'flowbite-svelte';
 	import { createEventDispatcher } from 'svelte';
 
 	const dispatch = createEventDispatcher<{
@@ -20,17 +19,15 @@
 	export let name: string;
 </script>
 
-<Modal>
-	<Card>
-		<div class="flex flex-col space-y-6">
-			<div>
-				<Label for="name" class="mb-2">Name</Label>
-				<Input id="name" bind:value={name} />
-			</div>
+<Modal open={true} size="sm">
+	<div class="flex flex-col space-y-6">
+		<div>
+			<Label for="name" class="mb-2">Name</Label>
+			<Input id="name" bind:value={name} />
 		</div>
-		<div class="text-center mt-4">
-			<Button on:click={() => resolve(true)} color="green" class="me-2">OK</Button>
-			<Button on:click={() => resolve(false)} color="alternative" class="me-2">Cancel</Button>
-		</div>
-	</Card>
+	</div>
+	<div class="text-center mt-4">
+		<Button on:click={() => resolve(true)} color="green" class="me-2">OK</Button>
+		<Button on:click={() => resolve(false)} color="alternative" class="me-2">Cancel</Button>
+	</div>
 </Modal>

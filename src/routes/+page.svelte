@@ -27,7 +27,7 @@
 		updateRectangleChanges
 	} from '$lib/elements/rectangle';
 	import { libraryStore } from '$stores/libraryStore';
-	import { showModalLibrary, showModalPanelSettings } from '$stores/modalStore';
+	import { showModalConfirm, showModalLibrary, showModalPanelSettings } from '$stores/modalStore';
 	import { projectStore } from '$stores/projectStore';
 	import type { CircleData } from '$types/CircleData';
 	import type { ImageSize } from '$types/ImageSize';
@@ -127,17 +127,9 @@
 		*/
 	};
 
-	const reset = () => {
-		/*
-		if (!pcbImage && !filename) return;
-
-		modalConfirm.open('Are you sure to reset PCB panel?', () => {
-			pcbImage = undefined;
-			filename = '';
-			imageSize = undefined;
-			circles = [];
-			rectangles = [];
-			legs = [];
+	const reset = async () => {
+		const { confirmed } = await showModalConfirm('Are you sure to reset PCB panel?');
+		if (confirmed)
 			projectStore.update((value) => {
 				value.image = '';
 				value.filename = '';
@@ -146,8 +138,6 @@
 				value.legs = [];
 				return value;
 			});
-		});
-		*/
 	};
 
 	const openPanelSettings = async () => {
@@ -212,6 +202,7 @@
 	};
 	let contextMenu: ContextMenu;
 	const stageClick = (event: KonvaMouseEvent) => {
+		event;
 		/*		
 		if (event.detail.evt.button === 2) {
 			const id = event.detail.target.id();
@@ -306,10 +297,10 @@
 				File<ChevronDownOutline class="w-3 h-3 ms-2 text-primary-800 dark:text-white inline" />
 			</NavLi>
 			<Dropdown class="w-44 z-20">
-				<DropdownItem href="#" on:click={reset}>New</DropdownItem>
-				<DropdownItem href="#" on:click={downloadProjectFile}>Save project...</DropdownItem>
+				<DropdownItem href="#" on:click={() => reset()}>New</DropdownItem>
+				<DropdownItem href="#" on:click={() => downloadProjectFile()}>Save project...</DropdownItem>
 				<DropdownDivider />
-				<DropdownItem href="#" on:click={openPanelSettings}>Panel settings</DropdownItem>
+				<DropdownItem href="#" on:click={() => openPanelSettings()}>Panel settings</DropdownItem>
 			</Dropdown>
 			<NavLi class="cursor-pointer">
 				Component<ChevronDownOutline class="w-3 h-3 ms-2 text-primary-800 dark:text-white inline" />

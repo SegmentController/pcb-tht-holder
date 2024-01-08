@@ -1,6 +1,5 @@
 <script lang="ts">
-	import { Modal } from '@svelte-put/modal';
-	import { A, Button, ButtonGroup, Card } from 'flowbite-svelte';
+	import { A, Button, ButtonGroup, Card, Modal } from 'flowbite-svelte';
 	import { EditOutline, TrashBinOutline } from 'flowbite-svelte-icons';
 	import { createEventDispatcher } from 'svelte';
 
@@ -30,46 +29,44 @@
 	};
 </script>
 
-<Modal>
-	<Card>
-		<div class="grid grid-cols-2">
-			<h3 class="text-xl font-medium text-gray-900 dark:text-white">Library</h3>
-			<ButtonGroup class="justify-self-end">
-				<Button on:click={() => importLibrary()}>Import</Button>
-				<Button on:click={() => exportLibrary()}>Export</Button>
-			</ButtonGroup>
-		</div>
-		<div class="grid grid-cols-3 gap-2">
-			{#each $libraryStore.sort((a, b) => a.name.localeCompare(b.name)) as libraryItem}
-				<Card class="relative">
-					<h5 class="mb-2 text-md font-bold tracking-tight text-gray-900 dark:text-white">
-						{libraryItem.name}
-					</h5>
-					<A class="absolute right-4 text-gray" on:click={() => editName(libraryItem)}
-						><EditOutline size="sm" /></A
-					>
-					<p class="font-semibold">{libraryItem.type}</p>
-					{#if libraryItem.type === 'circle'}
-						<p>R: {libraryItem.radius}mm</p>
-						<p>Z: {libraryItem.depth}mm</p>
-					{:else if libraryItem.type === 'rectangle'}
-						<p>X: {libraryItem.width}mm</p>
-						<p>Y: {libraryItem.height}mm</p>
-						<p>Z: {libraryItem.depth}mm</p>
-					{/if}
-					<A
-						class="absolute bottom-4 right-4"
-						on:click={() => {
-							$libraryStore = $libraryStore.filter((li) => li !== libraryItem);
-						}}><TrashBinOutline size="sm" /></A
-					>
-				</Card>
-			{/each}
-		</div>
-		<div class="text-right mt-4">
-			<Button on:click={() => resolve()} color="alternative" class="ml-2">Close</Button>
-		</div>
-	</Card>
+<Modal open={true} size="lg">
+	<div class="grid grid-cols-2">
+		<h3 class="text-xl font-medium text-gray-900 dark:text-white">Library</h3>
+		<ButtonGroup class="justify-self-end">
+			<Button on:click={() => importLibrary()}>Import</Button>
+			<Button on:click={() => exportLibrary()}>Export</Button>
+		</ButtonGroup>
+	</div>
+	<div class="grid grid-cols-3 gap-2">
+		{#each $libraryStore.sort((a, b) => a.name.localeCompare(b.name)) as libraryItem}
+			<Card class="relative">
+				<h5 class="mb-2 text-md font-bold tracking-tight text-gray-900 dark:text-white">
+					{libraryItem.name}
+				</h5>
+				<A class="absolute right-4 text-gray" on:click={() => editName(libraryItem)}
+					><EditOutline size="sm" /></A
+				>
+				<p class="font-semibold">{libraryItem.type}</p>
+				{#if libraryItem.type === 'circle'}
+					<p>R: {libraryItem.radius}mm</p>
+					<p>Z: {libraryItem.depth}mm</p>
+				{:else if libraryItem.type === 'rectangle'}
+					<p>X: {libraryItem.width}mm</p>
+					<p>Y: {libraryItem.height}mm</p>
+					<p>Z: {libraryItem.depth}mm</p>
+				{/if}
+				<A
+					class="absolute bottom-4 right-4"
+					on:click={() => {
+						$libraryStore = $libraryStore.filter((li) => li !== libraryItem);
+					}}><TrashBinOutline size="sm" /></A
+				>
+			</Card>
+		{/each}
+	</div>
+	<div class="text-right mt-4">
+		<Button on:click={() => resolve()} color="alternative" class="ml-2">Close</Button>
+	</div>
 </Modal>
 
 <FileInput accept="application/json" bind:this={fileInput} />

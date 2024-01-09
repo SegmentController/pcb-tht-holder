@@ -30,7 +30,7 @@ export const addNewCircle = async (source?: CircleSettings) => {
 			circle.radius = settings.radius;
 			circle.depth = settings.depth;
 			updateCircleChanges();
-		}
+		} else deleteCircle(circle);
 	}
 };
 export const duplicateCircle = (source: CircleData) => addNewCircle(source);
@@ -55,6 +55,11 @@ export const modifyCircle = async (circle: CircleData) => {
 		updateCircleChanges();
 	}
 };
+export const deleteCircle = (circle: CircleData) => {
+	const project = getProjectStoreValue();
+	project.circles = project.circles.filter((c) => c != circle);
+	updateCircleChanges();
+};
 export const updateCircleChanges = (circles?: CircleData[]) =>
 	projectStore.update((value) => {
 		if (circles) value.circles = circles;
@@ -77,10 +82,7 @@ export const getContextMenuItemForCircle = (id: string): ContextMenuItem[] | und
 			{ name: '' },
 			{
 				name: 'Delete',
-				onClick: () => {
-					project.circles = project.circles.filter((c) => c != circle);
-					updateCircleChanges();
-				}
+				onClick: () => deleteCircle(circle)
 			}
 		];
 };

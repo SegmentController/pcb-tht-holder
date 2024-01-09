@@ -11,7 +11,7 @@ import ModalPanelSettings from '$components/modal/ModalPanelSettings.svelte';
 import ModalRectangleSettings, {
 	type RectangleSettings
 } from '$components/modal/ModalRectangleSettings.svelte';
-import type { MeshInfo } from '$lib/3d/mesh';
+import type { MeshInfos } from '$lib/3d/mesh';
 import type { PanelSettings } from '$types/PanelSettings';
 
 export const modalStore = createModalStore();
@@ -42,6 +42,6 @@ export const showModalLibrary = async (): Promise<object> =>
 
 export const showModalMesh = async (
 	filename: string,
-	meshInfo: Promise<MeshInfo>
+	meshInfos: Promise<MeshInfos>
 ): Promise<object> =>
-	await modalStore.push({ component: ModalMeshDisplay, props: { filename, meshInfo } }).resolve();
+	await modalStore.push({ component: ModalMeshDisplay, props: { filename, meshInfos } }).resolve();

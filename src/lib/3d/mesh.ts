@@ -16,6 +16,7 @@ export type MeshInfo = {
 	vertexArray: Float32Array;
 	dimensions: MeshDimensionInfo;
 };
+export type MeshInfos = { main: MeshInfo; coverage: MeshInfo };
 
 const MESH = (geometry: THREE.BoxGeometry | THREE.CylinderGeometry) => {
 	const result = new Brush(geometry.translate(0, 0, 0));
@@ -31,7 +32,7 @@ const BOX = (width: number, height: number, depth: number) =>
 	new THREE.BoxGeometry(width, height, depth);
 const CYLINDER = (radius: number, height: number) =>
 	new THREE.CylinderGeometry(radius, radius, height, 32);
-export const generateMesh = (project: RenderableProject): MeshInfo => {
+export const generateMesh = (project: RenderableProject): MeshInfos => {
 	// Constant helper values
 	const panel = project.panelSettings;
 	const emptyHeight = panel.pcbThickness + panel.smdHeight;
@@ -42,6 +43,8 @@ export const generateMesh = (project: RenderableProject): MeshInfo => {
 	);
 	const needHeight = panel.pcbThickness + componentHeigh;
 
+	const coverageHeight = panel.pcbThickness + panel.smdHeight;
+
 	// Lets create mesh...
 	let mesh = MESH(
 		BOX(
@@ -51,12 +54,23 @@ export const generateMesh = (project: RenderableProject): MeshInfo => {
 		)
 	);
 
+	let meshCoverage = MESH(
+		BOX(
+			panel.width + 2 * EDGE_THICKNESS,
+			panel.height + 2 * EDGE_THICKNESS,
+			coverageHeight + BOTTOM_THICKNESS
+		)
+	);
+	meshCoverage.position.z += needHeight - coverageHeight;
+	meshCoverage.updateMatrixWorld();
+
 	const evaluator = new Evaluator();
 	const emptySpace = MESH(BOX(panel.width, panel.height, emptyHeight + ROUND_CORRECTION));
 	{
 		emptySpace.position.z += BOTTOM_THICKNESS + needHeight - emptyHeight;
 		emptySpace.updateMatrixWorld();
 		mesh = evaluator.evaluate(mesh, emptySpace, SUBTRACTION);
+		meshCoverage = evaluator.evaluate(meshCoverage, emptySpace, SUBTRACTION);
 	}
 	const remover = MESH(BOX(panel.width / 3, panel.height / 3, emptyHeight + ROUND_CORRECTION));
 	{
@@ -75,6 +89,7 @@ export const generateMesh = (project: RenderableProject): MeshInfo => {
 			try {
 				remover.updateMatrixWorld();
 				mesh = evaluator.evaluate(mesh, remover, SUBTRACTION);
+				meshCoverage = evaluator.evaluate(meshCoverage, remover, SUBTRACTION);
 			} finally {
 				remover.position.x -= delta.dx;
 				remover.position.y -= delta.dy;
@@ -88,6 +103,7 @@ export const generateMesh = (project: RenderableProject): MeshInfo => {
 		box.position.z += BOTTOM_THICKNESS + (componentHeigh - rectangle.depth);
 		box.updateMatrixWorld();
 		mesh = evaluator.evaluate(mesh, box, SUBTRACTION);
+		meshCoverage = evaluator.evaluate(meshCoverage, box, SUBTRACTION);
 	}
 	for (const circle of project.circles) {
 		const cylinder = MESH(CYLINDER(circle.radius, circle.depth + ROUND_CORRECTION));
@@ -96,27 +112,39 @@ export const generateMesh = (project: RenderableProject): MeshInfo => {
 		cylinder.position.z += BOTTOM_THICKNESS + (componentHeigh - circle.depth);
 		cylinder.updateMatrixWorld();
 		mesh = evaluator.evaluate(mesh, cylinder, SUBTRACTION);
+		meshCoverage = evaluator.evaluate(meshCoverage, cylinder, SUBTRACTION);
 	}
 	for (const leg of project.legs) {
-		const box = MESH(BOX(leg.width, leg.height, componentHeigh));
+		const box = MESH(BOX(leg.width, leg.height, panel.smdHeight));
 		box.position.x += leg.x + leg.width / 2 - panel.width / 2;
 		box.position.y -= leg.y + leg.height / 2 - panel.height / 2;
-		box.position.z += BOTTOM_THICKNESS;
+		box.position.z += BOTTOM_THICKNESS + (componentHeigh - panel.smdHeight);
 		box.updateMatrixWorld();
 		mesh = evaluator.evaluate(mesh, box, ADDITION);
+		meshCoverage = evaluator.evaluate(meshCoverage, box, ADDITION);
 	}
 
 	return {
-		vertexArray: new Float32Array(mesh.geometry.attributes['position'].array),
-		dimensions: {
-			x: panel.width + 2 * EDGE_THICKNESS,
-			y: panel.height + 2 * EDGE_THICKNESS,
-			depth: needHeight + BOTTOM_THICKNESS
+		main: {
+			vertexArray: new Float32Array(mesh.geometry.attributes['position'].array),
+			dimensions: {
+				x: panel.width + 2 * EDGE_THICKNESS,
+				y: panel.height + 2 * EDGE_THICKNESS,
+				depth: needHeight + BOTTOM_THICKNESS
+			}
+		},
+		coverage: {
+			vertexArray: new Float32Array(meshCoverage.geometry.attributes['position'].array),
+			dimensions: {
+				x: panel.width + 2 * EDGE_THICKNESS,
+				y: panel.height + 2 * EDGE_THICKNESS,
+				depth: coverageHeight + BOTTOM_THICKNESS
+			}
 		}
 	};
 };
 
-export const generateMeshLazy = async (project: RenderableProject): Promise<MeshInfo> =>
+export const generateMeshLazy = async (project: RenderableProject): Promise<MeshInfos> =>
 	new Promise((resolve, reject) =>
 		setTimeout(() => {
 			try {

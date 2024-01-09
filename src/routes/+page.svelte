@@ -1,7 +1,8 @@
 <script lang="ts">
 	import '../app.postcss';
 
-	import { Button, Dropdown, DropdownDivider, DropdownItem } from 'flowbite-svelte';
+	import { shortcut } from '@svelte-put/shortcut';
+	import { Button, Dropdown, DropdownDivider, DropdownItem, Kbd } from 'flowbite-svelte';
 	import { Navbar, NavBrand, NavHamburger, NavLi, NavUl } from 'flowbite-svelte';
 	import { ChevronDownOutline, ChevronRightSolid, VideoSolid } from 'flowbite-svelte-icons';
 	import { onMount } from 'svelte';
@@ -237,6 +238,18 @@
 	};
 </script>
 
+<svelte:window
+	use:shortcut={{
+		trigger: [
+			{ key: 'C', modifier: ['shift'], callback: () => addNewCircle() },
+			{ key: 'R', modifier: ['shift'], callback: () => addNewRectangle() },
+			{ key: 'L', modifier: ['shift'], callback: () => addNewLeg() },
+			{ key: 'P', modifier: ['shift'], callback: () => openPanelSettings() },
+			{ key: 'd', callback: () => openDisplay() }
+		]
+	}}
+/>
+
 <Navbar>
 	<NavBrand href="#">
 		<img src="{base}/favicon.png" class="me-3 h-6 sm:h-9" alt="PCB THT Holder Logo" />
@@ -246,9 +259,11 @@
 		<span class="ml-2 self-center whitespace-nowrap text-sm dark:text-white">v{APP_VERSION}</span>
 	</NavBrand>
 	<div class="flex md:order-2">
-		<Button disabled={!pcbImage} on:click={() => openDisplay()}
-			><VideoSolid class="mr-2" /> Display 3D</Button
-		>
+		<Button disabled={!pcbImage} on:click={() => openDisplay()}>
+			<VideoSolid class="mr-2" />
+			Display 3D
+			<Kbd class="ml-4 px-2 py-1">D</Kbd>
+		</Button>
 		<NavHamburger />
 	</div>
 	<NavUl class="order-1">
@@ -256,19 +271,31 @@
 			<NavLi class="cursor-pointer">
 				File<ChevronDownOutline class="w-3 h-3 ms-2 text-primary-800 dark:text-white inline" />
 			</NavLi>
-			<Dropdown class="w-44 z-20">
+			<Dropdown class="w-60 z-20">
 				<DropdownItem href="#" on:click={() => reset()}>New</DropdownItem>
-				<DropdownItem href="#" on:click={() => downloadProjectFile()}>Save project...</DropdownItem>
+				<DropdownItem href="#" on:click={() => downloadProjectFile()}>Save project</DropdownItem>
 				<DropdownDivider />
-				<DropdownItem href="#" on:click={() => openPanelSettings()}>Panel settings</DropdownItem>
+				<DropdownItem href="#" on:click={() => openPanelSettings()}>
+					Panel settings...
+					<Kbd class="float-right px-2">shift + P</Kbd>
+				</DropdownItem>
 			</Dropdown>
 			<NavLi class="cursor-pointer">
 				Component<ChevronDownOutline class="w-3 h-3 ms-2 text-primary-800 dark:text-white inline" />
 			</NavLi>
-			<Dropdown class="w-44 z-20">
-				<DropdownItem href="#" on:click={() => addNewCircle()}>Add circle...</DropdownItem>
-				<DropdownItem href="#" on:click={() => addNewRectangle()}>Add rectangle...</DropdownItem>
-				<DropdownItem href="#" on:click={() => addNewLeg()}>Add leg</DropdownItem>
+			<Dropdown class="w-60 z-20">
+				<DropdownItem href="#" on:click={() => addNewCircle()}>
+					Add circle...
+					<Kbd class="float-right px-2">shift + C</Kbd>
+				</DropdownItem>
+				<DropdownItem href="#" on:click={() => addNewRectangle()}>
+					Add rectangle...
+					<Kbd class="float-right px-2">shift + R</Kbd>
+				</DropdownItem>
+				<DropdownItem href="#" on:click={() => addNewLeg()}>
+					Add leg
+					<Kbd class="float-right px-2">shift + L</Kbd>
+				</DropdownItem>
 				{#if $libraryStore.length}
 					<DropdownItem class="flex items-center justify-between">
 						Add from library<ChevronRightSolid

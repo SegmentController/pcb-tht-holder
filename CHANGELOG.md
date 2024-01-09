@@ -10,9 +10,14 @@
 
 ### Fixed
 
-## [1.2.0] - 2024-01-08
+## [1.2.1] - 2024-01-09
 
 ### Added
+
+- Coverage option: you can see only top layert
+- Shortcuts
+
+## [1.2.0] - 2024-01-08
 
 ### Changed
 
@@ -20,10 +25,6 @@
 - UI improvement
 - Library export to JSON file
 - Library import from JSON file
-
-### Removed
-
-### Fixed
 
 ## [1.1.0] - 2024-01-07
 
@@ -36,8 +37,6 @@
 ### Changed
 
 - Input values use boundaries
-
-### Removed
 
 ### Fixed
 

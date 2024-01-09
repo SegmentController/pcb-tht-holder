@@ -24,7 +24,8 @@ module.exports = {
 		'no-console': 'error',
 		'no-debugger': 'error',
 		'sonarjs/no-nested-switch': 'off',
-		'sonarjs/cognitive-complexity': 'off'
+		'sonarjs/cognitive-complexity': 'off',
+		'sonarjs/no-unused-collection': 'off'
 	},
 	env: {
 		browser: true,

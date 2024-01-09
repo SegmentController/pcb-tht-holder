@@ -32,7 +32,7 @@ export const addNewRectangle = async (source?: RectangleSettings) => {
 			rectangle.height = settings.height;
 			rectangle.depth = settings.depth;
 			updateRectangleChanges();
-		}
+		} else deleteRectangle(rectangle);
 	}
 };
 export const duplicateRectangle = (source: RectangleData) => addNewRectangle(source);
@@ -65,6 +65,11 @@ export const modifyRectangle = async (rectangle: RectangleData) => {
 		updateRectangleChanges();
 	}
 };
+export const deleteRectangle = (rectangle: RectangleData) => {
+	const project = getProjectStoreValue();
+	project.rectangles = project.rectangles.filter((r) => r != rectangle);
+	updateRectangleChanges();
+};
 export const updateRectangleChanges = (rectangles?: RectangleData[]) =>
 	projectStore.update((value) => {
 		if (rectangles) value.rectangles = rectangles;
@@ -88,10 +93,7 @@ export const getContextMenuItemForRectangle = (id: string): ContextMenuItem[] | 
 			{ name: '' },
 			{
 				name: 'Delete',
-				onClick: () => {
-					project.rectangles = project.rectangles.filter((r) => r != rectangle);
-					updateRectangleChanges();
-				}
+				onClick: () => deleteRectangle(rectangle)
 			}
 		];
 };

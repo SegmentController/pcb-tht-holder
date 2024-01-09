@@ -4,7 +4,7 @@
 	import { DownloadSolid } from 'flowbite-svelte-icons';
 	import { createEventDispatcher, onMount } from 'svelte';
 
-	import type { MeshInfos } from '$lib/3d/mesh';
+	import type { MeshInfoTuple } from '$lib/3d/mesh';
 	import {
 		generateBinaryStlFromVertices,
 		generateStlFromVertices,
@@ -19,11 +19,11 @@
 	const resolve = () => dispatch('resolve', { trigger: 'custom' });
 
 	export let filename: string;
-	export let meshInfos: Promise<MeshInfos>;
+	export let meshInfoTuple: Promise<MeshInfoTuple>;
 
 	let volume: number;
 	onMount(async () => {
-		await meshInfos
+		await meshInfoTuple
 			.then((m) => (volume = MathMax([...m.main.vertexArray.values()])))
 			.catch(() => (volume = 1));
 	});
@@ -35,8 +35,8 @@
 
 	const downloadStlFile = async (isBinary: boolean) => {
 		try {
-			const meshinfos = await meshInfos;
-			const vertices = (coverageOnly ? meshinfos.coverage : meshinfos.main).vertexArray;
+			const meshinfotuple = await meshInfoTuple;
+			const vertices = (coverageOnly ? meshinfotuple.coverage : meshinfotuple.main).vertexArray;
 			virtualDownload(
 				generateFilename(),
 				isBinary
@@ -55,15 +55,16 @@
 			{generateFilename()}
 		</span>
 
-		{#await meshInfos}
+		{#await meshInfoTuple}
 			<p>Generating mesh...</p>
-		{:then meshInfos}
-			{(coverageOnly ? meshInfos.coverage : meshInfos.main).dimensions.x} x
-			{(coverageOnly ? meshInfos.coverage : meshInfos.main).dimensions.y} x
-			{(coverageOnly ? meshInfos.coverage : meshInfos.main).dimensions.depth} mm |
-			{(coverageOnly ? meshInfos.coverage : meshInfos.main).vertexArray.length / 9} polygons |
+		{:then meshInfoTuple}
+			{(coverageOnly ? meshInfoTuple.coverage : meshInfoTuple.main).dimensions.x} x
+			{(coverageOnly ? meshInfoTuple.coverage : meshInfoTuple.main).dimensions.y} x
+			{(coverageOnly ? meshInfoTuple.coverage : meshInfoTuple.main).dimensions.depth} mm |
+			{(coverageOnly ? meshInfoTuple.coverage : meshInfoTuple.main).vertexArray.length / 9} polygons
+			|
 			{getBinaryStlSizeKbFromVertices(
-				(coverageOnly ? meshInfos.coverage : meshInfos.main).vertexArray.length
+				(coverageOnly ? meshInfoTuple.coverage : meshInfoTuple.main).vertexArray.length
 			)} kB
 		{:catch message}
 			<span class="text-red-500 text-xl">Error '{message}' occured while rendering mesh</span>
@@ -71,7 +72,7 @@
 	</div>
 	<div class="grid grid-cols-2">
 		<div class="flex justify-start">
-			{#await meshInfos}
+			{#await meshInfoTuple}
 				{''}
 			{:then}
 				<Toggle id="wireframe" bind:checked={wireframe}>Wireframe</Toggle>
@@ -81,7 +82,7 @@
 			{/await}
 		</div>
 		<div class="flex justify-end">
-			{#await meshInfos}
+			{#await meshInfoTuple}
 				{''}
 			{:then}
 				<ButtonGroup>
@@ -98,13 +99,13 @@
 	</div>
 	<div class="canvasContainer">
 		<Canvas>
-			{#await meshInfos}
+			{#await meshInfoTuple}
 				{''}
-			{:then meshInfos}
+			{:then meshInfoTuple}
 				{#if coverageOnly}
-					<Mesh3DScene vertices={meshInfos.coverage.vertexArray} {volume} {wireframe} />
+					<Mesh3DScene vertices={meshInfoTuple.coverage.vertexArray} {volume} {wireframe} />
 				{:else}
-					<Mesh3DScene vertices={meshInfos.main.vertexArray} {volume} {wireframe} />
+					<Mesh3DScene vertices={meshInfoTuple.main.vertexArray} {volume} {wireframe} />
 				{/if}
 			{:catch}
 				{''}

@@ -29,9 +29,8 @@
 	};
 </script>
 
-<Modal open={true} size="lg">
-	<div class="grid grid-cols-2">
-		<h3 class="text-xl font-medium text-gray-900 dark:text-white">Library</h3>
+<Modal open={true} size="lg" dismissable={false} title="Library">
+	<div class="grid">
 		<ButtonGroup class="justify-self-end">
 			<Button on:click={() => importLibrary()}>Import</Button>
 			<Button on:click={() => exportLibrary()}>Export</Button>

@@ -1,6 +1,5 @@
 <script lang="ts">
 	import { Button, Modal } from 'flowbite-svelte';
-	import { ExclamationCircleOutline } from 'flowbite-svelte-icons';
 	import { createEventDispatcher } from 'svelte';
 
 	const dispatch = createEventDispatcher<{
@@ -18,9 +17,8 @@
 	export let title: string;
 </script>
 
-<Modal open={true} size="sm">
+<Modal open={true} size="sm" dismissable={false} title="Confirm">
 	<div class="text-center">
-		<ExclamationCircleOutline class="mx-auto mb-4 text-gray-400 w-12 h-12 dark:text-gray-200" />
 		<h3 class="mb-5 text-lg font-normal text-gray-500 dark:text-gray-400">
 			{title}
 		</h3>

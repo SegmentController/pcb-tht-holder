@@ -258,16 +258,16 @@
 		>
 		<span class="ml-2 self-center whitespace-nowrap text-sm dark:text-white">v{APP_VERSION}</span>
 	</NavBrand>
-	<div class="flex md:order-2">
-		<Button disabled={!pcbImage} on:click={() => openDisplay()}>
-			<VideoSolid class="mr-2" />
-			Display 3D
-			<Kbd class="ml-4 px-2 py-1">D</Kbd>
-		</Button>
-		<NavHamburger />
-	</div>
-	<NavUl class="order-1">
-		{#if pcbImage}
+	{#if pcbImage}
+		<div class="flex md:order-2">
+			<Button disabled={!pcbImage} on:click={() => openDisplay()}>
+				<VideoSolid class="mr-2" />
+				Display 3D
+				<Kbd class="ml-4 px-2 py-1">D</Kbd>
+			</Button>
+			<NavHamburger />
+		</div>
+		<NavUl class="order-1">
 			<NavLi class="cursor-pointer">
 				File<ChevronDownOutline class="w-3 h-3 ms-2 text-primary-800 dark:text-white inline" />
 			</NavLi>
@@ -313,8 +313,8 @@
 				<DropdownDivider />
 				<DropdownItem href="#" on:click={() => showModalLibrary()}>Library...</DropdownItem>
 			</Dropdown>
-		{/if}
-	</NavUl>
+		</NavUl>
+	{/if}
 </Navbar>
 
 <div class="flex justify-center">

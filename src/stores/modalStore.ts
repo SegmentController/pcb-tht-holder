@@ -11,37 +11,80 @@ import ModalPanelSettings from '$components/modal/ModalPanelSettings.svelte';
 import ModalRectangleSettings, {
 	type RectangleSettings
 } from '$components/modal/ModalRectangleSettings.svelte';
-import type { MeshInfos } from '$lib/3d/mesh';
+import type { MeshInfoTuple } from '$lib/3d/mesh';
 import type { PanelSettings } from '$types/PanelSettings';
 
 export const modalStore = createModalStore();
 
 export const showModalConfirm = async (title: string): Promise<{ confirmed: boolean }> =>
-	await modalStore.push({ component: ModalConfirm, props: { title } }).resolve();
+	await modalStore
+		.push({
+			component: ModalConfirm,
+			props: {
+				title
+			}
+		})
+		.resolve();
 
 export const showModalNameEdit = async (
 	name: string
 ): Promise<{ confirmed: boolean; name: string }> =>
-	await modalStore.push({ component: ModalNameEdit, props: { name } }).resolve();
+	await modalStore
+		.push({
+			component: ModalNameEdit,
+			props: {
+				name
+			}
+		})
+		.resolve();
 
 export const showModalPanelSettings = async (
 	settings: PanelSettings
 ): Promise<{ confirmed: boolean; settings: PanelSettings }> =>
-	await modalStore.push({ component: ModalPanelSettings, props: { settings } }).resolve();
+	await modalStore
+		.push({
+			component: ModalPanelSettings,
+			props: {
+				settings: structuredClone(settings)
+			}
+		})
+		.resolve();
 export const showModalCircleSettings = async (
 	settings: CircleSettings
 ): Promise<{ confirmed: boolean; settings: CircleSettings }> =>
-	await modalStore.push({ component: ModalCircleSettings, props: { settings } }).resolve();
+	await modalStore
+		.push({
+			component: ModalCircleSettings,
+			props: {
+				settings: structuredClone(settings)
+			}
+		})
+		.resolve();
 export const showModalRectangleSettings = async (
 	settings: RectangleSettings
 ): Promise<{ confirmed: boolean; settings: RectangleSettings }> =>
-	await modalStore.push({ component: ModalRectangleSettings, props: { settings } }).resolve();
+	await modalStore
+		.push({
+			component: ModalRectangleSettings,
+			props: {
+				settings: structuredClone(settings)
+			}
+		})
+		.resolve();
 
 export const showModalLibrary = async (): Promise<object> =>
 	await modalStore.push({ component: ModalLibrary }).resolve();
 
 export const showModalMesh = async (
 	filename: string,
-	meshInfos: Promise<MeshInfos>
+	meshInfoTuple: Promise<MeshInfoTuple>
 ): Promise<object> =>
-	await modalStore.push({ component: ModalMeshDisplay, props: { filename, meshInfos } }).resolve();
+	await modalStore
+		.push({
+			component: ModalMeshDisplay,
+			props: {
+				filename,
+				meshInfoTuple
+			}
+		})
+		.resolve();

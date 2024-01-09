@@ -28,9 +28,8 @@
 	export let settings: RectangleSettings;
 </script>
 
-<Modal open={true} size="sm">
+<Modal open={true} size="sm" dismissable={false} title="Rectangle settings">
 	<div class="flex flex-col space-y-6">
-		<h3 class="text-xl font-medium text-gray-900 dark:text-white">Rectangle settings</h3>
 		<div class="grid gap-6 mb-6 md:grid-cols-2">
 			<div>
 				<Label for="width" class="mb-2">Width (mm)</Label>

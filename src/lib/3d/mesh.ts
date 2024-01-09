@@ -16,7 +16,7 @@ export type MeshInfo = {
 	vertexArray: Float32Array;
 	dimensions: MeshDimensionInfo;
 };
-export type MeshInfos = { main: MeshInfo; coverage: MeshInfo };
+export type MeshInfoTuple = { main: MeshInfo; coverage: MeshInfo };
 
 const MESH = (geometry: THREE.BoxGeometry | THREE.CylinderGeometry) => {
 	const result = new Brush(geometry.translate(0, 0, 0));
@@ -32,7 +32,7 @@ const BOX = (width: number, height: number, depth: number) =>
 	new THREE.BoxGeometry(width, height, depth);
 const CYLINDER = (radius: number, height: number) =>
 	new THREE.CylinderGeometry(radius, radius, height, 32);
-export const generateMesh = (project: RenderableProject): MeshInfos => {
+export const generateMesh = (project: RenderableProject): MeshInfoTuple => {
 	// Constant helper values
 	const panel = project.panelSettings;
 	const emptyHeight = panel.pcbThickness + panel.smdHeight;
@@ -144,7 +144,7 @@ export const generateMesh = (project: RenderableProject): MeshInfos => {
 	};
 };
 
-export const generateMeshLazy = async (project: RenderableProject): Promise<MeshInfos> =>
+export const generateMeshLazy = async (project: RenderableProject): Promise<MeshInfoTuple> =>
 	new Promise((resolve, reject) =>
 		setTimeout(() => {
 			try {

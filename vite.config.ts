@@ -25,6 +25,7 @@ export default defineConfig({
 		}
 	},
 	define: {
-		__PKG_VERSION__: `"${package_.version}"`
+		__PKG_VERSION__: `"${package_.version}"`,
+		__BASE_URL__: `"${process.env.NODE_ENV === 'production' ? '/pcb-tht-holder' : ''}"`
 	}
 });

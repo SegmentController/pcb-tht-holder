@@ -65,6 +65,8 @@
 	});
 	/*global __PKG_VERSION__*/
 	const APP_VERSION = __PKG_VERSION__;
+	/*global __BASE_URL__*/
+	const BASE_URL = __BASE_URL__;
 
 	let pcbImage: HTMLImageElement | undefined;
 	let imageSize: ImageSize | undefined;
@@ -254,7 +256,7 @@
 
 <Navbar>
 	<NavBrand href="#">
-		<img src="/favicon.png" class="me-3 h-6 sm:h-9" alt="PCB THT Holder Logo" />
+		<img src="{BASE_URL}/favicon.png" class="me-3 h-6 sm:h-9" alt="PCB THT Holder Logo" />
 		<span class="self-center whitespace-nowrap text-xl font-semibold dark:text-white"
 			>PCB THT Holder</span
 		>

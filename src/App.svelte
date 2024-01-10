@@ -1,6 +1,7 @@
 <script lang="ts">
-	import '../app.postcss';
+	import './app.postcss';
 
+	import { ModalPortal } from '@svelte-put/modal';
 	import { shortcut } from '@svelte-put/shortcut';
 	import { Button, Dropdown, DropdownDivider, DropdownItem, Kbd } from 'flowbite-svelte';
 	import { Navbar, NavBrand, NavHamburger, NavLi, NavUl } from 'flowbite-svelte';
@@ -17,9 +18,6 @@
 		Stage
 	} from 'svelte-konva';
 
-	import { base } from '$app/paths';
-	import ContextMenu from '$components/ContextMenu.svelte';
-	import Dropzone from '$components/Dropzone.svelte';
 	import { generateMeshLazy } from '$lib/3d/mesh';
 	import { virtualDownload } from '$lib/download';
 	import {
@@ -41,6 +39,7 @@
 		updateRectangleChanges
 	} from '$lib/elements/rectangle';
 	import { libraryStore } from '$stores/libraryStore';
+	import { modalStore } from '$stores/modalStore';
 	import {
 		showModalConfirm,
 		showModalLibrary,
@@ -54,6 +53,9 @@
 	import { LibraryItem } from '$types/Library';
 	import { Project } from '$types/Project';
 	import { RectangleData } from '$types/RectangleData';
+
+	import ContextMenu from './components/ContextMenu.svelte';
+	import Dropzone from './components/Dropzone.svelte';
 
 	onMount(() => {
 		const preferences = get(projectStore);
@@ -252,22 +254,22 @@
 
 <Navbar>
 	<NavBrand href="#">
-		<img src="{base}/favicon.png" class="me-3 h-6 sm:h-9" alt="PCB THT Holder Logo" />
+		<img src="/favicon.png" class="me-3 h-6 sm:h-9" alt="PCB THT Holder Logo" />
 		<span class="self-center whitespace-nowrap text-xl font-semibold dark:text-white"
 			>PCB THT Holder</span
 		>
 		<span class="ml-2 self-center whitespace-nowrap text-sm dark:text-white">v{APP_VERSION}</span>
 	</NavBrand>
-	{#if pcbImage}
-		<div class="flex md:order-2">
-			<Button disabled={!pcbImage} on:click={() => openDisplay()}>
-				<VideoSolid class="mr-2" />
-				Display 3D
-				<Kbd class="ml-4 px-2 py-1">D</Kbd>
-			</Button>
-			<NavHamburger />
-		</div>
-		<NavUl class="order-1">
+	<div class="flex md:order-2">
+		<Button disabled={!pcbImage} on:click={() => openDisplay()}>
+			<VideoSolid class="mr-2" />
+			Display 3D
+			<Kbd class="ml-4 px-2 py-1">D</Kbd>
+		</Button>
+		<NavHamburger />
+	</div>
+	<NavUl class="order-1">
+		{#if pcbImage}
 			<NavLi class="cursor-pointer">
 				File<ChevronDownOutline class="w-3 h-3 ms-2 text-primary-800 dark:text-white inline" />
 			</NavLi>
@@ -313,8 +315,8 @@
 				<DropdownDivider />
 				<DropdownItem href="#" on:click={() => showModalLibrary()}>Library...</DropdownItem>
 			</Dropdown>
-		</NavUl>
-	{/if}
+		{/if}
+	</NavUl>
 </Navbar>
 
 <div class="flex justify-center">
@@ -379,3 +381,5 @@
 		</Stage>
 	{/if}
 </div>
+
+<ModalPortal store={modalStore} />

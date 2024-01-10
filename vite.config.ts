@@ -1,22 +1,27 @@
-import { sveltekit } from '@sveltejs/kit/vite';
-import { defineConfig } from 'vitest/config';
+/* eslint-disable unicorn/prefer-module */
+/* eslint-disable unicorn/prefer-node-protocol */
+import { svelte } from '@sveltejs/vite-plugin-svelte';
+import path from 'path';
+import { defineConfig } from 'vite';
 
 import package_ from './package.json';
 
 export default defineConfig({
-	clearScreen: true,
-	plugins: [sveltekit()],
-	test: {
-		include: ['src/**/*.{test,spec}.{js,ts}']
-	},
+	plugins: [svelte()],
 	build: {
 		sourcemap: false,
 		minify: true,
 		cssMinify: true,
-		emptyOutDir: true
+		emptyOutDir: true,
+		outDir: 'docs'
 	},
-	ssr: {
-		noExternal: ['three']
+	resolve: {
+		alias: {
+			$components: path.resolve(__dirname, './src/components'),
+			$lib: path.resolve(__dirname, './src/lib'),
+			$stores: path.resolve(__dirname, './src/stores'),
+			$types: path.resolve(__dirname, './src/types')
+		}
 	},
 	define: {
 		__PKG_VERSION__: `"${package_.version}"`

@@ -5,7 +5,6 @@
 	import { shortcut } from '@svelte-put/shortcut';
 	import { Button, Dropdown, DropdownDivider, DropdownItem, Kbd } from 'flowbite-svelte';
 	import { Navbar, NavBrand, NavHamburger, NavLi, NavUl } from 'flowbite-svelte';
-	import { ChevronDownOutline, ChevronRightSolid, VideoSolid } from 'flowbite-svelte-icons';
 	import { onMount } from 'svelte';
 	import { get } from 'svelte/store';
 	import {
@@ -18,6 +17,8 @@
 		Stage
 	} from 'svelte-konva';
 
+	import ChevronDown from '$components/icon/ChevronDown.svelte';
+	import ChevronRight from '$components/icon/ChevronRight.svelte';
 	import { generateMeshLazy } from '$lib/3d/mesh';
 	import { virtualDownload } from '$lib/download';
 	import {
@@ -262,18 +263,28 @@
 		>
 		<span class="ml-2 self-center whitespace-nowrap text-sm dark:text-white">v{APP_VERSION}</span>
 	</NavBrand>
-	<div class="flex md:order-2">
-		<Button disabled={!pcbImage} on:click={() => openDisplay()}>
-			<VideoSolid class="mr-2" />
-			Display 3D
-			<Kbd class="ml-4 px-2 py-1">D</Kbd>
-		</Button>
-		<NavHamburger />
-	</div>
-	<NavUl class="order-1">
-		{#if pcbImage}
+	{#if pcbImage}
+		<div class="flex md:order-2">
+			<Button disabled={!pcbImage} on:click={() => openDisplay()}>
+				<svg
+					class="mr-2"
+					xmlns="http://www.w3.org/2000/svg"
+					width="24"
+					height="24"
+					viewBox="0 0 32 32"
+					><path
+						fill="currentColor"
+						d="M28 23v3.586l-5-5V15a1 1 0 0 0-.553-.894L17 11.381V5.828l2.586 2.586L21 7l-5-5l-5 5l1.414 1.414L15 5.828v5.554l-5.447 2.723A1 1 0 0 0 9 15v6.586l-5 5V23H2v7h7v-2H5.414l4.783-4.783l5.356 2.678a1.001 1.001 0 0 0 .894 0l5.356-2.678L26.586 28H23v2h7v-7Zm-13 .382l-4-2v-4.764l4 2Zm1-6.5L12.236 15L16 13.118L19.764 15Zm5 4.5l-4 2v-4.764l4-2Z"
+					/></svg
+				>
+				Display 3D
+				<Kbd class="ml-4 px-2 py-1">D</Kbd>
+			</Button>
+			<NavHamburger />
+		</div>
+		<NavUl class="order-1">
 			<NavLi class="cursor-pointer">
-				File<ChevronDownOutline class="w-3 h-3 ms-2 text-primary-800 dark:text-white inline" />
+				File<ChevronDown class="ms-2 text-primary-800 dark:text-white inline" />
 			</NavLi>
 			<Dropdown class="w-60 z-20">
 				<DropdownItem href="#" on:click={() => reset()}>New</DropdownItem>
@@ -285,7 +296,7 @@
 				</DropdownItem>
 			</Dropdown>
 			<NavLi class="cursor-pointer">
-				Component<ChevronDownOutline class="w-3 h-3 ms-2 text-primary-800 dark:text-white inline" />
+				Component<ChevronDown class="ms-2 text-primary-800 dark:text-white inline" />
 			</NavLi>
 			<Dropdown class="w-60 z-20">
 				<DropdownItem href="#" on:click={() => addNewCircle()}>
@@ -302,9 +313,7 @@
 				</DropdownItem>
 				{#if $libraryStore.length}
 					<DropdownItem class="flex items-center justify-between">
-						Add from library<ChevronRightSolid
-							class="w-3 h-3 ms-2 text-primary-700 dark:text-white"
-						/>
+						Add from library<ChevronRight class="ms-2 text-primary-700 dark:text-white" />
 					</DropdownItem>
 					<Dropdown class="w-auto min-w-44 z-20" placement="right-start">
 						{#each $libraryStore.sort((a, b) => a.name.localeCompare(b.name)) as libraryItem}
@@ -317,8 +326,8 @@
 				<DropdownDivider />
 				<DropdownItem href="#" on:click={() => showModalLibrary()}>Library...</DropdownItem>
 			</Dropdown>
-		{/if}
-	</NavUl>
+		</NavUl>
+	{/if}
 </Navbar>
 
 <div class="flex justify-center">

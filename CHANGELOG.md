@@ -10,6 +10,12 @@
 
 ### Fixed
 
+## [1.3.1] - 2024-01-10
+
+### Changed
+
+- Remove flowbite icons, use svg instead
+
 ## [1.3.0] - 2024-01-10
 
 ### Changed

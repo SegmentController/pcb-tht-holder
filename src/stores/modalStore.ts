@@ -7,7 +7,7 @@ import ModalConfirm from '$components/modal/ModalConfirm.svelte';
 import ModalLibrary from '$components/modal/ModalLibrary.svelte';
 import ModalMeshDisplay from '$components/modal/ModalMeshDisplay.svelte';
 import ModalNameEdit from '$components/modal/ModalNameEdit.svelte';
-import ModalPanelSettings from '$components/modal/ModalPanelSettings.svelte';
+import ModalProjectSettings from '$components/modal/ModalProjectSettings.svelte';
 import ModalRectangleSettings, {
 	type RectangleSettings
 } from '$components/modal/ModalRectangleSettings.svelte';
@@ -38,14 +38,16 @@ export const showModalNameEdit = async (
 		})
 		.resolve();
 
-export const showModalPanelSettings = async (
-	settings: PanelSettings
-): Promise<{ confirmed: boolean; settings: PanelSettings }> =>
+export const showModalProjectSettings = async (
+	panelSettings: PanelSettings,
+	name: string
+): Promise<{ confirmed: boolean; panelSettings: PanelSettings; name: string }> =>
 	await modalStore
 		.push({
-			component: ModalPanelSettings,
+			component: ModalProjectSettings,
 			props: {
-				settings: structuredClone(settings)
+				panelSettings: structuredClone(panelSettings),
+				name
 			}
 		})
 		.resolve();
@@ -83,7 +85,7 @@ export const showModalMesh = async (
 		.push({
 			component: ModalMeshDisplay,
 			props: {
-				filename,
+				name: filename,
 				meshInfoTuple
 			}
 		})

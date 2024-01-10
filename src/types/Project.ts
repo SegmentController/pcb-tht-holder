@@ -6,8 +6,8 @@ import { PanelSettings } from './PanelSettings';
 import { RectangleData } from './RectangleData';
 
 export const Project = z.object({
+	name: z.string(),
 	image: z.string(),
-	filename: z.string(),
 
 	panelSettings: PanelSettings,
 
@@ -17,4 +17,4 @@ export const Project = z.object({
 });
 export type Project = z.infer<typeof Project>;
 
-export type RenderableProject = Omit<Omit<Project, 'image'>, 'filename'>;
+export type RenderableProject = Omit<Omit<Project, 'image'>, 'name'>;

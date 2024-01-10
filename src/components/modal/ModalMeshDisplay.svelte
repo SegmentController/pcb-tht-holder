@@ -17,7 +17,7 @@
 	const dispatch = createEventDispatcher<{ resolve: { trigger: 'custom' } }>();
 	const resolve = () => dispatch('resolve', { trigger: 'custom' });
 
-	export let filename: string;
+	export let name: string;
 	export let meshInfoTuple: Promise<MeshInfoTuple>;
 
 	let volume: number;
@@ -30,7 +30,7 @@
 	let wireframe: boolean = false;
 	let coverageOnly: boolean = false;
 
-	const generateFilename = () => filename.slice(0, Math.max(0, filename.lastIndexOf('.'))) + '.stl';
+	const generateFilename = () => name + '.stl';
 
 	const downloadStlFile = async (isBinary: boolean) => {
 		try {

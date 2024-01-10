@@ -8,7 +8,7 @@ import { RectangleSkipJsonProperties } from '$types/RectangleData';
 
 const emptyProject: Project = {
 	image: '',
-	filename: '',
+	name: '',
 
 	panelSettings: {
 		width: 100,

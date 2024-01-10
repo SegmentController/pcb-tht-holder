@@ -2,6 +2,7 @@
 	import { Button, Input, Label, Modal } from 'flowbite-svelte';
 	import { createEventDispatcher } from 'svelte';
 
+	import AutoFocus from '$components/AutoFocus.svelte';
 	import NumberInputBound from '$components/NumberInputBound.svelte';
 	import type { PanelSettings } from '$types/PanelSettings';
 
@@ -25,6 +26,7 @@
 </script>
 
 <Modal open={true} size="sm" dismissable={false} title="Project settings">
+	<AutoFocus />
 	<div class="flex flex-col space-y-6">
 		<div class="grid gap-6 mb-6 grid-cols-2">
 			<div class="col-span-2">

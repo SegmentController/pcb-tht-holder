@@ -10,6 +10,7 @@
 	import { Button, Label, Modal } from 'flowbite-svelte';
 	import { createEventDispatcher } from 'svelte';
 
+	import AutoFocus from '$components/AutoFocus.svelte';
 	import NumberInputBound from '$components/NumberInputBound.svelte';
 
 	const dispatch = createEventDispatcher<{
@@ -29,6 +30,7 @@
 </script>
 
 <Modal open={true} size="sm" dismissable={false} title="Rectangle settings">
+	<AutoFocus />
 	<div class="flex flex-col space-y-6">
 		<div class="grid gap-6 mb-6 md:grid-cols-2">
 			<div>

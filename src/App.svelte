@@ -4,7 +4,7 @@
 	import { ModalPortal } from '@svelte-put/modal';
 	import { shortcut } from '@svelte-put/shortcut';
 	import { A, Button, Dropdown, DropdownDivider, DropdownItem, Kbd } from 'flowbite-svelte';
-	import { Navbar, NavBrand, NavHamburger, NavLi, NavUl } from 'flowbite-svelte';
+	import { Navbar, NavBrand, NavLi, NavUl } from 'flowbite-svelte';
 	import NavContainer from 'flowbite-svelte/NavContainer.svelte';
 	import { onMount } from 'svelte';
 	import { get } from 'svelte/store';
@@ -18,6 +18,7 @@
 		Stage
 	} from 'svelte-konva';
 
+	import Alert from '$components/Alert.svelte';
 	import ChevronDown from '$components/icon/ChevronDown.svelte';
 	import ChevronRight from '$components/icon/ChevronRight.svelte';
 	import { generateMeshLazy } from '$lib/3d/mesh';
@@ -73,13 +74,15 @@
 	let pcbImage: HTMLImageElement | undefined;
 	let imageSize: ImageSize | undefined;
 
+	let alert: Alert;
+
 	const onFileUpload = (
 		_fileData: string,
 		_name: string,
 		isManualUpload: boolean,
 		forceSaveToStore: boolean
 	) => {
-		if (isManualUpload && _fileData.startsWith('data:application/octet-stream'))
+		if (isManualUpload && _fileData.startsWith('data:application/octet-stream')) {
 			try {
 				const fileDataRaw = atob(_fileData.replace('data:application/octet-stream;base64,', ''));
 
@@ -91,11 +94,18 @@
 					$projectStore.legs = isValid.data.legs || [];
 					onFileUpload(isValid.data.image, isValid.data.name, false, true);
 					$projectStore.panelSettings = isValid.data.panelSettings;
+					alert.hide();
 					return;
 				}
-			} catch {
-				document;
+				alert.showError('Cannot load project file', 'Invalid format');
+			} catch (error) {
+				alert.showError(
+					'Cannot load project file',
+					`${error instanceof Error ? error.message : error}`
+				);
 			}
+			return;
+		}
 
 		pcbImage = document.createElement('img');
 		pcbImage.addEventListener('load', () => {
@@ -121,8 +131,10 @@
 			pcbImage = undefined;
 			$projectStore.image = '';
 			$projectStore.name = '';
+			alert.showError('Cannot load image', '');
 		});
 		pcbImage.src = _fileData;
+		alert.hide();
 	};
 
 	const downloadProjectFile = () => {
@@ -247,21 +259,26 @@
 <svelte:window
 	use:shortcut={{
 		trigger: [
-			{ key: 'C', modifier: ['shift'], callback: () => addNewCircle() },
-			{ key: 'R', modifier: ['shift'], callback: () => addNewRectangle() },
-			{ key: 'L', modifier: ['shift'], callback: () => addNewLeg() },
-			{ key: 'P', modifier: ['shift'], callback: () => openProjectSettings() },
-			{ key: 'd', callback: () => openDisplay() }
+			{ key: 'C', modifier: ['shift'], callback: () => addNewCircle(), preventDefault: true },
+			{ key: 'R', modifier: ['shift'], callback: () => addNewRectangle(), preventDefault: true },
+			{ key: 'L', modifier: ['shift'], callback: () => addNewLeg(), preventDefault: true },
+			{
+				key: 'P',
+				modifier: ['shift'],
+				callback: () => openProjectSettings(),
+				preventDefault: true
+			},
+			{ key: 'd', callback: () => openDisplay(), preventDefault: true }
 		]
 	}}
 />
 
 <Navbar class="bg-gray-100">
-	<NavContainer class="border w-3/5 px-5 py-2 rounded-lg bg-white">
+	<NavContainer class="border w-3/5  px-5 py-2 rounded-lg bg-white">
 		<NavBrand href="#">
 			<img src="{BASE_URL}/favicon.png" class="me-3 h-6 sm:h-9" alt="PCB THT Holder Logo" />
 			<span class="self-center whitespace-nowrap text-xl font-semibold">
-				{#if pcbImage}
+				{#if imageSize}
 					<A class="text-inherit hover:no-underline" on:click={() => openProjectSettings()}
 						>{$projectStore.name}</A
 					>
@@ -269,13 +286,13 @@
 					PCB THT Holder
 				{/if}
 			</span>
-			{#if !pcbImage}
+			{#if !imageSize}
 				<span class="ml-2 self-center whitespace-nowrap text-sm dark:text-white"
 					>v{APP_VERSION}</span
 				>
 			{/if}
 		</NavBrand>
-		{#if pcbImage}
+		{#if imageSize}
 			<NavUl class="flex">
 				<NavLi class="cursor-pointer">
 					File<ChevronDown class="ms-2 text-primary-800 dark:text-white inline" />
@@ -337,14 +354,15 @@
 					Display
 					<Kbd class="ml-4 px-2 py-1">D</Kbd>
 				</Button>
-				<NavHamburger />
 			</div>
 		{/if}
 	</NavContainer>
 </Navbar>
 
+<Alert bind:this={alert} />
+
 <div class="flex justify-center">
-	{#if !pcbImage}
+	{#if !imageSize}
 		<Dropzone
 			title="Top view of PCB image or a project file"
 			description="Click to upload or drag and drop a file. Image file (png, jpg) begins a new project, a .tht3d file restores a previously saved project."
@@ -356,7 +374,7 @@
 					false
 				)}
 		/>
-	{:else if imageSize}
+	{:else}
 		<Stage
 			on:click={stageClick}
 			config={{

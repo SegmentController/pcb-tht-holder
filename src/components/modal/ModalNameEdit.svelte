@@ -2,6 +2,8 @@
 	import { Button, Input, Label, Modal } from 'flowbite-svelte';
 	import { createEventDispatcher } from 'svelte';
 
+	import AutoFocus from '$components/AutoFocus.svelte';
+
 	const dispatch = createEventDispatcher<{
 		resolve: {
 			trigger: 'custom';
@@ -20,6 +22,7 @@
 </script>
 
 <Modal open={true} size="sm">
+	<AutoFocus />
 	<div class="flex flex-col space-y-6">
 		<div>
 			<Label for="name" class="mb-2">Name</Label>

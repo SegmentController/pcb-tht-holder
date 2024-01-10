@@ -10,6 +10,12 @@
 
 ### Fixed
 
+## [1.3.0] - 2024-01-10
+
+### Changed
+
+- Drop SvelteKit and use Svelte only with Vite: smaller bundle size, faster loading
+
 ## [1.2.1] - 2024-01-09
 
 ### Added

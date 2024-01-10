@@ -15,6 +15,7 @@ export default defineConfig({
 		emptyOutDir: true,
 		outDir: 'docs'
 	},
+	base: process.env.NODE_ENV === 'production' ? '/pcb-tht-holder' : '',
 	resolve: {
 		alias: {
 			$components: path.resolve(__dirname, './src/components'),

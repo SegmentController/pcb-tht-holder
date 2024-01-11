@@ -3,7 +3,7 @@
 	import { createEventDispatcher } from 'svelte';
 
 	const dispatch = createEventDispatcher<{
-		onEscape: undefined;
+		escape: undefined;
 	}>();
 </script>
 
@@ -13,9 +13,9 @@
 			{
 				key: 'Escape',
 				callback: () => {
-					dispatch('onEscape');
-				}
-				//preventDefault: true
+					dispatch('escape');
+				},
+				preventDefault: true
 			}
 		]
 	}}

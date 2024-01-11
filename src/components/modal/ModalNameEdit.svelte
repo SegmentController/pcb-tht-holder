@@ -2,7 +2,7 @@
 	import { Button, Input, Label, Modal } from 'flowbite-svelte';
 	import { createEventDispatcher } from 'svelte';
 
-	import AutoFocus from '$components/AutoFocus.svelte';
+	import AutoFocus from '$components/modal/AutoFocus.svelte';
 
 	const dispatch = createEventDispatcher<{
 		resolve: {
@@ -21,7 +21,7 @@
 	export let name: string;
 </script>
 
-<Modal open={true} size="sm">
+<Modal open={true} size="sm" dismissable={false} bodyClass="space-y-0">
 	<AutoFocus />
 	<div class="flex flex-col space-y-6">
 		<div>
@@ -29,7 +29,7 @@
 			<Input id="name" bind:value={name} />
 		</div>
 	</div>
-	<div class="text-center mt-4">
+	<div class="text-center mt-4 space-y-6">
 		<Button on:click={() => resolve(true)} color="green" class="me-2">OK</Button>
 		<Button on:click={() => resolve(false)} color="alternative" class="me-2">Cancel</Button>
 	</div>

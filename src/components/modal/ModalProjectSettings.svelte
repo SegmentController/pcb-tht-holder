@@ -2,7 +2,7 @@
 	import { Button, Input, Label, Modal } from 'flowbite-svelte';
 	import { createEventDispatcher } from 'svelte';
 
-	import AutoFocus from '$components/AutoFocus.svelte';
+	import AutoFocus from '$components/modal/AutoFocus.svelte';
 	import NumberInputBound from '$components/NumberInputBound.svelte';
 	import type { PanelSettings } from '$types/PanelSettings';
 
@@ -25,10 +25,10 @@
 	export let name: string;
 </script>
 
-<Modal open={true} size="sm" dismissable={false} title="Project settings">
+<Modal open={true} size="sm" bodyClass="space-y-0" dismissable={false} title="Project settings">
 	<AutoFocus />
-	<div class="flex flex-col space-y-6">
-		<div class="grid gap-6 mb-6 grid-cols-2">
+	<div class="flex flex-col">
+		<div class="grid gap-6 grid-cols-2">
 			<div class="col-span-2">
 				<Label for="name" class="mb-2">Project name</Label>
 				<Input id="name" bind:value={name} />
@@ -56,7 +56,7 @@
 			</div>
 		</div>
 	</div>
-	<div class="text-center mt-4">
+	<div class="text-center mt-4 space-y-6">
 		<Button on:click={() => resolve(true)} color="green" class="me-2">OK</Button>
 		<Button on:click={() => resolve(false)} color="alternative" class="me-2">Cancel</Button>
 	</div>

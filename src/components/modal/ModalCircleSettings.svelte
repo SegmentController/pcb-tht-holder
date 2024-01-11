@@ -9,7 +9,7 @@
 	import { Button, Label, Modal } from 'flowbite-svelte';
 	import { createEventDispatcher } from 'svelte';
 
-	import AutoFocus from '$components/AutoFocus.svelte';
+	import AutoFocus from '$components/modal/AutoFocus.svelte';
 	import NumberInputBound from '$components/NumberInputBound.svelte';
 
 	const dispatch = createEventDispatcher<{
@@ -29,10 +29,10 @@
 	export let settings: CircleSettings;
 </script>
 
-<Modal open={true} size="sm" dismissable={false} title="Circle settings">
+<Modal open={true} size="sm" bodyClass="space-y-0" dismissable={false} title="Circle settings">
 	<AutoFocus />
-	<div class="flex flex-col space-y-6">
-		<div class="grid gap-6 mb-6 md:grid-cols-2">
+	<div class="flex flex-col">
+		<div class="grid gap-6 md:grid-cols-2">
 			<div>
 				<Label for="radius" class="mb-2">Radius (mm)</Label>
 				<NumberInputBound id="radius" min={0.5} max={99} bind:value={settings.radius} />
@@ -43,7 +43,7 @@
 			</div>
 		</div>
 	</div>
-	<div class="text-center mt-4">
+	<div class="text-center mt-4 space-y-6">
 		<Button on:click={() => resolve(true)} color="green" class="me-2">OK</Button>
 		<Button on:click={() => resolve(false)} color="alternative" class="me-2">Cancel</Button>
 	</div>

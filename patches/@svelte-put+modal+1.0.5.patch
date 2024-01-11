@@ -10,3 +10,15 @@ index 8c53df6..78a9bfc 100644
      <div class={rClasses.backdrop} on:click={onClickBackdrop} transition:fade={{ duration: 75 }} />
    {/if}
  </slot>
+diff --git a/node_modules/@svelte-put/modal/package.json b/node_modules/@svelte-put/modal/package.json
+index b7f5941..62d8fc3 100644
+--- a/node_modules/@svelte-put/modal/package.json
++++ b/node_modules/@svelte-put/modal/package.json
+@@ -3,7 +3,6 @@
+   "version": "1.0.5",
+   "description": "Svelte async modal",
+   "type": "module",
+-  "svelte": "./dist/index.js",
+   "main": "./dist/index.js",
+   "module": "./dist/index.js",
+   "exports": {

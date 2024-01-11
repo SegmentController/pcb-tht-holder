@@ -13,7 +13,8 @@ export default defineConfig({
 		minify: true,
 		cssMinify: true,
 		emptyOutDir: true,
-		outDir: 'docs'
+		outDir: 'docs',
+		chunkSizeWarningLimit: 1500
 	},
 	base: process.env.NODE_ENV === 'production' ? '/pcb-tht-holder' : '',
 	resolve: {

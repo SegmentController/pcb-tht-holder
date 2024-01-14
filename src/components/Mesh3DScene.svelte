@@ -30,5 +30,5 @@
 			}}
 		/>
 	</T.BufferGeometry>
-	<T.MeshStandardMaterial color="#22ff22" opacity={0.5} {wireframe} />
+	<T.MeshStandardMaterial color="#22ff22" {wireframe} />
 </T.Mesh>

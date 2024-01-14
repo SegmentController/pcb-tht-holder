@@ -59,8 +59,8 @@
 			{#await meshInfoTuple}
 				<p>Generating mesh...</p>
 			{:then meshInfoTuple}
-				{(coverageOnly ? meshInfoTuple.coverage : meshInfoTuple.main).dimensions.x} x
-				{(coverageOnly ? meshInfoTuple.coverage : meshInfoTuple.main).dimensions.y} x
+				{(coverageOnly ? meshInfoTuple.coverage : meshInfoTuple.main).dimensions.width} x
+				{(coverageOnly ? meshInfoTuple.coverage : meshInfoTuple.main).dimensions.height} x
 				{(coverageOnly ? meshInfoTuple.coverage : meshInfoTuple.main).dimensions.depth} mm |
 				{(coverageOnly ? meshInfoTuple.coverage : meshInfoTuple.main).vertexArray.length / 9} polygons
 				|

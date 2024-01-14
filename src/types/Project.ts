@@ -17,4 +17,4 @@ export const Project = z.object({
 });
 export type Project = z.infer<typeof Project>;
 
-export type RenderableProject = Omit<Omit<Project, 'image'>, 'name'>;
+export type RenderableProject = Omit<Project, 'name' | 'image'>;

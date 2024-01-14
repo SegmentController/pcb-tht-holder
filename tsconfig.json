@@ -5,7 +5,6 @@
 		"target": "ESNext",
 		"useDefineForClassFields": true,
 		"module": "ESNext",
-		"resolveJsonModule": true,
 		"noEmit": true,
 		"isolatedModules": true,
 		"paths": {

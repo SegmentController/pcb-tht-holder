@@ -1,15 +1,17 @@
-import * as THREE from 'three';
+import { BoxGeometry, CylinderGeometry } from 'three';
 import { ADDITION, Brush, Evaluator, SUBTRACTION } from 'three-bvh-csg';
 
+import { MathMax } from '$lib/Math';
 import type { RenderableProject } from '$types/Project';
+import { switchType } from '$types/switchType';
 
 const BOTTOM_THICKNESS = 2;
 const EDGE_THICKNESS = 2;
 const ROUND_CORRECTION = 1;
 
 export type MeshDimensionInfo = {
-	x: number;
-	y: number;
+	width: number;
+	height: number;
 	depth: number;
 };
 export type MeshInfo = {
@@ -18,29 +20,37 @@ export type MeshInfo = {
 };
 export type MeshInfoTuple = { main: MeshInfo; coverage: MeshInfo };
 
-const MESH = (geometry: THREE.BoxGeometry | THREE.CylinderGeometry) => {
+const MESH = (geometry: BoxGeometry | CylinderGeometry) => {
 	const result = new Brush(geometry.translate(0, 0, 0));
-	if (geometry instanceof THREE.BoxGeometry) result.position.z = geometry.parameters.depth / 2;
-	else if (geometry instanceof THREE.CylinderGeometry) {
-		result.position.z = geometry.parameters.height / 2;
-		result.rotateX(Math.PI / 2);
-	}
+
+	switchType(geometry)
+		.case(BoxGeometry)
+		.do((geometry) => (result.position.z = geometry.parameters.depth / 2))
+		.case(CylinderGeometry)
+		.do((geometry) => {
+			result.position.z = geometry.parameters.height / 2;
+			result.rotateX(Math.PI / 2);
+		});
+
 	result.updateMatrixWorld();
+
 	return result;
 };
-const BOX = (width: number, height: number, depth: number) =>
-	new THREE.BoxGeometry(width, height, depth);
+
+const BOX = (width: number, height: number, depth: number) => new BoxGeometry(width, height, depth);
+
 const CYLINDER = (radius: number, height: number) =>
-	new THREE.CylinderGeometry(radius, radius, height, 32);
+	new CylinderGeometry(radius, radius, height, 32);
+
 export const generateMesh = (project: RenderableProject): MeshInfoTuple => {
 	// Constant helper values
 	const panel = project.panelSettings;
 	const emptyHeight = panel.pcbThickness + panel.smdHeight;
-	const componentHeigh = Math.max(
+	const componentHeigh = MathMax([
 		panel.smdHeight,
 		...project.rectangles.map((r) => r.depth),
 		...project.circles.map((c) => c.depth)
-	);
+	]);
 	const needHeight = panel.pcbThickness + componentHeigh;
 
 	const coverageHeight = panel.pcbThickness + panel.smdHeight;
@@ -128,16 +138,16 @@ export const generateMesh = (project: RenderableProject): MeshInfoTuple => {
 		main: {
 			vertexArray: new Float32Array(mesh.geometry.attributes['position'].array),
 			dimensions: {
-				x: panel.width + 2 * EDGE_THICKNESS,
-				y: panel.height + 2 * EDGE_THICKNESS,
+				width: panel.width + 2 * EDGE_THICKNESS,
+				height: panel.height + 2 * EDGE_THICKNESS,
 				depth: needHeight + BOTTOM_THICKNESS
 			}
 		},
 		coverage: {
 			vertexArray: new Float32Array(meshCoverage.geometry.attributes['position'].array),
 			dimensions: {
-				x: panel.width + 2 * EDGE_THICKNESS,
-				y: panel.height + 2 * EDGE_THICKNESS,
+				width: panel.width + 2 * EDGE_THICKNESS,
+				height: panel.height + 2 * EDGE_THICKNESS,
 				depth: coverageHeight + BOTTOM_THICKNESS
 			}
 		}

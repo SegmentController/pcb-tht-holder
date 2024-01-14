@@ -7,8 +7,6 @@
 		"module": "ESNext",
 		"resolveJsonModule": true,
 		"noEmit": true,
-		"allowJs": false,
-		"checkJs": true,
 		"isolatedModules": true,
 		"paths": {
 			"$components/*": ["./src/components/*"],

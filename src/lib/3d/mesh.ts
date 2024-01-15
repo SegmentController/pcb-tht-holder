@@ -1,7 +1,8 @@
 import { BoxGeometry, CylinderGeometry } from 'three';
 import { ADDITION, Brush, Evaluator, SUBTRACTION } from 'three-bvh-csg';
 
-import { MathMax } from '$lib/Math';
+import { MathMax, MathMinMax } from '$lib/Math';
+import type { MeshInfoTuple } from '$types/MeshInfo';
 import type { RenderableProject } from '$types/Project';
 import { switchType } from '$types/switchType';
 
@@ -9,25 +10,17 @@ const BOTTOM_THICKNESS = 2;
 const EDGE_THICKNESS = 2;
 const ROUND_CORRECTION = 1;
 
-export type MeshDimensionInfo = {
-	width: number;
-	height: number;
-	depth: number;
-};
-export type MeshInfo = {
-	vertexArray: Float32Array;
-	dimensions: MeshDimensionInfo;
-};
-export type MeshInfoTuple = { main: MeshInfo; coverage: MeshInfo };
+const CYLINDER = (radius: number, height: number) =>
+	new CylinderGeometry(radius, radius, height, MathMinMax(radius * 8, 16, 48));
+
+const BOX = (width: number, height: number, depth: number) => new BoxGeometry(width, height, depth);
 
 const MESH = (geometry: BoxGeometry | CylinderGeometry) => {
 	const result = new Brush(geometry.translate(0, 0, 0));
 
 	switchType(geometry)
-		.case(BoxGeometry)
-		.do((geometry) => (result.position.z = geometry.parameters.depth / 2))
-		.case(CylinderGeometry)
-		.do((geometry) => {
+		.case(BoxGeometry, (geometry) => (result.position.z = geometry.parameters.depth / 2))
+		.case(CylinderGeometry, (geometry) => {
 			result.position.z = geometry.parameters.height / 2;
 			result.rotateX(Math.PI / 2);
 		});
@@ -36,11 +29,6 @@ const MESH = (geometry: BoxGeometry | CylinderGeometry) => {
 
 	return result;
 };
-
-const BOX = (width: number, height: number, depth: number) => new BoxGeometry(width, height, depth);
-
-const CYLINDER = (radius: number, height: number) =>
-	new CylinderGeometry(radius, radius, height, 32);
 
 export const generateMesh = (project: RenderableProject): MeshInfoTuple => {
 	// Constant helper values
@@ -55,7 +43,7 @@ export const generateMesh = (project: RenderableProject): MeshInfoTuple => {
 
 	const coverageHeight = panel.pcbThickness + panel.smdHeight;
 
-	// Lets create mesh...
+	// Lets create mesh+meshCoverage...
 	let mesh = MESH(
 		BOX(
 			panel.width + 2 * EDGE_THICKNESS,
@@ -63,7 +51,7 @@ export const generateMesh = (project: RenderableProject): MeshInfoTuple => {
 			needHeight + BOTTOM_THICKNESS
 		)
 	);
-
+	mesh.updateMatrixWorld();
 	let meshCoverage = MESH(
 		BOX(
 			panel.width + 2 * EDGE_THICKNESS,
@@ -74,6 +62,7 @@ export const generateMesh = (project: RenderableProject): MeshInfoTuple => {
 	meshCoverage.position.z += needHeight - coverageHeight;
 	meshCoverage.updateMatrixWorld();
 
+	// Go operations
 	const evaluator = new Evaluator();
 	const emptySpace = MESH(BOX(panel.width, panel.height, emptyHeight + ROUND_CORRECTION));
 	{

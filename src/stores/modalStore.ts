@@ -11,7 +11,7 @@ import ModalProjectSettings from '$components/modal/ModalProjectSettings.svelte'
 import ModalRectangleSettings, {
 	type RectangleSettings
 } from '$components/modal/ModalRectangleSettings.svelte';
-import type { MeshInfoTuple } from '$lib/3d/mesh';
+import type { MeshInfoTuple } from '$types/MeshInfo';
 import type { PanelSettings } from '$types/PanelSettings';
 
 export const modalStore = createModalStore();

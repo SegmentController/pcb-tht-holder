@@ -3,7 +3,6 @@
 	import { Button, ButtonGroup, Modal, Toggle } from 'flowbite-svelte';
 	import { createEventDispatcher, onMount } from 'svelte';
 
-	import type { MeshInfoTuple } from '$lib/3d/mesh';
 	import {
 		generateBinaryStlFromVertices,
 		generateStlFromVertices,
@@ -11,6 +10,7 @@
 	} from '$lib/3d/stl';
 	import { virtualDownload } from '$lib/download';
 	import { MathMax } from '$lib/Math';
+	import type { MeshInfoTuple } from '$types/MeshInfo';
 
 	import Mesh3DScene from '../Mesh3DScene.svelte';
 	import EscapeClose from './EscapeClose.svelte';

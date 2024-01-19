@@ -18,11 +18,6 @@
 			"src": "/pcb-tht-holder/favicon.png",
 			"sizes": "96x96",
 			"type": "image/png"
-		},
-		{
-			"src": "/pcb-tht-holder/favicon.png",
-			"sizes": "any",
-			"type": "image/png"
 		}
 	],
 	"theme_color": "#ffffff",

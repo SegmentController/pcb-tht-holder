@@ -1,26 +1,26 @@
 {
-	"name": "PCB THT holder",
-	"short_name": "pcb-tht-holder",
+	"name": "PCB THT holder 3D",
+	"short_name": "pcb-tht-holder-3d",
 	"scope": "/pcb-tht-holder/",
 	"start_url": "https://segmentcontroller.github.io/pcb-tht-holder/",
 	"icons": [
 		{
-			"src": "/pcb-tht-holder/android-chrome-192x192.png",
-			"sizes": "192x192",
-			"type": "image/png"
-		},
-		{
-			"src": "/pcb-tht-holder/android-chrome-512x512.png",
+			"src": "/pcb-tht-holder/pcb-board-512.png",
 			"sizes": "512x512",
 			"type": "image/png"
 		},
 		{
-			"src": "/pcb-tht-holder/favicon.png",
-			"sizes": "96x96",
+			"src": "/pcb-tht-holder/pcb-board-128.png",
+			"sizes": "128x128",
+			"type": "image/png"
+		},
+		{
+			"src": "/pcb-tht-holder/pcb-board-32.png",
+			"sizes": "32x32",
 			"type": "image/png"
 		}
 	],
-	"theme_color": "#ffffff",
-	"background_color": "#ffffff",
+	"theme_color": "#f3f4f6",
+	"background_color": "#f3f4f6",
 	"display": "standalone"
 }

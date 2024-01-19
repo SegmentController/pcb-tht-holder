@@ -428,6 +428,6 @@
 
 <style>
 	:global(body) {
-		background-color: rgb(243 244 246);
+		background-color: #f3f4f6;
 	}
 </style>

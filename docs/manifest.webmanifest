@@ -5,22 +5,22 @@
 	"start_url": "https://segmentcontroller.github.io/pcb-tht-holder/",
 	"icons": [
 		{
-			"src": "/android-chrome-192x192.png",
+			"src": "/pcb-tht-holder/android-chrome-192x192.png",
 			"sizes": "192x192",
 			"type": "image/png"
 		},
 		{
-			"src": "/android-chrome-512x512.png",
+			"src": "/pcb-tht-holder/android-chrome-512x512.png",
 			"sizes": "512x512",
 			"type": "image/png"
 		},
 		{
-			"src": "/favicon.png",
+			"src": "/pcb-tht-holder/favicon.png",
 			"sizes": "96x96",
 			"type": "image/png"
 		},
 		{
-			"src": "/favicon.png",
+			"src": "/pcb-tht-holder/favicon.png",
 			"sizes": "any",
 			"type": "image/png"
 		}

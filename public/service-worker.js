@@ -6,7 +6,15 @@ const APP_PREFIX = 'pwa_pcb-tht-holder_';
 const VERSION = 'v1.0.0';
 
 // The files to make available for offline use. make sure to add others to this list
-const URLS = [`${GHPATH}/`, `${GHPATH}/index.html`];
+const URLS = [
+	`${GHPATH}/`,
+	`${GHPATH}/index.html`,
+	`${GHPATH}/favicon.png`,
+	`${GHPATH}/pcb-board-32.png`,
+	`${GHPATH}/pcb-board-128.png`,
+	`${GHPATH}/pcb-board-512.png`,
+	`${GHPATH}/manifest.webmanifest`
+];
 
 const CACHE_NAME = APP_PREFIX + VERSION;
 self.addEventListener('fetch', function (event_) {

@@ -276,7 +276,7 @@
 <Navbar class="bg-gray-100">
 	<NavContainer class="border w-3/5  px-5 py-2 rounded-lg bg-white">
 		<NavBrand href="#">
-			<img src="{BASE_URL}/favicon.png" class="me-3 h-6 sm:h-9" alt="PCB THT Holder Logo" />
+			<img src="{BASE_URL}/pcb-board-32.png" class="me-3 h-6 sm:h-9" alt="PCB THT Holder Logo" />
 			<span class="self-center whitespace-nowrap text-xl font-semibold">
 				{#if imageSize}
 					<A class="text-inherit hover:no-underline" on:click={() => openProjectSettings()}

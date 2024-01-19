@@ -1,0 +1,16 @@
+{
+	"name": "PCB THT holder",
+	"short_name": "pcb-tht-holder",
+	"scope": "/",
+	"start_url": "https://segmentcontroller.github.io/pcb-tht-holder/",
+	"icons": [
+		{
+			"src": "/favicon.png",
+			"sizes": "64x64 128x128",
+			"type": "image/png"
+		}
+	],
+	"theme_color": "#ffffff",
+	"background_color": "#ffffff",
+	"display": "standalone"
+}

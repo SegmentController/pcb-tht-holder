@@ -16,6 +16,7 @@ export default defineConfig({
 		emptyOutDir: true,
 		outDir: 'docs',
 		chunkSizeWarningLimit: 1500,
+		assetsInlineLimit: 0,
 		rollupOptions: {
 			plugins: [swc()]
 		}

@@ -1,6 +1,6 @@
 {
-	"name": "PCB THT holder 3D",
-	"short_name": "pcb-tht-holder-3d",
+	"name": "PCB THT Holder 3D",
+	"short_name": "pcb-tht-holder",
 	"scope": "/pcb-tht-holder/",
 	"start_url": "https://segmentcontroller.github.io/pcb-tht-holder/",
 	"icons": [

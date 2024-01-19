@@ -10,6 +10,12 @@
 
 ### Fixed
 
+## [1.3.2] - 2024-01-19
+
+### Changed
+
+- PWA mode: allow install as application
+
 ## [1.3.1] - 2024-01-10
 
 ### Changed

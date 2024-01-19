@@ -14,11 +14,10 @@
 		<div id="app"></div>
 		<script type="module" src="/src/main.ts"></script>
 		<script>
-			if ('serviceWorker' in navigator) {
+			if ('serviceWorker' in navigator)
 				navigator.serviceWorker.register('/pcb-tht-holder/service-worker.js', {
 					scope: '/pcb-tht-holder/'
 				});
-			}
 		</script>
 	</body>
 </html>

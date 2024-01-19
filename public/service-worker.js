@@ -1,4 +1,3 @@
-/* eslint-disable no-console */
 const GHPATH = 'https://segmentcontroller.github.io/pcb-tht-holder/';
 
 const APP_PREFIX = 'pwa_pcb-tht-holder_';
@@ -18,16 +17,10 @@ const URLS = [
 
 const CACHE_NAME = APP_PREFIX + VERSION;
 self.addEventListener('fetch', function (event_) {
-	console.log('Fetch request : ' + event_.request.url);
 	event_.respondWith(
 		caches.match(event_.request).then(function (request) {
-			if (request) {
-				console.log('Responding with cache : ' + event_.request.url);
-				return request;
-			} else {
-				console.log('File is not cached, fetching : ' + event_.request.url);
-				return fetch(event_.request);
-			}
+			if (request) return request;
+			return fetch(event_.request);
 		})
 	);
 });
@@ -35,7 +28,6 @@ self.addEventListener('fetch', function (event_) {
 self.addEventListener('install', function (event_) {
 	event_.waitUntil(
 		caches.open(CACHE_NAME).then(function (cache) {
-			console.log('Installing cache : ' + CACHE_NAME);
 			return cache.addAll(URLS);
 		})
 	);
@@ -51,7 +43,6 @@ self.addEventListener('activate', function (event_) {
 			return Promise.all(
 				keyList.map(function (key, index) {
 					if (!cacheWhitelist.includes(key)) {
-						console.log('Deleting cache : ' + keyList[index]);
 						return caches.delete(keyList[index]);
 					}
 				})

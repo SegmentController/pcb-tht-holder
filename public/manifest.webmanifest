@@ -1,7 +1,7 @@
 {
 	"name": "PCB THT holder",
 	"short_name": "pcb-tht-holder",
-	"scope": "/",
+	"scope": "/pcb-tht-holder/",
 	"start_url": "https://segmentcontroller.github.io/pcb-tht-holder/",
 	"icons": [
 		{

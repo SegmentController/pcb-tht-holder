@@ -10,9 +10,11 @@ import package_ from './package.json';
 export default defineConfig({
 	plugins: [svelte()],
 	build: {
+		target: 'modules',
 		sourcemap: false,
 		minify: true,
 		cssMinify: true,
+		copyPublicDir: true,
 		emptyOutDir: true,
 		outDir: 'docs',
 		chunkSizeWarningLimit: 1500,

@@ -4,6 +4,7 @@ import swc from '@rollup/plugin-swc';
 import { svelte } from '@sveltejs/vite-plugin-svelte';
 import path from 'path';
 import { defineConfig } from 'vite';
+import { purgeCss } from 'vite-plugin-tailwind-purgecss';
 
 import package_ from './package.json';
 
@@ -20,7 +21,7 @@ export default defineConfig({
 		chunkSizeWarningLimit: 1500,
 		assetsInlineLimit: 0,
 		rollupOptions: {
-			plugins: [swc()]
+			plugins: [swc(), purgeCss()]
 		}
 	},
 	base: process.env.NODE_ENV === 'production' ? '/pcb-tht-holder' : '',

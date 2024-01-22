@@ -425,8 +425,9 @@
 		</Stage>
 	{/if}
 </div>
-<ZoomRangeBottom class="w-2/5" bind:value={imageZoom} min={10} max={200} step={10} />
-
+{#if imageSize}
+	<ZoomRangeBottom class="w-2/5" bind:value={imageZoom} min={10} max={200} step={10} />
+{/if}
 <ModalPortal store={modalStore} />
 
 <style>

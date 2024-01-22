@@ -35,7 +35,9 @@
 		<div class="grid">
 			<ButtonGroup class="justify-self-end">
 				<Button on:click={() => importLibrary()}>Import</Button>
-				<Button on:click={() => exportLibrary()}>Export</Button>
+				<Button on:click={() => exportLibrary()} disabled={$libraryStore.length === 0}
+					>Export</Button
+				>
 			</ButtonGroup>
 		</div>
 		<div class="grid grid-cols-3 gap-2 pt-4">

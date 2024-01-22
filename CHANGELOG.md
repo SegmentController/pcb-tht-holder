@@ -10,6 +10,12 @@
 
 ### Fixed
 
+## [1.3.3] - 2024-01-22
+
+### Added
+
+- Image zoom: allow zoom PCB image in range 10...200%
+
 ## [1.3.2] - 2024-01-19
 
 ### Changed

@@ -21,6 +21,7 @@
 	import Alert from '$components/Alert.svelte';
 	import ChevronDown from '$components/icon/ChevronDown.svelte';
 	import ChevronRight from '$components/icon/ChevronRight.svelte';
+	import ZoomRangeBottom from '$components/ZoomRangeBottom.svelte';
 	import { generateMeshLazy } from '$lib/3d/mesh';
 	import { virtualDownload } from '$lib/download';
 	import {
@@ -73,6 +74,7 @@
 
 	let pcbImage: HTMLImageElement | undefined;
 	let imageSize: ImageSize | undefined;
+	let imageZoom: number = 100;
 
 	let alert: Alert;
 
@@ -378,10 +380,10 @@
 		<Stage
 			on:click={stageClick}
 			config={{
-				width: imageSize.width,
-				height: imageSize.height,
-				scaleX: imageSize.width / $projectStore.panelSettings.width,
-				scaleY: imageSize.height / $projectStore.panelSettings.height
+				width: imageSize.width * (imageZoom / 100),
+				height: imageSize.height * (imageZoom / 100),
+				scaleX: (imageSize.width / $projectStore.panelSettings.width) * (imageZoom / 100),
+				scaleY: (imageSize.height / $projectStore.panelSettings.height) * (imageZoom / 100)
 			}}
 		>
 			<Layer>
@@ -423,6 +425,7 @@
 		</Stage>
 	{/if}
 </div>
+<ZoomRangeBottom class="w-2/5" bind:value={imageZoom} min={10} max={200} step={10} />
 
 <ModalPortal store={modalStore} />
 

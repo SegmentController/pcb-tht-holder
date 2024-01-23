@@ -40,14 +40,16 @@ export const showModalNameEdit = async (
 
 export const showModalProjectSettings = async (
 	panelSettings: PanelSettings,
-	name: string
-): Promise<{ confirmed: boolean; panelSettings: PanelSettings; name: string }> =>
+	name: string,
+	label: string
+): Promise<{ confirmed: boolean; panelSettings: PanelSettings; name: string; label: string }> =>
 	await modalStore
 		.push({
 			component: ModalProjectSettings,
 			props: {
 				panelSettings: structuredClone(panelSettings),
-				name
+				name,
+				label
 			}
 		})
 		.resolve();

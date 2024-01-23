@@ -12,6 +12,7 @@
 			confirmed: boolean;
 			panelSettings: PanelSettings;
 			name: string;
+			label: string;
 		};
 	}>();
 	const resolve = (confirmed: boolean) =>
@@ -19,10 +20,12 @@
 			trigger: 'custom',
 			confirmed,
 			panelSettings,
-			name
+			name,
+			label
 		});
 	export let panelSettings: PanelSettings;
 	export let name: string;
+	export let label: string;
 </script>
 
 <Modal open={true} size="sm" bodyClass="space-y-0" dismissable={false} title="Project settings">
@@ -53,6 +56,10 @@
 			<div>
 				<Label for="smdHeight" class="mb-2">SMD height (mm)</Label>
 				<NumberInputBound id="smdHeight" min={0.1} max={10} bind:value={panelSettings.smdHeight} />
+			</div>
+			<div class="col-span-2">
+				<Label for="label" class="mb-2">Print label</Label>
+				<Input id="label" bind:value={label} />
 			</div>
 		</div>
 	</div>

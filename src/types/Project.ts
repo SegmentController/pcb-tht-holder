@@ -8,6 +8,7 @@ import { RectangleData } from './RectangleData';
 export const Project = z.object({
 	name: z.string(),
 	image: z.string(),
+	label: z.string().default(''),
 
 	panelSettings: PanelSettings,
 

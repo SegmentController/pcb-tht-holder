@@ -10,6 +10,12 @@
 
 ### Fixed
 
+## [1.4.0] - 2024-01-23
+
+### Added
+
+- Printable label: set a label to print as text in side of cuboid
+
 ## [1.3.3] - 2024-01-22
 
 ### Added

@@ -143,6 +143,7 @@
 		const projectData: Project = {
 			image: $projectStore.image,
 			name: $projectStore.name,
+			label: $projectStore.label,
 			panelSettings: $projectStore.panelSettings,
 			circles: $projectStore.circles,
 			rectangles: $projectStore.rectangles,
@@ -170,14 +171,16 @@
 	};
 
 	const openProjectSettings = async () => {
-		const { confirmed, panelSettings, name } = await showModalProjectSettings(
+		const { confirmed, panelSettings, name, label } = await showModalProjectSettings(
 			$projectStore.panelSettings,
-			$projectStore.name
+			$projectStore.name,
+			$projectStore.label
 		);
 		if (confirmed) {
 			projectStore.update((value) => {
 				value.panelSettings = panelSettings;
 				value.name = name;
+				value.label = label;
 				return value;
 			});
 		}
@@ -207,6 +210,7 @@
 		if (!imageSize) return;
 		const meshInfo = generateMeshLazy({
 			panelSettings: $projectStore.panelSettings,
+			label: $projectStore.label,
 			rectangles: $projectStore.rectangles,
 			circles: $projectStore.circles,
 			legs: $projectStore.legs

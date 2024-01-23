@@ -1,4 +1,6 @@
-import { BoxGeometry, CylinderGeometry } from 'three';
+import { BoxGeometry, CylinderGeometry, Vector3 } from 'three';
+import { TextGeometry } from 'three/addons/geometries/TextGeometry.js';
+import { Font, FontLoader } from 'three/addons/loaders/FontLoader.js';
 import { ADDITION, Brush, Evaluator, SUBTRACTION } from 'three-bvh-csg';
 
 import { MathMax, MathMinMax } from '$lib/Math';
@@ -8,20 +10,65 @@ import { switchType } from '$types/switchType';
 
 const BOTTOM_THICKNESS = 2;
 const EDGE_THICKNESS = 2;
+const TEXT_THICKNESS = 1;
 const ROUND_CORRECTION = 1;
+/*global __BASE_URL__*/
+const BASE_URL = __BASE_URL__;
 
 const CYLINDER = (radius: number, height: number) =>
 	new CylinderGeometry(radius, radius, height, MathMinMax(radius * 8, 16, 48));
 
 const BOX = (width: number, height: number, depth: number) => new BoxGeometry(width, height, depth);
 
-const MESH = (geometry: BoxGeometry | CylinderGeometry) => {
+type TextGeometryData = {
+	geometry: TextGeometry;
+	size: {
+		w: number;
+		h: number;
+	};
+};
+const TEXT = (
+	font: Font,
+	text: string,
+	boundary: { x: number; y: number }
+): TextGeometryData | undefined => {
+	let size = 20;
+	while (size) {
+		const gText = new TextGeometry(text, {
+			font,
+			size,
+			height: TEXT_THICKNESS,
+			curveSegments: 4,
+			steps: 1,
+			bevelEnabled: false
+		});
+		gText.computeBoundingBox();
+		if (gText.boundingBox) {
+			const measuredSize = gText.boundingBox.getSize(new Vector3());
+			if (measuredSize.x < boundary.x && measuredSize.y < boundary.y)
+				return {
+					geometry: gText,
+					size: {
+						w: measuredSize.x,
+						h: measuredSize.y
+					}
+				};
+		}
+		size--;
+	}
+};
+
+const MESH = (geometry: BoxGeometry | CylinderGeometry | TextGeometry) => {
 	const result = new Brush(geometry.translate(0, 0, 0));
 
 	switchType(geometry)
 		.case(BoxGeometry, (geometry) => (result.position.z = geometry.parameters.depth / 2))
 		.case(CylinderGeometry, (geometry) => {
 			result.position.z = geometry.parameters.height / 2;
+			result.rotateX(Math.PI / 2);
+		})
+		.case(TextGeometry, () => {
+			result.position.z = 0;
 			result.rotateX(Math.PI / 2);
 		});
 
@@ -30,7 +77,7 @@ const MESH = (geometry: BoxGeometry | CylinderGeometry) => {
 	return result;
 };
 
-export const generateMesh = (project: RenderableProject): MeshInfoTuple => {
+const generateMesh = (project: RenderableProject, font: Font): MeshInfoTuple => {
 	// Constant helper values
 	const panel = project.panelSettings;
 	const emptyHeight = panel.pcbThickness + panel.smdHeight;
@@ -122,6 +169,22 @@ export const generateMesh = (project: RenderableProject): MeshInfoTuple => {
 		mesh = evaluator.evaluate(mesh, box, ADDITION);
 		meshCoverage = evaluator.evaluate(meshCoverage, box, ADDITION);
 	}
+	if (project.label) {
+		const textGeometryInfo = TEXT(font, project.label, {
+			x: (panel.width + 2 * EDGE_THICKNESS) * 0.75,
+			y: (needHeight + BOTTOM_THICKNESS - emptyHeight) * 0.75
+		});
+		if (textGeometryInfo) {
+			const text = MESH(textGeometryInfo.geometry);
+			{
+				text.position.x -= textGeometryInfo.size.w / 2;
+				text.position.y -= panel.height / 2 + EDGE_THICKNESS - TEXT_THICKNESS / 2;
+				text.position.z += (needHeight + BOTTOM_THICKNESS - textGeometryInfo.size.h) / 2;
+				text.updateMatrixWorld();
+			}
+			mesh = evaluator.evaluate(mesh, text, ADDITION);
+		}
+	}
 
 	return {
 		main: {
@@ -145,9 +208,9 @@ export const generateMesh = (project: RenderableProject): MeshInfoTuple => {
 
 export const generateMeshLazy = async (project: RenderableProject): Promise<MeshInfoTuple> =>
 	new Promise((resolve, reject) =>
-		setTimeout(() => {
+		new FontLoader().load(BASE_URL + '/roboto_regular.json', (font: Font) => {
 			try {
-				resolve(generateMesh(project));
+				resolve(generateMesh(project, font));
 			} catch (error) {
 				reject(error instanceof Error ? error.message : error);
 			}

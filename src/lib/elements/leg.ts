@@ -1,6 +1,6 @@
 import { nanoid } from 'nanoid';
 
-import type { ContextMenuItem } from '$components/ContextMenu.svelte';
+import type { ContextMenuItem } from '$components/base/ContextMenu.svelte';
 import { getProjectStoreValue, projectStore } from '$stores/projectStore';
 import { LEG_SIZE, type LegData } from '$types/LegData';
 

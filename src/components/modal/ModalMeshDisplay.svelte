@@ -13,7 +13,7 @@
 	import type { MeshInfoTuple } from '$types/MeshInfo';
 
 	import Mesh3DScene from '../Mesh3DScene.svelte';
-	import EscapeClose from './EscapeClose.svelte';
+	import EscapeClose from './util/EscapeClose.svelte';
 
 	const dispatch = createEventDispatcher<{ resolve: { trigger: 'custom' } }>();
 	const resolve = () => dispatch('resolve', { trigger: 'custom' });

@@ -2,8 +2,8 @@
 	import { Button, Input, Label, Modal } from 'flowbite-svelte';
 	import { createEventDispatcher } from 'svelte';
 
-	import AutoFocus from '$components/modal/AutoFocus.svelte';
-	import NumberInputBound from '$components/NumberInputBound.svelte';
+	import NumberInputBound from '$components/base/input/NumberInputBound.svelte';
+	import AutoFocus from '$components/modal/util/AutoFocus.svelte';
 	import type { PanelSettings } from '$types/PanelSettings';
 
 	const dispatch = createEventDispatcher<{

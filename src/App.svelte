@@ -18,10 +18,10 @@
 		Stage
 	} from 'svelte-konva';
 
-	import Alert from '$components/Alert.svelte';
+	import Alert from '$components/base/Alert.svelte';
+	import ZoomRangeBottom from '$components/base/input/ZoomRangeBottom.svelte';
 	import ChevronDown from '$components/icon/ChevronDown.svelte';
 	import ChevronRight from '$components/icon/ChevronRight.svelte';
-	import ZoomRangeBottom from '$components/ZoomRangeBottom.svelte';
 	import { generateMeshLazy } from '$lib/3d/mesh';
 	import { virtualDownload } from '$lib/download';
 	import {
@@ -58,8 +58,8 @@
 	import { Project } from '$types/Project';
 	import { RectangleData } from '$types/RectangleData';
 
-	import ContextMenu from './components/ContextMenu.svelte';
-	import Dropzone from './components/Dropzone.svelte';
+	import ContextMenu from './components/base/ContextMenu.svelte';
+	import Dropzone from './components/base/input/Dropzone.svelte';
 
 	onMount(() => {
 		const preferences = get(projectStore);

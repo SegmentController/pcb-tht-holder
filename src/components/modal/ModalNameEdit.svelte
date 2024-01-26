@@ -2,7 +2,7 @@
 	import { Button, Input, Label, Modal } from 'flowbite-svelte';
 	import { createEventDispatcher } from 'svelte';
 
-	import AutoFocus from '$components/modal/AutoFocus.svelte';
+	import AutoFocus from '$components/modal/util/AutoFocus.svelte';
 
 	const dispatch = createEventDispatcher<{
 		resolve: {

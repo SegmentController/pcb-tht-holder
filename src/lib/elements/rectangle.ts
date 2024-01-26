@@ -1,6 +1,6 @@
 import { nanoid } from 'nanoid';
 
-import type { ContextMenuItem } from '$components/ContextMenu.svelte';
+import type { ContextMenuItem } from '$components/base/ContextMenu.svelte';
 import type { RectangleSettings } from '$components/modal/ModalRectangleSettings.svelte';
 import { getLibraryStoreValue, updateLibraryStoreValue } from '$stores/libraryStore';
 import { showModalNameEdit, showModalRectangleSettings } from '$stores/modalStore';

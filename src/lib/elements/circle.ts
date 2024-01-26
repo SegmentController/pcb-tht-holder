@@ -1,6 +1,6 @@
 import { nanoid } from 'nanoid';
 
-import type { ContextMenuItem } from '$components/ContextMenu.svelte';
+import type { ContextMenuItem } from '$components/base/ContextMenu.svelte';
 import type { CircleSettings } from '$components/modal/ModalCircleSettings.svelte';
 import { getLibraryStoreValue, updateLibraryStoreValue } from '$stores/libraryStore';
 import { showModalCircleSettings, showModalNameEdit } from '$stores/modalStore';

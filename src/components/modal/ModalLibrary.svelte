@@ -2,13 +2,13 @@
 	import { A, Button, ButtonGroup, Card, Modal } from 'flowbite-svelte';
 	import { createEventDispatcher } from 'svelte';
 
-	import FileInput from '$components/FileInput.svelte';
+	import FileInput from '$components/base/input/FileInput.svelte';
 	import { virtualDownload } from '$lib/download';
 	import { libraryStore } from '$stores/libraryStore';
 	import { showModalNameEdit } from '$stores/modalStore';
 	import { Library, LibraryItem } from '$types/Library';
 
-	import EscapeClose from './EscapeClose.svelte';
+	import EscapeClose from './util/EscapeClose.svelte';
 
 	const dispatch = createEventDispatcher<{ resolve: { trigger: 'custom' } }>();
 	const resolve = () => dispatch('resolve', { trigger: 'custom' });

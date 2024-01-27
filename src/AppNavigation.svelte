@@ -1,3 +1,22 @@
+<script lang="ts" context="module">
+	export const openProjectSettings = async () => {
+		const projectStore = getProjectStoreValue();
+		const { confirmed, panelSettings, name, label } = await showModalProjectSettings(
+			projectStore.panelSettings,
+			projectStore.name,
+			projectStore.label
+		);
+		if (confirmed) {
+			updateProjectStoreValue((value) => {
+				value.panelSettings = panelSettings;
+				value.name = name;
+				value.label = label;
+				return value;
+			});
+		}
+	};
+</script>
+
 <script lang="ts">
 	import { shortcut } from '@svelte-put/shortcut';
 	import {
@@ -18,15 +37,25 @@
 	import ChevronDown from '$components/icon/ChevronDown.svelte';
 	import ChevronRight from '$components/icon/ChevronRight.svelte';
 	import { generateMeshLazy } from '$lib/3d/mesh';
+	import { virtualDownload } from '$lib/download';
 	import { addNewCircle } from '$lib/elements/circle';
 	import { addNewLeg } from '$lib/elements/leg';
 	import { addNewRectangle } from '$lib/elements/rectangle';
 	import { getLibraryStoreValue } from '$stores/libraryStore';
-	import { showModalConfirm, showModalLibrary, showModalMesh } from '$stores/modalStore';
-	import { projectStore, updateProjectStoreValue } from '$stores/projectStore';
+	import {
+		showModalConfirm,
+		showModalLibrary,
+		showModalMesh,
+		showModalProjectSettings
+	} from '$stores/modalStore';
+	import {
+		getProjectStoreValue,
+		projectJsonSerializer,
+		projectStore,
+		updateProjectStoreValue
+	} from '$stores/projectStore';
 	import type { LibraryItem } from '$types/Library';
-
-	import { downloadProjectFile, openProjectSettings } from './AppCommon';
+	import type { Project } from '$types/Project';
 	/*global __PKG_VERSION__*/
 	const APP_VERSION = __PKG_VERSION__;
 	/*global __BASE_URL__*/
@@ -70,6 +99,21 @@
 				break;
 			}
 		}
+	};
+
+	const downloadProjectFile = () => {
+		const projectData: Project = {
+			image: $projectStore.image,
+			name: $projectStore.name,
+			label: $projectStore.label,
+			panelSettings: $projectStore.panelSettings,
+			circles: $projectStore.circles,
+			rectangles: $projectStore.rectangles,
+			legs: $projectStore.legs
+		};
+		const projectDataJsonString = projectJsonSerializer.stringify(projectData);
+
+		virtualDownload($projectStore.name + '.tht3d', projectDataJsonString);
 	};
 
 	const openDisplay = () => {

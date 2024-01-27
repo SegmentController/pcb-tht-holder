@@ -6,7 +6,7 @@
 			"runtimeArgs": ["run-script", "dev"],
 			"runtimeExecutable": "npm",
 			"skipFiles": ["<node_internals>/**"],
-			"type": "pwa-node"
+			"type": "node"
 		}
 	]
 }

@@ -5,7 +5,7 @@
 	import type { ImageSize } from '$types/ImageSize';
 	import { Project } from '$types/Project';
 
-	import { openProjectSettings } from './AppCommon';
+	import { openProjectSettings } from './AppNavigation.svelte';
 
 	export let pcbImage: HTMLImageElement | undefined;
 	export let imageSize: ImageSize | undefined;

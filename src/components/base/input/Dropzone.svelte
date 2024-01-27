@@ -14,18 +14,19 @@
 		reader.readAsDataURL(file);
 	};
 
+	const dropHandleItem = (items: DataTransferItemList) => {
+		if (items[0].kind === 'file') {
+			const file = items[0].getAsFile();
+			if (file) loadFile(file);
+		}
+	};
 	const dropHandle = (event: DragEvent) => {
 		event.preventDefault();
 		if (event.dataTransfer)
-			if (event.dataTransfer.items && event.dataTransfer.items.length > 0) {
-				if (event.dataTransfer.items[0].kind === 'file') {
-					const file = event.dataTransfer.items[0].getAsFile();
-					if (file) loadFile(file);
-				}
-			} else if (event.dataTransfer.files && event.dataTransfer.files.length > 0) {
-				const file = event.dataTransfer.files[0];
-				if (file) loadFile(file);
-			}
+			if (event.dataTransfer.items && event.dataTransfer.items.length > 0)
+				dropHandleItem(event.dataTransfer.items);
+			else if (event.dataTransfer.files && event.dataTransfer.files.length > 0)
+				loadFile(event.dataTransfer.files[0]);
 	};
 
 	const handleChange = (event: Event) => {

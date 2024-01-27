@@ -2,7 +2,7 @@ import { nanoid } from 'nanoid';
 
 import type { ContextMenuItem } from '$components/base/ContextMenu.svelte';
 import type { CircleSettings } from '$components/modal/ModalCircleSettings.svelte';
-import { getLibraryStoreValue, updateLibraryStoreValue } from '$stores/libraryStore';
+import { getLibraryStoreValue, setLibraryStoreValue } from '$stores/libraryStore';
 import { showModalCircleSettings, showModalNameEdit } from '$stores/modalStore';
 import { getProjectStoreValue, projectStore } from '$stores/projectStore';
 import type { CircleData } from '$types/CircleData';
@@ -44,7 +44,7 @@ export const addCircleToLibrary = async (source: CircleData) => {
 			radius: source.radius,
 			depth: source.depth
 		});
-		updateLibraryStoreValue(library);
+		setLibraryStoreValue(library);
 	}
 };
 export const modifyCircle = async (circle: CircleData) => {

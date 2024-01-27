@@ -2,7 +2,7 @@ import { nanoid } from 'nanoid';
 
 import type { ContextMenuItem } from '$components/base/ContextMenu.svelte';
 import type { RectangleSettings } from '$components/modal/ModalRectangleSettings.svelte';
-import { getLibraryStoreValue, updateLibraryStoreValue } from '$stores/libraryStore';
+import { getLibraryStoreValue, setLibraryStoreValue } from '$stores/libraryStore';
 import { showModalNameEdit, showModalRectangleSettings } from '$stores/modalStore';
 import { getProjectStoreValue, projectStore } from '$stores/projectStore';
 import type { RectangleData } from '$types/RectangleData';
@@ -53,7 +53,7 @@ export const addRectangleToLibrary = async (source: RectangleData) => {
 			height: source.height,
 			depth: source.depth
 		});
-		updateLibraryStoreValue(library);
+		setLibraryStoreValue(library);
 	}
 };
 export const modifyRectangle = async (rectangle: RectangleData) => {

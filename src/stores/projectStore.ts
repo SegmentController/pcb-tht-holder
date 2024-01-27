@@ -1,4 +1,4 @@
-import { get } from 'svelte/store';
+import { get, type Updater } from 'svelte/store';
 import { persisted } from 'svelte-persisted-store';
 
 import { CircleSkipJsonProperties } from '$types/CircleData';
@@ -55,4 +55,5 @@ export const projectStore = persisted<Project>('project', emptyProject, {
 });
 
 export const getProjectStoreValue = (): Project => get(projectStore);
-export const updateProjectStoreValue = (project: Project) => projectStore.set(project);
+export const setProjectStoreValue = (project: Project) => projectStore.set(project);
+export const updateProjectStoreValue = (updater: Updater<Project>) => projectStore.update(updater);

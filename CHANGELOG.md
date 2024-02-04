@@ -1,20 +1,16 @@
 # Change log
 
-## Unreleased
-
-### Added
-
-### Changed
-
-### Removed
+## [1.4.1] - 2024-02-04
 
 ### Fixed
+
+- Update dependencies
 
 ## [1.4.0] - 2024-01-23
 
 ### Added
 
-- Printable label: set a label to print as text onto side of cuboid
+- Printable label: set a label to print as text onto the side of cuboid
 
 ## [1.3.3] - 2024-01-22
 
@@ -86,3 +82,13 @@
 ## [1.0.4] - 2024-01-05
 
 - First public version
+
+## Unreleased
+
+### Added
+
+### Changed
+
+### Removed
+
+### Fixed

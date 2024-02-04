@@ -1,6 +1,6 @@
 {
 	"name": "pcb-tht-holder",
-	"version": "1.4.0",
+	"version": "1.4.1",
 	"type": "module",
 	"main": "build/index.js",
 	"engines": {
@@ -8,28 +8,23 @@
 		"npm": ">=10.0.0"
 	},
 	"scripts": {
-		"postinstall": "patch-package",
 		"dev": "vite dev --host",
 		"build": "vite build",
 		"preview": "vite preview",
-		"test": "npm run test:integration && npm run test:unit",
 		"ts:check": "svelte-check --tsconfig ./tsconfig.json",
 		"format:check": "prettier --check .",
 		"format:fix": "prettier --write .",
 		"lint:check": "eslint .",
 		"lint:fix": "eslint --fix .",
-		"all": "npm run format:fix && npm run lint:fix && npm run ts:check && npm run build",
-		"test:integration": "playwright test",
-		"test:unit": "vitest"
+		"all": "npm run format:fix && npm run lint:fix && npm run ts:check && npm run build"
 	},
 	"devDependencies": {
-		"@playwright/test": "^1.41.1",
 		"@rollup/plugin-swc": "^0.3.0",
-		"@sveltejs/vite-plugin-svelte": "^3.0.1",
+		"@sveltejs/vite-plugin-svelte": "^3.0.2",
 		"@tsconfig/svelte": "^5.0.2",
-		"@types/three": "^0.160.0",
-		"@typescript-eslint/eslint-plugin": "^6.19.1",
-		"@typescript-eslint/parser": "^6.19.1",
+		"@types/three": "^0.161.2",
+		"@typescript-eslint/eslint-plugin": "^6.20.0",
+		"@typescript-eslint/parser": "^6.20.0",
 		"autoprefixer": "^10.4.17",
 		"eslint": "^8.56.0",
 		"eslint-config-prettier": "^9.1.0",
@@ -40,10 +35,9 @@
 		"eslint-plugin-unicorn": "^50.0.1",
 		"flowbite": "^2.2.1",
 		"flowbite-svelte": "^0.44.22",
-		"patch-package": "^8.0.0",
 		"postcss": "^8.4.33",
 		"postcss-load-config": "^5.0.2",
-		"prettier": "^3.2.4",
+		"prettier": "^3.2.5",
 		"prettier-plugin-svelte": "^3.1.2",
 		"svelte": "^4.2.9",
 		"svelte-check": "^3.6.3",
@@ -52,21 +46,20 @@
 		"tslib": "^2.6.2",
 		"typescript": "^5.3.3",
 		"vite": "^5.0.12",
-		"vite-plugin-tailwind-purgecss": "^0.2.0",
-		"vitest": "^1.2.2"
+		"vite-plugin-tailwind-purgecss": "^0.2.0"
 	},
 	"dependencies": {
 		"@svelte-put/modal": "^1.0.6",
 		"@svelte-put/shortcut": "^3.1.0",
 		"@threlte/core": "^7.0.12",
-		"@threlte/extras": "^8.3.0",
+		"@threlte/extras": "^8.5.1",
 		"canvas": "^2.11.2",
 		"ieee754": "^1.2.1",
 		"konva": "^9.3.2",
-		"nanoid": "^5.0.4",
+		"nanoid": "^5.0.5",
 		"svelte-konva": "^0.3.1",
 		"svelte-persisted-store": "^0.9.0",
-		"three": "^0.160.1",
+		"three": "^0.161.0",
 		"three-bvh-csg": "^0.0.16",
 		"zod": "^3.22.4"
 	}

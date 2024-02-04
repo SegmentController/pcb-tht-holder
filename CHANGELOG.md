@@ -14,7 +14,7 @@
 
 ### Added
 
-- Printable label: set a label to print as text in side of cuboid
+- Printable label: set a label to print as text onto side of cuboid
 
 ## [1.3.3] - 2024-01-22
 

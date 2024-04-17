@@ -22,6 +22,7 @@
 		modifyRectangle,
 		updateRectangleChanges
 	} from '$lib/elements/rectangle';
+	import { deselectElementByMouseLeave, selectElementByMouseEnter } from '$lib/fineMovement';
 	import { projectStore } from '$stores/projectStore';
 	import type { CircleData } from '$types/CircleData';
 	import type { ImageSize } from '$types/ImageSize';
@@ -100,6 +101,8 @@
 			{#each $projectStore.circles as circle}
 				<Circle
 					bind:config={circle}
+					on:mouseenter={() => selectElementByMouseEnter(circle)}
+					on:mouseleave={() => deselectElementByMouseLeave(circle)}
 					on:dblclick={() => modifyCircle(circle)}
 					on:dragmove={(event) => limitCircle(event, circle)}
 					on:dragend={() => updateCircleChanges()}
@@ -108,6 +111,8 @@
 			{#each $projectStore.rectangles as rectangle}
 				<Rect
 					bind:config={rectangle}
+					on:mouseenter={() => selectElementByMouseEnter(rectangle)}
+					on:mouseleave={() => deselectElementByMouseLeave(rectangle)}
 					on:dblclick={() => modifyRectangle(rectangle)}
 					on:dragmove={(event) => limitBox(event, rectangle)}
 					on:dragend={() => updateRectangleChanges()}
@@ -116,6 +121,8 @@
 			{#each $projectStore.legs as leg}
 				<Rect
 					bind:config={leg}
+					on:mouseenter={() => selectElementByMouseEnter(leg)}
+					on:mouseleave={() => deselectElementByMouseLeave(leg)}
 					on:dblclick={() => deleteLeg(leg)}
 					on:dragmove={(event) => limitBox(event, leg)}
 					on:dragend={() => updateLegChanges()}

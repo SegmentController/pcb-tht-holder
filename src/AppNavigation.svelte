@@ -41,6 +41,7 @@
 	import { addNewCircle } from '$lib/elements/circle';
 	import { addNewLeg } from '$lib/elements/leg';
 	import { addNewRectangle } from '$lib/elements/rectangle';
+	import { finemoveSelectedElement } from '$lib/fineMovement';
 	import { getLibraryStoreValue } from '$stores/libraryStore';
 	import {
 		showModalConfirm,
@@ -142,7 +143,27 @@
 				callback: () => openProjectSettings(),
 				preventDefault: true
 			},
-			{ key: 'd', callback: () => openDisplay(), preventDefault: true }
+			{ key: 'd', callback: () => openDisplay(), preventDefault: true },
+			{
+				key: 'ArrowLeft',
+				callback: () => finemoveSelectedElement('left'),
+				preventDefault: true
+			},
+			{
+				key: 'ArrowRight',
+				callback: () => finemoveSelectedElement('right'),
+				preventDefault: true
+			},
+			{
+				key: 'ArrowUp',
+				callback: () => finemoveSelectedElement('up'),
+				preventDefault: true
+			},
+			{
+				key: 'ArrowDown',
+				callback: () => finemoveSelectedElement('down'),
+				preventDefault: true
+			}
 		]
 	}}
 />

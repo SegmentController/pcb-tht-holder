@@ -31,7 +31,7 @@
 </script>
 
 <EscapeClose on:escape={() => resolve()}>
-	<Modal open={true} size="lg" bodyClass="space-y-0" dismissable={false} title="Library">
+	<Modal open={true} size="lg" dismissable={false} title="Library">
 		<div class="grid">
 			<ButtonGroup class="justify-self-end">
 				<Button on:click={() => importLibrary()}>Import</Button>

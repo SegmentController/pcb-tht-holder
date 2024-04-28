@@ -28,7 +28,7 @@
 	export let label: string;
 </script>
 
-<Modal open={true} size="sm" bodyClass="space-y-0" dismissable={false} title="Project settings">
+<Modal open={true} size="sm" dismissable={false} title="Project settings">
 	<AutoFocus />
 	<div class="flex flex-col">
 		<div class="grid gap-6 grid-cols-2">

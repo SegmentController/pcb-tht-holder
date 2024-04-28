@@ -21,7 +21,7 @@
 	export let name: string;
 </script>
 
-<Modal open={true} size="sm" dismissable={false} bodyClass="space-y-0">
+<Modal open={true} size="sm" dismissable={false}>
 	<AutoFocus />
 	<div class="flex flex-col space-y-6">
 		<div>

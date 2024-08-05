@@ -10,13 +10,13 @@
 	let fileInput: HTMLInputElement;
 	const importLibrary = async (event: Event) => {
 		if (!_onSelect) return;
-		const files = (event.target as HTMLInputElement).files;
+		let files = (event.target as HTMLInputElement).files;
 		if (files && files.length > 0) {
 			try {
 				const textData = await files[0].text();
 				_onSelect(files[0].name, textData);
-			} catch (error) {
-				error;
+			} catch {
+				/**/
 			}
 		}
 	};

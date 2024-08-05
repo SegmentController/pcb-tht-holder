@@ -44,7 +44,7 @@
 					: generateStlFromVertices(vertices).join('\n')
 			);
 		} catch {
-			0;
+			/**/
 		}
 	};
 </script>

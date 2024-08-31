@@ -16,7 +16,7 @@
 		"format:fix": "prettier --write .",
 		"lint:check": "eslint .",
 		"lint:fix": "eslint --fix .",
-		"npm:reinstall": "rm -rf ./node_modules && rm -f ./package-lock.json && npm i",
+		"npm:reinstall": "rm -rf ./node_modules && rm -f ./package-lock.json && npm i && npm i",
 		"all": "npm run format:fix && npm run lint:fix && npm run ts:check && npm run build"
 	},
 	"devDependencies": {

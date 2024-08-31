@@ -1,4 +1,4 @@
-<script context="module" lang="ts">
+<script lang="ts" module>
 	export type ContextMenuItem<T = object> = {
 		name: string;
 		extra?: T;

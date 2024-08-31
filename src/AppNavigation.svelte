@@ -1,4 +1,4 @@
-<script lang="ts" context="module">
+<script lang="ts" module>
 	export const openProjectSettings = async () => {
 		const projectStore = getProjectStoreValue();
 		const { confirmed, panelSettings, name, label } = await showModalProjectSettings(
@@ -18,7 +18,6 @@
 </script>
 
 <script lang="ts">
-	import { shortcut } from '@svelte-put/shortcut';
 	import {
 		A,
 		Button,
@@ -42,6 +41,7 @@
 	import { addNewLeg } from '$lib/elements/leg';
 	import { addNewRectangle } from '$lib/elements/rectangle';
 	import { finemoveSelectedElement } from '$lib/fineMovement';
+	import { shortcut } from '$lib/shortcut';
 	import { getLibraryStoreValue } from '$stores/libraryStore';
 	import {
 		showModalConfirm,

@@ -1,8 +1,8 @@
 <script lang="ts">
-	import { shortcut } from '@svelte-put/shortcut';
 	import { Label, Range } from 'flowbite-svelte';
 
 	import { MathMinMax } from '$lib/Math';
+	import { shortcut } from '$lib/shortcut';
 
 	const DEFAULT_VALUE = 100;
 

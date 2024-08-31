@@ -1,6 +1,7 @@
 <script lang="ts">
-	import { shortcut } from '@svelte-put/shortcut';
 	import { createEventDispatcher } from 'svelte';
+
+	import { shortcut } from '$lib/shortcut';
 
 	const dispatch = createEventDispatcher<{
 		escape: undefined;

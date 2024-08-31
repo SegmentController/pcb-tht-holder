@@ -21,7 +21,7 @@
 	},
 	"devDependencies": {
 		"@rollup/plugin-swc": "^0.3.1",
-		"@sveltejs/vite-plugin-svelte": "^3.1.2",
+		"@sveltejs/vite-plugin-svelte": "^4.0.0-next.6",
 		"@tsconfig/svelte": "^5.0.4",
 		"@types/three": "^0.168.0",
 		"@typescript-eslint/eslint-plugin": "^8.3.0",
@@ -47,16 +47,15 @@
 		"vite-plugin-tailwind-purgecss": "^0.3.3"
 	},
 	"dependencies": {
-		"@svelte-put/shortcut": "^3.1.1",
-		"@threlte/core": "^7.3.1",
-		"@threlte/extras": "^8.11.5",
+		"@threlte/core": "^8.0.0-next.15",
+		"@threlte/extras": "^9.0.0-next.22",
 		"canvas": "^2.11.2",
 		"flowbite": "^2.5.1",
 		"flowbite-svelte": "^0.46.15",
 		"ieee754": "^1.2.1",
 		"konva": "^9.3.14",
 		"nanoid": "^5.0.7",
-		"svelte": "^4.2.19",
+		"svelte": "^5.0.0-next.242",
 		"svelte-konva": "^0.3.1",
 		"svelte-persisted-store": "^0.11.0",
 		"three": "^0.168.0",

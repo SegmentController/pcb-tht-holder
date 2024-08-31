@@ -23,7 +23,7 @@
 	<T.BufferGeometry>
 		<T.BufferAttribute
 			args={[vertices, 3]}
-			attach={(parent, self) => {
+			attach={(parent: any, self: any) => {
 				parent.setAttribute('position', self);
 				parent.computeVertexNormals();
 				return () => {};

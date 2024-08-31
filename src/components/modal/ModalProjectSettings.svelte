@@ -8,7 +8,6 @@
 
 	const dispatch = createEventDispatcher<{
 		resolve: {
-			trigger: 'custom';
 			confirmed: boolean;
 			panelSettings: PanelSettings;
 			name: string;
@@ -17,7 +16,6 @@
 	}>();
 	const resolve = (confirmed: boolean) =>
 		dispatch('resolve', {
-			trigger: 'custom',
 			confirmed,
 			panelSettings,
 			name,

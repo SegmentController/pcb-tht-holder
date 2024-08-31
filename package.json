@@ -23,7 +23,7 @@
 		"@rollup/plugin-swc": "^0.3.1",
 		"@sveltejs/vite-plugin-svelte": "^3.1.2",
 		"@tsconfig/svelte": "^5.0.4",
-		"@types/three": "^0.167.2",
+		"@types/three": "^0.168.0",
 		"@typescript-eslint/eslint-plugin": "^8.3.0",
 		"@typescript-eslint/parser": "^8.3.0",
 		"autoprefixer": "^10.4.20",
@@ -47,7 +47,6 @@
 		"vite-plugin-tailwind-purgecss": "^0.3.3"
 	},
 	"dependencies": {
-		"@svelte-put/modal": "^1.0.8",
 		"@svelte-put/shortcut": "^3.1.1",
 		"@threlte/core": "^7.3.1",
 		"@threlte/extras": "^8.11.5",
@@ -60,7 +59,7 @@
 		"svelte": "^4.2.19",
 		"svelte-konva": "^0.3.1",
 		"svelte-persisted-store": "^0.11.0",
-		"three": "^0.167.1",
+		"three": "^0.168.0",
 		"three-bvh-csg": "^0.0.16",
 		"zod": "^3.23.8"
 	}

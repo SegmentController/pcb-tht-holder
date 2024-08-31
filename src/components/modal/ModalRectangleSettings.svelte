@@ -15,14 +15,12 @@
 
 	const dispatch = createEventDispatcher<{
 		resolve: {
-			trigger: 'custom';
 			confirmed: boolean;
 			settings: RectangleSettings;
 		};
 	}>();
 	const resolve = (confirmed: boolean) =>
 		dispatch('resolve', {
-			trigger: 'custom',
 			confirmed,
 			settings
 		});

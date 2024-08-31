@@ -6,14 +6,12 @@
 
 	const dispatch = createEventDispatcher<{
 		resolve: {
-			trigger: 'custom';
 			confirmed: boolean;
 			name: string;
 		};
 	}>();
 	const resolve = (confirmed: boolean) =>
 		dispatch('resolve', {
-			trigger: 'custom',
 			confirmed,
 			name
 		});

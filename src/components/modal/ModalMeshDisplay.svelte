@@ -15,8 +15,8 @@
 	import Mesh3DScene from '../Mesh3DScene.svelte';
 	import EscapeClose from './util/EscapeClose.svelte';
 
-	const dispatch = createEventDispatcher<{ resolve: { trigger: 'custom' } }>();
-	const resolve = () => dispatch('resolve', { trigger: 'custom' });
+	const dispatch = createEventDispatcher<{ resolve: object }>();
+	const resolve = () => dispatch('resolve', {});
 
 	export let name: string;
 	export let meshInfoTuple: Promise<MeshInfoTuple>;

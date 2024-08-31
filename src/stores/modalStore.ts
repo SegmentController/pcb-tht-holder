@@ -1,5 +1,3 @@
-import { createModalStore } from '@svelte-put/modal';
-
 import ModalCircleSettings, {
 	type CircleSettings
 } from '$components/modal/ModalCircleSettings.svelte';
@@ -11,6 +9,7 @@ import ModalProjectSettings from '$components/modal/ModalProjectSettings.svelte'
 import ModalRectangleSettings, {
 	type RectangleSettings
 } from '$components/modal/ModalRectangleSettings.svelte';
+import { createModalStore } from '$lib/svelteModal/modal';
 import type { MeshInfoTuple } from '$types/MeshInfo';
 import type { PanelSettings } from '$types/PanelSettings';
 

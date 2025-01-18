@@ -1,5 +1,17 @@
 # Change log
 
+## [1.5.1] - 2025-01-18
+
+### Fixed
+
+- 3D light and shadow
+
+## [1.5.0] - 2025-01-18
+
+### Chore
+
+- Updated to Svelte5
+
 ## [1.4.1] - 2024-02-04
 
 ### Fixed

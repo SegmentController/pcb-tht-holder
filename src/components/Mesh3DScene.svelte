@@ -2,7 +2,7 @@
 	import { T } from '@threlte/core';
 	import { OrbitControls } from '@threlte/extras';
 	import { onMount } from 'svelte';
-	import { type BufferGeometry, type NormalOrGLBufferAttributes } from 'three';
+	import type { BufferGeometry, NormalOrGLBufferAttributes } from 'three';
 
 	export let vertices: Float32Array;
 	export let volume: number;
@@ -23,12 +23,12 @@
 	<OrbitControls />
 </T.PerspectiveCamera>
 
-<T.PointLight position={[1 * volume, 2 * volume, 3 * volume]} intensity={1} />
-<T.AmbientLight intensity={1 / 3} />
+<T.PointLight position={[0, 1 * volume, 2 * volume]} decay={0.1} intensity={5} />
+<T.AmbientLight color="white" intensity={1} />
 
 <T.Mesh rotation.x={-Math.PI / 2}>
 	<T.BufferGeometry bind:ref={bufferGeometry}>
 		<T.BufferAttribute args={[vertices, 3]} attach="attributes.position" />
 	</T.BufferGeometry>
-	<T.MeshBasicMaterial color="#118811" {wireframe} />
+	<T.MeshPhongMaterial color="#118811" {wireframe} />
 </T.Mesh>

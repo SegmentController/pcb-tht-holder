@@ -22,7 +22,15 @@
 
 <T.Mesh rotation.x={-Math.PI / 2}>
 	<T.BufferGeometry>
-		<T.BufferAttribute args={[vertices, 3]} />
+		<T.BufferAttribute
+			args={[vertices, 3]}
+			attach={(parameters) => {
+				//params.parentObject3D.updateMatrix();
+				//params.parentObject3D.
+				parent.setAttribute('position', window);
+				parent.computeVertexNormals();
+			}}
+		/>
 	</T.BufferGeometry>
 	<T.MeshStandardMaterial color="#22ff22" {wireframe} />
 </T.Mesh>

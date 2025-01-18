@@ -30,7 +30,7 @@
 	};
 </script>
 
-<EscapeClose onescape={() => resolve()}>
+<EscapeClose on:escape={() => resolve()}>
 	<Modal open={true} size="lg" dismissable={false} title="Library">
 		<div class="grid">
 			<ButtonGroup class="justify-self-end">

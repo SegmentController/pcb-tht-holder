@@ -49,7 +49,7 @@
 	};
 </script>
 
-<EscapeClose onescape={() => resolve()}>
+<EscapeClose on:escape={() => resolve()}>
 	<Modal open={true} size="lg" dismissable={false}>
 		<div class="flex justify-start">
 			<span class="font-semibold mr-4">

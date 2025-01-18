@@ -14,6 +14,22 @@ import type {
 	ModalStorePush
 } from './modal.types';
 
+/**
+ * Creates a modal store for managing modal components in a Svelte application.
+ *
+ * @remarks
+ * This function initializes a writable store that manages an array of modal components.
+ * It provides methods to push, pop, and register callbacks for modal interactions.
+ *
+ * @returns A modal store with methods to subscribe, push, pop, and register modal callbacks
+ *
+ * @example
+ * const modalStore = createModalStore();
+ * modalStore.push(MyModalComponent);
+ * modalStore.pop();
+ *
+ * @beta
+ */
 export function createModalStore(): ModalStore {
 	const { subscribe, set } = writable<
 		ModalPushOutput<ModalComponentBase, ModalComponentBaseResolved>[]

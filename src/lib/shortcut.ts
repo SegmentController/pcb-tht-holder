@@ -36,6 +36,36 @@ export type ShortcutAction = Action<HTMLElement, ShortcutParameter, ShortcutAttr
 
 export type ShortcutActionReturn = ActionReturn<ShortcutParameter, ShortcutAttributes>;
 
+/**
+ * Svelte action for handling keyboard shortcuts with advanced configuration.
+ *
+ * @remarks
+ * Allows dynamic configuration of keyboard shortcuts with support for multiple triggers,
+ * modifier keys, and custom event handling.
+ *
+ * @param node - The HTML element to attach the keyboard shortcut listener
+ * @param parameter - Configuration parameters for the keyboard shortcut
+ * @returns An object with update and destroy methods for managing the shortcut action
+ *
+ * @example
+ * ```typescript
+ * // Basic usage
+ * <div use:shortcut={{
+ *   trigger: { key: 'Enter', callback: () => handleSubmit() }
+ * }} />
+ *
+ * // Advanced usage with modifiers
+ * <div use:shortcut={{
+ *   trigger: { 
+ *     key: 'S', 
+ *     modifier: ['ctrl'], 
+ *     callback: () => saveDocument() 
+ *   }
+ * }} />
+ * ```
+ *
+ * @beta
+ */
 export function shortcut(node: HTMLElement, parameter: ShortcutParameter) {
 	let { enabled = true, trigger, type = 'keydown' } = parameter;
 

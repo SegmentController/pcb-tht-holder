@@ -12,7 +12,7 @@ export type FinemoveDirection = 'left' | 'up' | 'right' | 'down';
 const selectedElements: GenericElement[] = [];
 
 const setCursor = (event: KonvaMouseEvent, cursor: 'pointer' | 'default') => {
-	const eventContainer = event.detail?.target?.getStage()?.container();
+	const eventContainer = event.target.getStage()?.container();
 	if (eventContainer) eventContainer.style.cursor = cursor;
 };
 

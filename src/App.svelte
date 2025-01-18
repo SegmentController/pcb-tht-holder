@@ -1,9 +1,9 @@
 <script lang="ts">
 	import './app.postcss';
 
-	import { ModalPortal } from '@svelte-put/modal';
 	import { onMount } from 'svelte';
 
+	import ModalPortal from '$lib/svelteModal/ModalPortal.svelte';
 	import { modalStore } from '$stores/modalStore';
 	import { getProjectStoreValue } from '$stores/projectStore';
 	import type { ImageSize } from '$types/ImageSize';

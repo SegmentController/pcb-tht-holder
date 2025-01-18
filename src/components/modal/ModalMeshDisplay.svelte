@@ -15,8 +15,8 @@
 	import Mesh3DScene from '../Mesh3DScene.svelte';
 	import EscapeClose from './util/EscapeClose.svelte';
 
-	const dispatch = createEventDispatcher<{ resolve: { trigger: 'custom' } }>();
-	const resolve = () => dispatch('resolve', { trigger: 'custom' });
+	const dispatch = createEventDispatcher<{ resolve: object }>();
+	const resolve = () => dispatch('resolve', {});
 
 	export let name: string;
 	export let meshInfoTuple: Promise<MeshInfoTuple>;
@@ -28,7 +28,7 @@
 			.catch(() => (volume = 1));
 	});
 
-	let wireframe: boolean = false;
+	let wireframe: boolean = true;
 	let coverageOnly: boolean = false;
 
 	const generateFilename = () => name + '.stl';
@@ -87,7 +87,7 @@
 					{''}
 				{:then}
 					<ButtonGroup>
-						<Button color="primary" on:click={() => downloadStlFile(true)}>
+						<Button color="primary" onclick={() => downloadStlFile(true)}>
 							<svg
 								class="mr-2"
 								xmlns="http://www.w3.org/2000/svg"
@@ -101,12 +101,12 @@
 							>
 							Download STL</Button
 						>
-						<Button on:click={() => downloadStlFile(false)}>Text STL</Button>
+						<Button onclick={() => downloadStlFile(false)}>Text STL</Button>
 					</ButtonGroup>
 				{:catch}
 					{''}
 				{/await}
-				<Button class="ml-2" on:click={() => resolve()} color="alternative">Close</Button>
+				<Button class="ml-2" onclick={() => resolve()} color="alternative">Close</Button>
 			</div>
 		</div>
 		<div class="canvasContainer">

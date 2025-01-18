@@ -36,9 +36,9 @@
 </script>
 
 <Dropzone
-	on:dragover={(event) => event.preventDefault()}
-	on:drop={dropHandle}
-	on:change={handleChange}
+	ondragover={(event) => event.preventDefault()}
+	ondrop={dropHandle}
+	onchange={handleChange}
 	class="m-4"
 >
 	<p class="mb-2 text-lg text-gray-500 dark:text-gray-400 font-semibold">{title}</p>

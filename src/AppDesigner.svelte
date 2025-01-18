@@ -31,10 +31,9 @@
 
 	export let pcbImage: HTMLImageElement | undefined;
 	export let imageSize: ImageSize | undefined;
-	let imageZoom: number = 100;
 
 	const limitBox = (event: KonvaDragTransformEvent, box: RectangleData | LegData) => {
-		const target = event.detail.target;
+		const target = event.target;
 		const maxX = $projectStore.panelSettings.width - ('sizeX' in box ? box.width : LEG_SIZE);
 		const maxY = $projectStore.panelSettings.height - ('sizeY' in box ? box.height : LEG_SIZE);
 
@@ -44,7 +43,7 @@
 		if (target.y() > maxY) target.y(maxY);
 	};
 	const limitCircle = (event: KonvaDragTransformEvent, circle: CircleData) => {
-		const target = event.detail.target;
+		const target = event.target;
 		const minX = circle.radius;
 		const minY = circle.radius;
 		const maxX = $projectStore.panelSettings.width - circle.radius;
@@ -58,8 +57,8 @@
 
 	let contextMenu: ContextMenu;
 	const stageClick = (event: KonvaMouseEvent) => {
-		if (event.detail.evt.button === 2) {
-			const id = event.detail.target.id();
+		if (event.evt.button === 2) {
+			const id = event.target.id();
 
 			for (const retriever of [
 				getContextMenuItemForCircle,
@@ -69,7 +68,7 @@
 				const items = retriever(id);
 				if (items !== undefined) {
 					contextMenu.setItems(items);
-					contextMenu.toggleAt(event.detail.evt.pageX, event.detail.evt.pageY);
+					contextMenu.toggleAt(event.evt.pageX, event.evt.pageY);
 					return;
 				}
 			}
@@ -79,56 +78,69 @@
 
 {#if imageSize}
 	<Stage
-		on:click={stageClick}
-		config={{
-			width: imageSize.width * (imageZoom / 100),
-			height: imageSize.height * (imageZoom / 100),
-			scaleX: (imageSize.width / $projectStore.panelSettings.width) * (imageZoom / 100),
-			scaleY: (imageSize.height / $projectStore.panelSettings.height) * (imageZoom / 100)
-		}}
+		onclick={stageClick}
+		width={imageSize.width * ($projectStore.zoom / 100)}
+		height={imageSize.height * ($projectStore.zoom / 100)}
+		scaleX={(imageSize.width / $projectStore.panelSettings.width) * ($projectStore.zoom / 100)}
+		scaleY={(imageSize.height / $projectStore.panelSettings.height) * ($projectStore.zoom / 100)}
 	>
 		<Layer>
 			<Image
-				config={{
-					image: pcbImage,
-					scaleX: $projectStore.panelSettings.width / imageSize.width,
-					scaleY: (-1 * $projectStore.panelSettings.height) / imageSize.height,
-					offsetY: imageSize.height,
-					opacity: 0.25
-				}}
+				image={pcbImage}
+				scaleX={$projectStore.panelSettings.width / imageSize.width}
+				scaleY={(-1 * $projectStore.panelSettings.height) / imageSize.height}
+				offsetY={imageSize.height}
+				opacity={0.25}
 			/>
 			<ContextMenu bind:this={contextMenu} />
 			{#each $projectStore.circles as circle}
 				<Circle
-					bind:config={circle}
-					on:mouseenter={(event) => selectElementByMouseEnter(event, circle)}
-					on:mouseleave={(event) => deselectElementByMouseLeave(event, circle)}
-					on:dblclick={() => modifyCircle(circle)}
-					on:dragmove={(event) => limitCircle(event, circle)}
-					on:dragend={() => updateCircleChanges()}
+					fill="orange"
+					draggable
+					opacity={0.75}
+					radius={circle.radius}
+					bind:x={circle.x}
+					bind:y={circle.y}
+					onmouseenter={(event) => selectElementByMouseEnter(event, circle)}
+					onmouseleave={(event) => deselectElementByMouseLeave(event, circle)}
+					ondblclick={() => modifyCircle(circle)}
+					ondragmove={(event) => limitCircle(event, circle)}
+					ondragend={() => updateCircleChanges()}
 				/>
 			{/each}
 			{#each $projectStore.rectangles as rectangle}
 				<Rect
-					bind:config={rectangle}
-					on:mouseenter={(event) => selectElementByMouseEnter(event, rectangle)}
-					on:mouseleave={(event) => deselectElementByMouseLeave(event, rectangle)}
-					on:dblclick={() => modifyRectangle(rectangle)}
-					on:dragmove={(event) => limitBox(event, rectangle)}
-					on:dragend={() => updateRectangleChanges()}
+					fill="green"
+					draggable
+					opacity={0.75}
+					width={rectangle.width}
+					height={rectangle.height}
+					bind:x={rectangle.x}
+					bind:y={rectangle.y}
+					onmouseenter={(event) => selectElementByMouseEnter(event, rectangle)}
+					onmouseleave={(event) => deselectElementByMouseLeave(event, rectangle)}
+					ondblclick={() => modifyRectangle(rectangle)}
+					ondragmove={(event) => limitBox(event, rectangle)}
+					ondragend={() => updateRectangleChanges()}
 				/>
 			{/each}
 			{#each $projectStore.legs as leg}
 				<Rect
-					bind:config={leg}
-					on:mouseenter={(event) => selectElementByMouseEnter(event, leg)}
-					on:mouseleave={(event) => deselectElementByMouseLeave(event, leg)}
-					on:dblclick={() => deleteLeg(leg)}
-					on:dragmove={(event) => limitBox(event, leg)}
-					on:dragend={() => updateLegChanges()}
+					fill="gray"
+					draggable
+					opacity={0.75}
+					width={leg.width}
+					height={leg.height}
+					bind:x={leg.x}
+					bind:y={leg.y}
+					onmouseenter={(event) => selectElementByMouseEnter(event, leg)}
+					onmouseleave={(event) => deselectElementByMouseLeave(event, leg)}
+					ondblclick={() => deleteLeg(leg)}
+					ondragmove={(event) => limitBox(event, leg)}
+					ondragend={() => updateLegChanges()}
 				/>
 			{/each}
 		</Layer>
 	</Stage>
-	<ZoomRangeBottom class="w-2/5" bind:value={imageZoom} min={10} max={200} step={10} />
+	<ZoomRangeBottom class="w-2/5" bind:value={$projectStore.zoom} min={10} max={200} step={5} />
 {/if}

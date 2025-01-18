@@ -22,7 +22,7 @@
 	};
 </script>
 
-<input type="file" id="textFile" {accept} bind:this={fileInput} on:change={importLibrary} />
+<input type="file" id="textFile" {accept} bind:this={fileInput} onchange={importLibrary} />
 
 <style>
 	input {

@@ -11,6 +11,7 @@ export const Project = z.object({
 	label: z.string().default(''),
 
 	panelSettings: PanelSettings,
+	zoom: z.number(),
 
 	circles: z.array(CircleData),
 	rectangles: z.array(RectangleData),

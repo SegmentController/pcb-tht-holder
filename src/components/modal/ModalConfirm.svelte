@@ -4,13 +4,11 @@
 
 	const dispatch = createEventDispatcher<{
 		resolve: {
-			trigger: 'custom';
 			confirmed: boolean;
 		};
 	}>();
 	const resolve = (confirmed: boolean) =>
 		dispatch('resolve', {
-			trigger: 'custom',
 			confirmed
 		});
 
@@ -22,7 +20,7 @@
 		<h3 class="mb-5 text-lg font-normal text-gray-500 dark:text-gray-400">
 			{title}
 		</h3>
-		<Button on:click={() => resolve(true)} color="red" class="me-2">Yes</Button>
-		<Button on:click={() => resolve(false)} color="alternative">Cancel</Button>
+		<Button onclick={() => resolve(true)} color="red" class="me-2">Yes</Button>
+		<Button onclick={() => resolve(false)} color="alternative">Cancel</Button>
 	</div>
 </Modal>

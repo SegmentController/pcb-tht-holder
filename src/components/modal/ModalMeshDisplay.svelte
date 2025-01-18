@@ -28,7 +28,7 @@
 			.catch(() => (volume = 1));
 	});
 
-	let wireframe: boolean = false;
+	let wireframe: boolean = true;
 	let coverageOnly: boolean = false;
 
 	const generateFilename = () => name + '.stl';

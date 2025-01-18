@@ -106,6 +106,7 @@
 		const projectData: Project = {
 			image: $projectStore.image,
 			name: $projectStore.name,
+			zoom: $projectStore.zoom,
 			label: $projectStore.label,
 			panelSettings: $projectStore.panelSettings,
 			circles: $projectStore.circles,
@@ -122,6 +123,7 @@
 
 		const meshInfo = generateMeshLazy({
 			panelSettings: $projectStore.panelSettings,
+			zoom: $projectStore.zoom,
 			label: $projectStore.label,
 			rectangles: $projectStore.rectangles,
 			circles: $projectStore.circles,

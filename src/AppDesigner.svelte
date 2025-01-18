@@ -31,7 +31,6 @@
 
 	export let pcbImage: HTMLImageElement | undefined;
 	export let imageSize: ImageSize | undefined;
-	let imageZoom: number = 100;
 
 	const limitBox = (event: KonvaDragTransformEvent, box: RectangleData | LegData) => {
 		const target = event.target;
@@ -80,10 +79,10 @@
 {#if imageSize}
 	<Stage
 		onclick={stageClick}
-		width={imageSize.width * (imageZoom / 100)}
-		height={imageSize.height * (imageZoom / 100)}
-		scaleX={(imageSize.width / $projectStore.panelSettings.width) * (imageZoom / 100)}
-		scaleY={(imageSize.height / $projectStore.panelSettings.height) * (imageZoom / 100)}
+		width={imageSize.width * ($projectStore.zoom / 100)}
+		height={imageSize.height * ($projectStore.zoom / 100)}
+		scaleX={(imageSize.width / $projectStore.panelSettings.width) * ($projectStore.zoom / 100)}
+		scaleY={(imageSize.height / $projectStore.panelSettings.height) * ($projectStore.zoom / 100)}
 	>
 		<Layer>
 			<Image
@@ -143,5 +142,5 @@
 			{/each}
 		</Layer>
 	</Stage>
-	<ZoomRangeBottom class="w-2/5" bind:value={imageZoom} min={10} max={200} step={10} />
+	<ZoomRangeBottom class="w-2/5" bind:value={$projectStore.zoom} min={10} max={200} step={5} />
 {/if}

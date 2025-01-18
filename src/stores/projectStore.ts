@@ -10,6 +10,7 @@ const emptyProject: Project = {
 	image: '',
 	name: '',
 	label: '',
+	zoom: 100,
 
 	panelSettings: {
 		width: 100,

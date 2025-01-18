@@ -80,22 +80,18 @@
 {#if imageSize}
 	<Stage
 		onclick={stageClick}
-		config={{
-			width: imageSize.width * (imageZoom / 100),
-			height: imageSize.height * (imageZoom / 100),
-			scaleX: (imageSize.width / $projectStore.panelSettings.width) * (imageZoom / 100),
-			scaleY: (imageSize.height / $projectStore.panelSettings.height) * (imageZoom / 100)
-		}}
+		width={imageSize.width * (imageZoom / 100)}
+		height={imageSize.height * (imageZoom / 100)}
+		scaleX={(imageSize.width / $projectStore.panelSettings.width) * (imageZoom / 100)}
+		scaleY={(imageSize.height / $projectStore.panelSettings.height) * (imageZoom / 100)}
 	>
 		<Layer>
 			<Image
 				image={pcbImage}
-				config={{
-					scaleX: $projectStore.panelSettings.width / imageSize.width,
-					scaleY: (-1 * $projectStore.panelSettings.height) / imageSize.height,
-					offsetY: imageSize.height,
-					opacity: 0.25
-				}}
+				scaleX={$projectStore.panelSettings.width / imageSize.width}
+				scaleY={(-1 * $projectStore.panelSettings.height) / imageSize.height}
+				offsetY={imageSize.height}
+				opacity={0.25}
 			/>
 			<ContextMenu bind:this={contextMenu} />
 			{#each $projectStore.circles as circle}

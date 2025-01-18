@@ -49,7 +49,7 @@
 	};
 </script>
 
-<EscapeClose on:escape={() => resolve()}>
+<EscapeClose onescape={() => resolve()}>
 	<Modal open={true} size="lg" dismissable={false}>
 		<div class="flex justify-start">
 			<span class="font-semibold mr-4">
@@ -87,7 +87,7 @@
 					{''}
 				{:then}
 					<ButtonGroup>
-						<Button color="primary" on:click={() => downloadStlFile(true)}>
+						<Button color="primary" onclick={() => downloadStlFile(true)}>
 							<svg
 								class="mr-2"
 								xmlns="http://www.w3.org/2000/svg"
@@ -101,12 +101,12 @@
 							>
 							Download STL</Button
 						>
-						<Button on:click={() => downloadStlFile(false)}>Text STL</Button>
+						<Button onclick={() => downloadStlFile(false)}>Text STL</Button>
 					</ButtonGroup>
 				{:catch}
 					{''}
 				{/await}
-				<Button class="ml-2" on:click={() => resolve()} color="alternative">Close</Button>
+				<Button class="ml-2" onclick={() => resolve()} color="alternative">Close</Button>
 			</div>
 		</div>
 		<div class="canvasContainer">

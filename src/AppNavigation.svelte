@@ -174,7 +174,7 @@
 			<img src="{BASE_URL}/pcb-board-32.png" class="me-3 h-6 sm:h-9" alt="PCB THT Holder Logo" />
 			<span class="self-center whitespace-nowrap text-xl font-semibold">
 				{#if projectLoaded}
-					<A class="text-inherit hover:no-underline" on:click={() => openProjectSettings()}
+					<A class="text-inherit hover:no-underline" onclick={() => openProjectSettings()}
 						>{$projectStore.name}</A
 					>
 				{:else}
@@ -193,10 +193,10 @@
 					File<ChevronDown class="ms-2 text-primary-800 dark:text-white inline" />
 				</NavLi>
 				<Dropdown class="w-60 z-20">
-					<DropdownItem href="#" on:click={() => reset()}>New</DropdownItem>
-					<DropdownItem href="#" on:click={() => downloadProjectFile()}>Save project</DropdownItem>
+					<DropdownItem href="#" onclick={() => reset()}>New</DropdownItem>
+					<DropdownItem href="#" onclick={() => downloadProjectFile()}>Save project</DropdownItem>
 					<DropdownDivider />
-					<DropdownItem href="#" on:click={() => openProjectSettings()}>
+					<DropdownItem href="#" onclick={() => openProjectSettings()}>
 						Project settings...
 						<Kbd class="float-right px-2">shift + P</Kbd>
 					</DropdownItem>
@@ -205,15 +205,15 @@
 					Component<ChevronDown class="ms-2 text-primary-800 dark:text-white inline" />
 				</NavLi>
 				<Dropdown class="w-60 z-20">
-					<DropdownItem href="#" on:click={() => addNewCircle()}>
+					<DropdownItem href="#" onclick={() => addNewCircle()}>
 						Add circle...
 						<Kbd class="float-right px-2">shift + C</Kbd>
 					</DropdownItem>
-					<DropdownItem href="#" on:click={() => addNewRectangle()}>
+					<DropdownItem href="#" onclick={() => addNewRectangle()}>
 						Add rectangle...
 						<Kbd class="float-right px-2">shift + R</Kbd>
 					</DropdownItem>
-					<DropdownItem href="#" on:click={() => addNewLeg()}>
+					<DropdownItem href="#" onclick={() => addNewLeg()}>
 						Add leg
 						<Kbd class="float-right px-2">shift + L</Kbd>
 					</DropdownItem>
@@ -223,18 +223,18 @@
 						</DropdownItem>
 						<Dropdown class="w-auto min-w-44 z-20" placement="right-start">
 							{#each getLibraryStoreValue().sort( (a, b) => a.name.localeCompare(b.name) ) as libraryItem}
-								<DropdownItem on:click={() => addItemFromLibrary(libraryItem)}
+								<DropdownItem onclick={() => addItemFromLibrary(libraryItem)}
 									>{libraryItem.name} ({libraryItem.type})</DropdownItem
 								>
 							{/each}
 						</Dropdown>
 					{/if}
 					<DropdownDivider />
-					<DropdownItem href="#" on:click={() => showModalLibrary()}>Library...</DropdownItem>
+					<DropdownItem href="#" onclick={() => showModalLibrary()}>Library...</DropdownItem>
 				</Dropdown>
 			</NavUl>
 			<div class="flex">
-				<Button disabled={!projectLoaded} on:click={() => openDisplay()}>
+				<Button disabled={!projectLoaded} onclick={() => openDisplay()}>
 					<svg
 						class="mr-2"
 						xmlns="http://www.w3.org/2000/svg"

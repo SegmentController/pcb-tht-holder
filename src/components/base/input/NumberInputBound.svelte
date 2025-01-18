@@ -13,7 +13,7 @@
 <NumberInput
 	{id}
 	bind:value
-	on:blur={() => {
+	onblur={() => {
 		if (min && value < min) value = min;
 		if (max && value > max) value = max;
 	}}

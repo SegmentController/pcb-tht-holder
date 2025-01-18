@@ -9,6 +9,7 @@
 	const CAMERA_FAR = 2;
 </script>
 
+// eslint-disable @typescript-eslint/no-explicit-any
 <T.PerspectiveCamera
 	makeDefault
 	position={[CAMERA_FAR * volume, CAMERA_FAR * volume, CAMERA_FAR * volume]}
@@ -21,14 +22,7 @@
 
 <T.Mesh rotation.x={-Math.PI / 2}>
 	<T.BufferGeometry>
-		<T.BufferAttribute
-			args={[vertices, 3]}
-			attach={(parent: any, self: any) => {
-				parent.setAttribute('position', self);
-				parent.computeVertexNormals();
-				return () => {};
-			}}
-		/>
+		<T.BufferAttribute args={[vertices, 3]} />
 	</T.BufferGeometry>
 	<T.MeshStandardMaterial color="#22ff22" {wireframe} />
 </T.Mesh>

@@ -26,7 +26,7 @@
 
 <svelte:window
 	on:contextmenu|preventDefault={() => (visible = false)}
-	on:click={() => (visible = false)}
+	onclick={() => (visible = false)}
 />
 
 {#if visible}

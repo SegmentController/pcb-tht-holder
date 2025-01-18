@@ -30,13 +30,12 @@
 	};
 </script>
 
-<EscapeClose on:escape={() => resolve()}>
+<EscapeClose onescape={() => resolve()}>
 	<Modal open={true} size="lg" dismissable={false} title="Library">
 		<div class="grid">
 			<ButtonGroup class="justify-self-end">
-				<Button on:click={() => importLibrary()}>Import</Button>
-				<Button on:click={() => exportLibrary()} disabled={$libraryStore.length === 0}
-					>Export</Button
+				<Button onclick={() => importLibrary()}>Import</Button>
+				<Button onclick={() => exportLibrary()} disabled={$libraryStore.length === 0}>Export</Button
 				>
 			</ButtonGroup>
 		</div>
@@ -46,7 +45,7 @@
 					<h5 class="mb-2 text-md font-bold tracking-tight text-gray-900 dark:text-white">
 						{libraryItem.name}
 					</h5>
-					<A class="absolute right-4 text-gray" on:click={() => editName(libraryItem)}>
+					<A class="absolute right-4 text-gray" onclick={() => editName(libraryItem)}>
 						<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24"
 							><path
 								fill="currentColor"
@@ -65,7 +64,7 @@
 					{/if}
 					<A
 						class="absolute bottom-4 right-4"
-						on:click={() => {
+						onclick={() => {
 							$libraryStore = $libraryStore.filter((li) => li !== libraryItem);
 						}}
 					>
@@ -80,7 +79,7 @@
 			{/each}
 		</div>
 		<div class="text-right pt-4">
-			<Button on:click={() => resolve()} color="alternative" class="ml-2">Close</Button>
+			<Button onclick={() => resolve()} color="alternative" class="ml-2">Close</Button>
 		</div>
 	</Modal>
 </EscapeClose>

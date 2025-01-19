@@ -1,5 +1,11 @@
 # Change log
 
+## [1.5.3] - 2025-01-19
+
+### New
+
+- Allow undo component deletes (ctrl+z)
+
 ## [1.5.2] - 2025-01-19
 
 ### Change

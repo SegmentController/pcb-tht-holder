@@ -3,8 +3,9 @@ import { nanoid } from 'nanoid';
 import type { ContextMenuItem } from '$components/base/ContextMenu.svelte';
 import type { CircleSettings } from '$components/modal/ModalCircleSettings.svelte';
 import { getLibraryStoreValue, setLibraryStoreValue } from '$stores/libraryStore';
-import { showModalCircleSettings, showModalNameEdit } from '$stores/modalStore';
+import { showModalCircleSettings, showModalConfirm, showModalNameEdit } from '$stores/modalStore';
 import { getProjectStoreValue, projectStore } from '$stores/projectStore';
+import { addUndo } from '$stores/undoStore';
 import type { CircleData } from '$types/CircleData';
 
 export const addNewCircle = async (source?: CircleSettings) => {
@@ -59,6 +60,10 @@ export const deleteCircle = (circle: CircleData) => {
 	const project = getProjectStoreValue();
 	project.circles = project.circles.filter((c) => c != circle);
 	updateCircleChanges();
+	addUndo('Delete Circle', () => {
+		project.circles.push(circle);
+		updateCircleChanges();
+	});
 };
 export const updateCircleChanges = (circles?: CircleData[]) =>
 	projectStore.update((value) => {
@@ -82,7 +87,10 @@ export const getContextMenuItemForCircle = (id: string): ContextMenuItem[] | und
 			{ name: '' },
 			{
 				name: 'Delete',
-				onClick: () => deleteCircle(circle)
+				onClick: async () => {
+					const { confirmed } = await showModalConfirm('Are you sure to delete circle?');
+					if (confirmed) deleteCircle(circle);
+				}
 			}
 		];
 };

@@ -3,8 +3,13 @@ import { nanoid } from 'nanoid';
 import type { ContextMenuItem } from '$components/base/ContextMenu.svelte';
 import type { RectangleSettings } from '$components/modal/ModalRectangleSettings.svelte';
 import { getLibraryStoreValue, setLibraryStoreValue } from '$stores/libraryStore';
-import { showModalNameEdit, showModalRectangleSettings } from '$stores/modalStore';
+import {
+	showModalConfirm,
+	showModalNameEdit,
+	showModalRectangleSettings
+} from '$stores/modalStore';
 import { getProjectStoreValue, projectStore } from '$stores/projectStore';
+import { addUndo } from '$stores/undoStore';
 import type { RectangleData } from '$types/RectangleData';
 
 export const addNewRectangle = async (source?: RectangleSettings) => {
@@ -69,6 +74,10 @@ export const deleteRectangle = (rectangle: RectangleData) => {
 	const project = getProjectStoreValue();
 	project.rectangles = project.rectangles.filter((r) => r != rectangle);
 	updateRectangleChanges();
+	addUndo('Delete Rectangle', () => {
+		project.rectangles.push(rectangle);
+		updateRectangleChanges();
+	});
 };
 export const updateRectangleChanges = (rectangles?: RectangleData[]) =>
 	projectStore.update((value) => {
@@ -93,7 +102,10 @@ export const getContextMenuItemForRectangle = (id: string): ContextMenuItem[] | 
 			{ name: '' },
 			{
 				name: 'Delete',
-				onClick: () => deleteRectangle(rectangle)
+				onClick: async () => {
+					const { confirmed } = await showModalConfirm('Are you sure to delete rectangle?');
+					if (confirmed) deleteRectangle(rectangle);
+				}
 			}
 		];
 };

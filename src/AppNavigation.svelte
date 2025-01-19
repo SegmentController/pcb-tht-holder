@@ -55,6 +55,7 @@
 		projectStore,
 		updateProjectStoreValue
 	} from '$stores/projectStore';
+	import { executeLastUndo, undoStoreLastItem } from '$stores/undoStore';
 	import type { LibraryItem } from '$types/Library';
 	import type { Project } from '$types/Project';
 	/*global __PKG_VERSION__*/
@@ -140,6 +141,12 @@
 			{ key: 'R', modifier: ['shift'], callback: () => addNewRectangle(), preventDefault: true },
 			{ key: 'L', modifier: ['shift'], callback: () => addNewLeg(), preventDefault: true },
 			{
+				key: 'z',
+				modifier: ['ctrl', 'meta'],
+				callback: () => executeLastUndo(),
+				preventDefault: true
+			},
+			{
 				key: 'P',
 				modifier: ['shift'],
 				callback: () => openProjectSettings(),
@@ -203,6 +210,19 @@
 						<Kbd class="float-right px-2">shift + P</Kbd>
 					</DropdownItem>
 				</Dropdown>
+
+				{#if $undoStoreLastItem}
+					<NavLi class="cursor-pointer">
+						Edit<ChevronDown class="ms-2 text-primary-800 dark:text-white inline" />
+					</NavLi>
+					<Dropdown class="w-60 z-20">
+						<DropdownItem href="#" onclick={() => executeLastUndo()}
+							>Undo: {$undoStoreLastItem}
+							<Kbd class="float-right px-2">ctrl + Z</Kbd>
+						</DropdownItem>
+					</Dropdown>
+				{/if}
+
 				<NavLi class="cursor-pointer">
 					Component<ChevronDown class="ms-2 text-primary-800 dark:text-white inline" />
 				</NavLi>

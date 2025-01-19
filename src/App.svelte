@@ -26,7 +26,7 @@
 </script>
 
 <AppNavigation projectLoaded={!!imageSize} on:reset={reset} />
-<div class="flex justify-center">
+<div class="flex flex-col justify-center">
 	{#if !!imageSize}
 		<AppDesigner bind:pcbImage bind:imageSize />
 	{:else}

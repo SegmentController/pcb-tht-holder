@@ -10,7 +10,7 @@
 	} from 'svelte-konva';
 
 	import ContextMenu from '$components/base/ContextMenu.svelte';
-	import ZoomRangeBottom from '$components/base/input/ZoomRangeBottom.svelte';
+	import ZoomRange from '$components/base/input/ZoomRange.svelte';
 	import {
 		getContextMenuItemForCircle,
 		modifyCircle,
@@ -77,70 +77,74 @@
 </script>
 
 {#if imageSize}
-	<Stage
-		onclick={stageClick}
-		width={imageSize.width * ($projectStore.zoom / 100)}
-		height={imageSize.height * ($projectStore.zoom / 100)}
-		scaleX={(imageSize.width / $projectStore.panelSettings.width) * ($projectStore.zoom / 100)}
-		scaleY={(imageSize.height / $projectStore.panelSettings.height) * ($projectStore.zoom / 100)}
-	>
-		<Layer>
-			<Image
-				image={pcbImage}
-				scaleX={$projectStore.panelSettings.width / imageSize.width}
-				scaleY={(-1 * $projectStore.panelSettings.height) / imageSize.height}
-				offsetY={imageSize.height}
-				opacity={0.25}
-			/>
-			<ContextMenu bind:this={contextMenu} />
-			{#each $projectStore.circles as circle}
-				<Circle
-					fill="orange"
-					draggable
-					opacity={0.75}
-					radius={circle.radius}
-					bind:x={circle.x}
-					bind:y={circle.y}
-					onmouseenter={(event) => selectElementByMouseEnter(event, circle)}
-					onmouseleave={(event) => deselectElementByMouseLeave(event, circle)}
-					ondblclick={() => modifyCircle(circle)}
-					ondragmove={(event) => limitCircle(event, circle)}
-					ondragend={() => updateCircleChanges()}
+	<div class="flex justify-center mb-2">
+		<ZoomRange class="w-2/5" bind:value={$projectStore.zoom} min={10} max={300} step={10} />
+	</div>
+	<div class="flex justify-center">
+		<Stage
+			onclick={stageClick}
+			width={imageSize.width * ($projectStore.zoom / 100)}
+			height={imageSize.height * ($projectStore.zoom / 100)}
+			scaleX={(imageSize.width / $projectStore.panelSettings.width) * ($projectStore.zoom / 100)}
+			scaleY={(imageSize.height / $projectStore.panelSettings.height) * ($projectStore.zoom / 100)}
+		>
+			<Layer>
+				<Image
+					image={pcbImage}
+					scaleX={$projectStore.panelSettings.width / imageSize.width}
+					scaleY={(-1 * $projectStore.panelSettings.height) / imageSize.height}
+					offsetY={imageSize.height}
+					opacity={0.25}
 				/>
-			{/each}
-			{#each $projectStore.rectangles as rectangle}
-				<Rect
-					fill="green"
-					draggable
-					opacity={0.75}
-					width={rectangle.width}
-					height={rectangle.height}
-					bind:x={rectangle.x}
-					bind:y={rectangle.y}
-					onmouseenter={(event) => selectElementByMouseEnter(event, rectangle)}
-					onmouseleave={(event) => deselectElementByMouseLeave(event, rectangle)}
-					ondblclick={() => modifyRectangle(rectangle)}
-					ondragmove={(event) => limitBox(event, rectangle)}
-					ondragend={() => updateRectangleChanges()}
-				/>
-			{/each}
-			{#each $projectStore.legs as leg}
-				<Rect
-					fill="gray"
-					draggable
-					opacity={0.75}
-					width={leg.width}
-					height={leg.height}
-					bind:x={leg.x}
-					bind:y={leg.y}
-					onmouseenter={(event) => selectElementByMouseEnter(event, leg)}
-					onmouseleave={(event) => deselectElementByMouseLeave(event, leg)}
-					ondblclick={() => deleteLeg(leg)}
-					ondragmove={(event) => limitBox(event, leg)}
-					ondragend={() => updateLegChanges()}
-				/>
-			{/each}
-		</Layer>
-	</Stage>
-	<ZoomRangeBottom class="w-2/5" bind:value={$projectStore.zoom} min={10} max={200} step={5} />
+				<ContextMenu bind:this={contextMenu} />
+				{#each $projectStore.circles as circle}
+					<Circle
+						fill="orange"
+						draggable
+						opacity={0.75}
+						radius={circle.radius}
+						bind:x={circle.x}
+						bind:y={circle.y}
+						onmouseenter={(event) => selectElementByMouseEnter(event, circle)}
+						onmouseleave={(event) => deselectElementByMouseLeave(event, circle)}
+						ondblclick={() => modifyCircle(circle)}
+						ondragmove={(event) => limitCircle(event, circle)}
+						ondragend={() => updateCircleChanges()}
+					/>
+				{/each}
+				{#each $projectStore.rectangles as rectangle}
+					<Rect
+						fill="green"
+						draggable
+						opacity={0.75}
+						width={rectangle.width}
+						height={rectangle.height}
+						bind:x={rectangle.x}
+						bind:y={rectangle.y}
+						onmouseenter={(event) => selectElementByMouseEnter(event, rectangle)}
+						onmouseleave={(event) => deselectElementByMouseLeave(event, rectangle)}
+						ondblclick={() => modifyRectangle(rectangle)}
+						ondragmove={(event) => limitBox(event, rectangle)}
+						ondragend={() => updateRectangleChanges()}
+					/>
+				{/each}
+				{#each $projectStore.legs as leg}
+					<Rect
+						fill="gray"
+						draggable
+						opacity={0.75}
+						width={leg.width}
+						height={leg.height}
+						bind:x={leg.x}
+						bind:y={leg.y}
+						onmouseenter={(event) => selectElementByMouseEnter(event, leg)}
+						onmouseleave={(event) => deselectElementByMouseLeave(event, leg)}
+						ondblclick={() => deleteLeg(leg)}
+						ondragmove={(event) => limitBox(event, leg)}
+						ondragend={() => updateLegChanges()}
+					/>
+				{/each}
+			</Layer>
+		</Stage>
+	</div>
 {/if}

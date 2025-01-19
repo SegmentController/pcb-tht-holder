@@ -1,5 +1,12 @@
 # Change log
 
+## [1.5.2] - 2025-01-19
+
+### Change
+
+- Move zoom slider to top
+- Change zoom range to 10..300%
+
 ## [1.5.1] - 2025-01-18
 
 ### Fixed

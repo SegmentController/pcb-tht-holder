@@ -1,5 +1,11 @@
 # Change log
 
+## [1.5.4] - 2025-01-19
+
+### New
+
+- Change icons to @sveltify
+
 ## [1.5.3] - 2025-01-19
 
 ### New

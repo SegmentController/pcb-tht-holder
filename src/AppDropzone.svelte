@@ -1,5 +1,4 @@
 <script lang="ts">
-	import Alert from '$components/base/Alert.svelte';
 	import Dropzone from '$components/base/input/Dropzone.svelte';
 	import { projectStore } from '$stores/projectStore';
 	import type { ImageSize } from '$types/ImageSize';
@@ -10,7 +9,7 @@
 	export let pcbImage: HTMLImageElement | undefined;
 	export let imageSize: ImageSize | undefined;
 
-	let alert: Alert;
+	let errorMessage: string = '';
 
 	export const onFileUpload = (
 		_fileData: string,
@@ -30,15 +29,12 @@
 					$projectStore.legs = isValid.data.legs || [];
 					onFileUpload(isValid.data.image, isValid.data.name, false, true);
 					$projectStore.panelSettings = isValid.data.panelSettings;
-					alert.hide();
+					errorMessage = '';
 					return;
 				}
-				alert.showError('Cannot load project file', 'Invalid format');
+				errorMessage = 'Cannot load project file: Invalid format';
 			} catch (error) {
-				alert.showError(
-					'Cannot load project file',
-					`${error instanceof Error ? error.message : error}`
-				);
+				errorMessage = `Cannot load project file: ${error instanceof Error ? error.message : error}`;
 			}
 			return;
 		}
@@ -67,18 +63,17 @@
 			pcbImage = undefined;
 			$projectStore.image = '';
 			$projectStore.name = '';
-			alert.showError('Cannot load image', '');
+			errorMessage = 'Cannot load image';
 		});
 		pcbImage.src = _fileData;
-		alert.hide();
+		errorMessage = '';
 	};
 </script>
-
-<Alert bind:this={alert} />
 
 <Dropzone
 	title="Top view of PCB image or a project file"
 	description="Click to upload or drag and drop a file. Image file (png, jpg) begins a new project, a .tht3d file restores a previously saved project."
+	{errorMessage}
 	onUpload={(imgData, filename) =>
 		onFileUpload(imgData, filename.slice(0, Math.max(0, filename.lastIndexOf('.'))), true, false)}
 />

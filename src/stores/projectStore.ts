@@ -58,3 +58,4 @@ export const projectStore = persisted<Project>('project', emptyProject, {
 export const getProjectStoreValue = (): Project => get(projectStore);
 export const setProjectStoreValue = (project: Project) => projectStore.set(project);
 export const updateProjectStoreValue = (updater: Updater<Project>) => projectStore.update(updater);
+export const getProjectStoreLegCount = () => get(projectStore).legs.length;

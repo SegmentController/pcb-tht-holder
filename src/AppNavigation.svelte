@@ -37,7 +37,7 @@
 	import { generateMeshLazy } from '$lib/3d/mesh';
 	import { virtualDownload } from '$lib/download';
 	import { addNewCircle } from '$lib/elements/circle';
-	import { addNewLeg } from '$lib/elements/leg';
+	import { addCornerLegs, addNewLeg, deleteAllLegsWithConfirm } from '$lib/elements/leg';
 	import { addNewRectangle } from '$lib/elements/rectangle';
 	import { finemoveSelectedElement } from '$lib/fineMovement';
 	import { shortcut } from '$lib/shortcut';
@@ -49,6 +49,7 @@
 		showModalProjectSettings
 	} from '$stores/modalStore';
 	import {
+		getProjectStoreLegCount,
 		getProjectStoreValue,
 		projectJsonSerializer,
 		projectStore,
@@ -201,7 +202,7 @@
 					File
 					<Icon icon="mdi:chevron-down" class="inline-flex" />
 				</NavLi>
-				<Dropdown class="w-60 z-20" trigger="hover">
+				<Dropdown class="w-60 z-20 -mt-2" trigger="hover">
 					<DropdownItem href="#" onclick={() => reset()}>New</DropdownItem>
 					<DropdownItem href="#" onclick={() => downloadProjectFile()}>Save project</DropdownItem>
 					<DropdownDivider />
@@ -215,7 +216,7 @@
 					Edit
 					<Icon icon="mdi:chevron-down" class="inline-flex" />
 				</NavLi>
-				<Dropdown class="w-60 z-20" trigger="hover">
+				<Dropdown class="w-72 z-20 -mt-2" trigger="hover">
 					{#if $undoStoreLastItem}
 						<DropdownItem href="#" onclick={() => executeLastUndo()}
 							>Undo: {$undoStoreLastItem}
@@ -235,12 +236,18 @@
 						Add leg
 						<Kbd class="float-right px-2">shift + L</Kbd>
 					</DropdownItem>
+					<DropdownItem href="#" onclick={() => addCornerLegs()}>Auto legs at corner</DropdownItem>
+					{#if getProjectStoreLegCount()}
+						<DropdownItem href="#" onclick={() => deleteAllLegsWithConfirm()}>
+							Delete all legs
+						</DropdownItem>
+					{/if}
 					{#if getLibraryStoreValue().length}
 						<DropdownItem class="flex items-center justify-between">
 							Add from library
 							<Icon icon="mdi:chevron-right" class="inline-flex" />
 						</DropdownItem>
-						<Dropdown class="w-auto min-w-44 z-20" placement="right-start">
+						<Dropdown class="w-auto min-w-44 z-20" placement="right-start" trigger="hover">
 							{#each getLibraryStoreValue().sort( (a, b) => a.name.localeCompare(b.name) ) as libraryItem}
 								<DropdownItem onclick={() => addItemFromLibrary(libraryItem)}
 									>{libraryItem.name} ({libraryItem.type})</DropdownItem

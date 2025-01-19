@@ -16,7 +16,11 @@
 		modifyCircle,
 		updateCircleChanges
 	} from '$lib/elements/circle';
-	import { deleteLeg, getContextMenuItemForLeg, updateLegChanges } from '$lib/elements/leg';
+	import {
+		deleteLegWithConfirm,
+		getContextMenuItemForLeg,
+		updateLegChanges
+	} from '$lib/elements/leg';
 	import {
 		getContextMenuItemForRectangle,
 		modifyRectangle,
@@ -141,7 +145,7 @@
 						bind:y={leg.y}
 						onmouseenter={(event) => selectElementByMouseEnter(event, leg)}
 						onmouseleave={(event) => deselectElementByMouseLeave(event, leg)}
-						ondblclick={() => deleteLeg(leg)}
+						ondblclick={() => deleteLegWithConfirm(leg)}
 						ondragmove={(event) => limitBox(event, leg)}
 						ondragend={() => updateLegChanges()}
 					/>

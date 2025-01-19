@@ -1,7 +1,9 @@
 import { nanoid } from 'nanoid';
 
 import type { ContextMenuItem } from '$components/base/ContextMenu.svelte';
+import { showModalConfirm } from '$stores/modalStore';
 import { getProjectStoreValue, projectStore } from '$stores/projectStore';
+import { addUndo } from '$stores/undoStore';
 import { LEG_SIZE, type LegData } from '$types/LegData';
 
 export const addNewLeg = () => {
@@ -20,10 +22,18 @@ export const addNewLeg = () => {
 	project.legs.push(leg);
 	updateLegChanges(project.legs);
 };
-export const deleteLeg = (leg: LegData) => {
+export const deleteLegWithConfirm = async (leg: LegData) => {
+	const { confirmed } = await showModalConfirm('Are you sure to delete leg?');
+	if (!confirmed) return;
+
 	const project = getProjectStoreValue();
 	project.legs = project.legs.filter((l) => l != leg);
 	updateLegChanges(project.legs);
+
+	addUndo('Delete Leg', () => {
+		project.legs.push(leg);
+		updateLegChanges(project.legs);
+	});
 };
 export const updateLegChanges = (legs?: LegData[]) =>
 	projectStore.update((value) => {
@@ -40,9 +50,8 @@ export const getContextMenuItemForLeg = (id: string): ContextMenuItem[] | undefi
 			{ name: 'Leg' },
 			{
 				name: 'Delete',
-				onClick: () => {
-					project.legs = project.legs.filter((l) => l != leg);
-					updateLegChanges();
+				onClick: async () => {
+					await deleteLegWithConfirm(leg);
 				}
 			}
 		];

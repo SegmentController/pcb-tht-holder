@@ -40,7 +40,7 @@
 				{:else}
 					<li>
 						<button
-							on:click={() => {
+							onclick={() => {
 								if (!item.onClick) return;
 								visible = false;
 								item.onClick(item.extra);

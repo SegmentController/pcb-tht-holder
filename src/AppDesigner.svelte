@@ -96,9 +96,9 @@
 					offsetY={imageSize.height}
 					opacity={0.25}
 				/>
-				<ContextMenu bind:this={contextMenu} />
 				{#each $projectStore.circles as circle}
 					<Circle
+						id={circle.id}
 						fill="orange"
 						draggable
 						opacity={0.75}
@@ -114,6 +114,7 @@
 				{/each}
 				{#each $projectStore.rectangles as rectangle}
 					<Rect
+						id={rectangle.id}
 						fill="green"
 						draggable
 						opacity={0.75}
@@ -130,6 +131,7 @@
 				{/each}
 				{#each $projectStore.legs as leg}
 					<Rect
+						id={leg.id}
 						fill="gray"
 						draggable
 						opacity={0.75}
@@ -146,5 +148,6 @@
 				{/each}
 			</Layer>
 		</Stage>
+		<ContextMenu bind:this={contextMenu} />
 	</div>
 {/if}

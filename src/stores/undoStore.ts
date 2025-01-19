@@ -16,6 +16,11 @@ export const addUndo = (name: string, action: UndoAction) =>
 export const executeLastUndo = () =>
 	undoStore.update((undoables) => {
 		const last = undoables.pop();
-		if (last) last.action();
+		if (last)
+			try {
+				last.action();
+			} catch {
+				undoables.push(last);
+			}
 		return undoables;
 	});

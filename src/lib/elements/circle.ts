@@ -60,7 +60,7 @@ export const deleteCircle = (circle: CircleData) => {
 	const project = getProjectStoreValue();
 	project.circles = project.circles.filter((c) => c != circle);
 	updateCircleChanges();
-	addUndo('Delete Circle', () => {
+	addUndo('Delete circle', () => {
 		project.circles.push(circle);
 		updateCircleChanges();
 	});

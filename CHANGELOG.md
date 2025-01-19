@@ -1,25 +1,18 @@
 # Change log
 
-## [1.5.4] - 2025-01-19
+## [1.5.5] - 2025-01-19
 
 ### New
 
 - Change icons to @sveltify
-
-## [1.5.3] - 2025-01-19
-
-### New
-
 - Allow undo component deletes (ctrl+z)
-
-## [1.5.2] - 2025-01-19
+- Delete all legs in one step
+- Add corner legs automatically in one step
 
 ### Change
 
 - Move zoom slider to top
 - Change zoom range to 10..300%
-
-## [1.5.1] - 2025-01-18
 
 ### Fixed
 

@@ -22,6 +22,25 @@ export const addNewLeg = () => {
 	project.legs.push(leg);
 	updateLegChanges(project.legs);
 };
+export const addCornerLegs = () => {
+	const project = getProjectStoreValue();
+	for (const x of [LEG_SIZE, project.panelSettings.width - LEG_SIZE * 2])
+		for (const y of [LEG_SIZE, project.panelSettings.height - LEG_SIZE * 2]) {
+			const leg: LegData = {
+				id: nanoid(),
+				x,
+				y,
+				width: LEG_SIZE,
+				height: LEG_SIZE,
+
+				fill: 'gray',
+				draggable: true,
+				opacity: 0.75
+			};
+			project.legs.push(leg);
+		}
+	updateLegChanges(project.legs);
+};
 export const deleteLegWithConfirm = async (leg: LegData) => {
 	const { confirmed } = await showModalConfirm('Are you sure to delete leg?');
 	if (!confirmed) return;
@@ -30,8 +49,22 @@ export const deleteLegWithConfirm = async (leg: LegData) => {
 	project.legs = project.legs.filter((l) => l != leg);
 	updateLegChanges(project.legs);
 
-	addUndo('Delete Leg', () => {
+	addUndo('Delete leg', () => {
 		project.legs.push(leg);
+		updateLegChanges(project.legs);
+	});
+};
+export const deleteAllLegsWithConfirm = async () => {
+	const { confirmed } = await showModalConfirm('Are you sure to delete all legs?');
+	if (!confirmed) return;
+
+	const project = getProjectStoreValue();
+	const legs = project.legs;
+	project.legs = [];
+	updateLegChanges(project.legs);
+
+	addUndo('Delete all legs', () => {
+		project.legs.push(...legs);
 		updateLegChanges(project.legs);
 	});
 };

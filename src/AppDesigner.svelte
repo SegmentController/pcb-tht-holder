@@ -3,14 +3,17 @@
 </script>
 
 <script lang="ts">
+	import { type Writable, writable } from 'svelte/store';
 	import {
 		Circle,
 		Image,
 		type KonvaDragTransformEvent,
 		type KonvaMouseEvent,
 		Layer,
+		Line,
 		Rect,
-		Stage
+		Stage,
+		Text
 	} from 'svelte-konva';
 
 	import ContextMenu from '$components/base/ContextMenu.svelte';
@@ -31,6 +34,13 @@
 		updateRectangleChanges
 	} from '$lib/elements/rectangle';
 	import { deselectElementByMouseLeave, selectElementByMouseEnter } from '$lib/fineMovement';
+	import {
+		empytMeasurementInfo,
+		type MeasurementInfo,
+		stageMeasureModeMouseDown,
+		stageMeasureModeMouseUp,
+		stageMouseMove
+	} from '$lib/measurement';
 	import { projectStore } from '$stores/projectStore';
 	import type { CircleData } from '$types/CircleData';
 	import type { ImageSize } from '$types/ImageSize';
@@ -74,7 +84,7 @@
 
 	let contextMenu: ContextMenu | undefined = $state();
 	const stageClick = (event: KonvaMouseEvent) => {
-		if (event.evt.button === 2) {
+		if (event.evt.button === 2 && mode === 'pointer') {
 			const id = event.target.id();
 
 			for (const retriever of [
@@ -91,6 +101,8 @@
 			}
 		}
 	};
+
+	const measurementInfo: Writable<MeasurementInfo> = writable(empytMeasurementInfo);
 </script>
 
 {#if imageSize}
@@ -99,16 +111,25 @@
 	</div>
 	<div class="flex justify-center">
 		<Stage
-			onmousemove={(event) => {
-				const eventContainer = event.target.getStage()?.container();
-				if (eventContainer)
-					if (mode === 'measure') {
-						if (eventContainer.style.cursor !== 'crosshair')
-							eventContainer.style.cursor = 'crosshair';
-					} else {
-						if (eventContainer.style.cursor === 'crosshair')
-							eventContainer.style.cursor = 'default';
-					}
+			onmousemove={(event) =>
+				stageMouseMove(
+					event,
+					mode === 'measure',
+					measurementInfo,
+					(imageSize.width / $projectStore.panelSettings.width) * ($projectStore.zoom / 100),
+					(imageSize.height / $projectStore.panelSettings.height) * ($projectStore.zoom / 100)
+				)}
+			onmousedown={(event) => {
+				if (mode === 'measure')
+					stageMeasureModeMouseDown(
+						event,
+						measurementInfo,
+						(imageSize.width / $projectStore.panelSettings.width) * ($projectStore.zoom / 100),
+						(imageSize.height / $projectStore.panelSettings.height) * ($projectStore.zoom / 100)
+					);
+			}}
+			onmouseup={(event) => {
+				if (mode === 'measure') stageMeasureModeMouseUp(event, measurementInfo);
 			}}
 			onclick={stageClick}
 			width={imageSize.width * ($projectStore.zoom / 100)}
@@ -176,6 +197,34 @@
 						ondragend={() => updateLegChanges()}
 					/>
 				{/each}
+				{#if $measurementInfo.visible}
+					<Line
+						listening={false}
+						dashEnabled
+						dash={[2, 1]}
+						points={[
+							$measurementInfo.startPoint.x,
+							$measurementInfo.startPoint.y,
+							$measurementInfo.endPoint.x,
+							$measurementInfo.endPoint.y
+						]}
+						stroke="#000"
+						opacity={0.75}
+						strokeWidth={0.25}
+					/>
+					<Text
+						listening={false}
+						x={5 +
+							$measurementInfo.startPoint.x +
+							($measurementInfo.endPoint.x - $measurementInfo.startPoint.x) / 2}
+						y={5 +
+							$measurementInfo.startPoint.y +
+							($measurementInfo.endPoint.y - $measurementInfo.startPoint.y) / 2}
+						fontSize={3}
+						opacity={0.75}
+						text={$measurementInfo.text}
+					/>
+				{/if}
 			</Layer>
 		</Stage>
 		<ContextMenu bind:this={contextMenu} />

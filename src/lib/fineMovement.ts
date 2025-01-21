@@ -11,6 +11,14 @@ export type FinemoveDirection = 'left' | 'up' | 'right' | 'down';
 
 const selectedElements: GenericElement[] = [];
 
+const getModeBasedCursor = (
+	isMeasurementMode: boolean,
+	isSelected: boolean
+): 'pointer' | 'default' | 'crosshair' => {
+	if (isMeasurementMode) return 'crosshair';
+	return isSelected ? 'pointer' : 'default';
+};
+
 const setStageCursor = (event: KonvaMouseEvent, cursor: 'pointer' | 'default' | 'crosshair') => {
 	const eventContainer = event.target.getStage()?.container();
 	if (eventContainer) eventContainer.style.cursor = cursor;
@@ -22,7 +30,7 @@ export const selectElementByMouseEnter = (
 	isMeasurementMode: boolean
 ) => {
 	selectedElements.push(element);
-	setStageCursor(event, isMeasurementMode ? 'crosshair' : 'pointer');
+	setStageCursor(event, getModeBasedCursor(isMeasurementMode, true));
 };
 
 export const deselectElementByMouseLeave = (
@@ -35,7 +43,7 @@ export const deselectElementByMouseLeave = (
 		selectedElements.splice(index, 1);
 		index = selectedElements.findIndex((elementItem) => elementItem == element);
 	}
-	setStageCursor(event, isMeasurementMode ? 'crosshair' : 'default');
+	setStageCursor(event, getModeBasedCursor(isMeasurementMode, false));
 };
 
 export const finemoveSelectedElement = (direction: FinemoveDirection) => {

@@ -5,12 +5,14 @@ export type MeasurementInfo = {
 	visible: boolean;
 	startPoint: { x: number; y: number };
 	endPoint: { x: number; y: number };
+	textPoint: { x: number; y: number };
 	text: string;
 };
 export const empytMeasurementInfo: MeasurementInfo = {
 	visible: false,
 	startPoint: { x: 0, y: 0 },
 	endPoint: { x: 0, y: 0 },
+	textPoint: { x: 0, y: 0 },
 	text: ''
 };
 
@@ -37,12 +39,17 @@ export const stageMouseMove = (
 					? { x: previous.startPoint.x, y: event.evt.offsetY / scaleY }
 					: { x: event.evt.offsetX / scaleX, y: event.evt.offsetY / scaleY };
 
+			previous.textPoint = {
+				x: previous.startPoint.x + (previous.endPoint.x - previous.startPoint.x) / 2,
+				y: previous.startPoint.y + (previous.endPoint.y - previous.startPoint.y) / 2
+			};
+
 			let distance = Math.hypot(
 				Math.abs(previous.startPoint.x - previous.endPoint.x),
 				Math.abs(previous.startPoint.y - previous.endPoint.y)
 			);
 			distance = Math.round(distance * 10) / 10;
-			previous.text = `Distance: ${distance} mm`;
+			previous.text = `${distance} mm`;
 			return previous;
 		});
 };

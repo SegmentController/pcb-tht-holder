@@ -106,27 +106,21 @@
 </script>
 
 {#if imageSize}
+	{@const getStageScaleX =
+		(imageSize.width / $projectStore.panelSettings.width) * ($projectStore.zoom / 100)}
+	{@const getStageScaleY =
+		(imageSize.height / $projectStore.panelSettings.height) * ($projectStore.zoom / 100)}
+
 	<div class="flex justify-center mb-2">
 		<ZoomRange class="w-2/5" bind:value={$projectStore.zoom} min={10} max={300} step={10} />
 	</div>
 	<div class="flex justify-center">
 		<Stage
 			onmousemove={(event) =>
-				stageMouseMove(
-					event,
-					mode === 'measure',
-					measurementInfo,
-					(imageSize.width / $projectStore.panelSettings.width) * ($projectStore.zoom / 100),
-					(imageSize.height / $projectStore.panelSettings.height) * ($projectStore.zoom / 100)
-				)}
+				stageMouseMove(event, mode === 'measure', measurementInfo, getStageScaleX, getStageScaleY)}
 			onmousedown={(event) => {
 				if (mode === 'measure')
-					stageMeasureModeMouseDown(
-						event,
-						measurementInfo,
-						(imageSize.width / $projectStore.panelSettings.width) * ($projectStore.zoom / 100),
-						(imageSize.height / $projectStore.panelSettings.height) * ($projectStore.zoom / 100)
-					);
+					stageMeasureModeMouseDown(event, measurementInfo, getStageScaleX, getStageScaleY);
 			}}
 			onmouseup={(event) => {
 				if (mode === 'measure') stageMeasureModeMouseUp(event, measurementInfo);
@@ -134,8 +128,8 @@
 			onclick={stageClick}
 			width={imageSize.width * ($projectStore.zoom / 100)}
 			height={imageSize.height * ($projectStore.zoom / 100)}
-			scaleX={(imageSize.width / $projectStore.panelSettings.width) * ($projectStore.zoom / 100)}
-			scaleY={(imageSize.height / $projectStore.panelSettings.height) * ($projectStore.zoom / 100)}
+			scaleX={getStageScaleX}
+			scaleY={getStageScaleY}
 		>
 			<Layer>
 				<Image
@@ -201,7 +195,7 @@
 					<Line
 						listening={false}
 						dashEnabled
-						dash={[2, 1]}
+						dash={[0.5, 0.5]}
 						points={[
 							$measurementInfo.startPoint.x,
 							$measurementInfo.startPoint.y,
@@ -214,12 +208,12 @@
 					/>
 					<Text
 						listening={false}
-						x={5 +
-							$measurementInfo.startPoint.x +
-							($measurementInfo.endPoint.x - $measurementInfo.startPoint.x) / 2}
-						y={5 +
-							$measurementInfo.startPoint.y +
-							($measurementInfo.endPoint.y - $measurementInfo.startPoint.y) / 2}
+						align="center"
+						verticalAlign="center"
+						x={($measurementInfo.textPoint.x < $projectStore.panelSettings.width / 2 ? 5 : -5) +
+							$measurementInfo.textPoint.x}
+						y={($measurementInfo.textPoint.y < $projectStore.panelSettings.height / 2 ? 5 : -5) +
+							$measurementInfo.textPoint.y}
 						fontSize={3}
 						opacity={0.75}
 						text={$measurementInfo.text}

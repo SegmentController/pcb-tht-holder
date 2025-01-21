@@ -1,3 +1,7 @@
+<script lang="ts" module>
+	export type DesignerMode = 'pointer' | 'measure';
+</script>
+
 <script lang="ts">
 	import {
 		Circle,
@@ -33,8 +37,17 @@
 	import { LEG_SIZE, type LegData } from '$types/LegData';
 	import type { RectangleData } from '$types/RectangleData';
 
-	export let pcbImage: HTMLImageElement | undefined;
-	export let imageSize: ImageSize | undefined;
+	interface Properties {
+		pcbImage: HTMLImageElement | undefined;
+		imageSize: ImageSize | undefined;
+		mode: DesignerMode;
+	}
+
+	const {
+		pcbImage = $bindable(),
+		imageSize = $bindable(),
+		mode = $bindable()
+	}: Properties = $props();
 
 	const limitBox = (event: KonvaDragTransformEvent, box: RectangleData | LegData) => {
 		const target = event.target;
@@ -59,7 +72,7 @@
 		if (target.y() > maxY) target.y(maxY);
 	};
 
-	let contextMenu: ContextMenu;
+	let contextMenu: ContextMenu | undefined = $state();
 	const stageClick = (event: KonvaMouseEvent) => {
 		if (event.evt.button === 2) {
 			const id = event.target.id();
@@ -71,8 +84,8 @@
 			]) {
 				const items = retriever(id);
 				if (items !== undefined) {
-					contextMenu.setItems(items);
-					contextMenu.toggleAt(event.evt.pageX, event.evt.pageY);
+					contextMenu?.setItems(items);
+					contextMenu?.toggleAt(event.evt.pageX, event.evt.pageY);
 					return;
 				}
 			}
@@ -86,6 +99,17 @@
 	</div>
 	<div class="flex justify-center">
 		<Stage
+			onmousemove={(event) => {
+				const eventContainer = event.target.getStage()?.container();
+				if (eventContainer)
+					if (mode === 'measure') {
+						if (eventContainer.style.cursor !== 'crosshair')
+							eventContainer.style.cursor = 'crosshair';
+					} else {
+						if (eventContainer.style.cursor === 'crosshair')
+							eventContainer.style.cursor = 'default';
+					}
+			}}
 			onclick={stageClick}
 			width={imageSize.width * ($projectStore.zoom / 100)}
 			height={imageSize.height * ($projectStore.zoom / 100)}
@@ -104,13 +128,13 @@
 					<Circle
 						id={circle.id}
 						fill="orange"
-						draggable
+						draggable={mode === 'pointer'}
 						opacity={0.75}
 						radius={circle.radius}
 						bind:x={circle.x}
 						bind:y={circle.y}
-						onmouseenter={(event) => selectElementByMouseEnter(event, circle)}
-						onmouseleave={(event) => deselectElementByMouseLeave(event, circle)}
+						onmouseenter={(event) => selectElementByMouseEnter(event, circle, mode === 'measure')}
+						onmouseleave={(event) => deselectElementByMouseLeave(event, circle, mode === 'measure')}
 						ondblclick={() => modifyCircle(circle)}
 						ondragmove={(event) => limitCircle(event, circle)}
 						ondragend={() => updateCircleChanges()}
@@ -120,14 +144,16 @@
 					<Rect
 						id={rectangle.id}
 						fill="green"
-						draggable
+						draggable={mode === 'pointer'}
 						opacity={0.75}
 						width={rectangle.width}
 						height={rectangle.height}
 						bind:x={rectangle.x}
 						bind:y={rectangle.y}
-						onmouseenter={(event) => selectElementByMouseEnter(event, rectangle)}
-						onmouseleave={(event) => deselectElementByMouseLeave(event, rectangle)}
+						onmouseenter={(event) =>
+							selectElementByMouseEnter(event, rectangle, mode === 'measure')}
+						onmouseleave={(event) =>
+							deselectElementByMouseLeave(event, rectangle, mode === 'measure')}
 						ondblclick={() => modifyRectangle(rectangle)}
 						ondragmove={(event) => limitBox(event, rectangle)}
 						ondragend={() => updateRectangleChanges()}
@@ -137,14 +163,14 @@
 					<Rect
 						id={leg.id}
 						fill="gray"
-						draggable
+						draggable={mode === 'pointer'}
 						opacity={0.75}
 						width={leg.width}
 						height={leg.height}
 						bind:x={leg.x}
 						bind:y={leg.y}
-						onmouseenter={(event) => selectElementByMouseEnter(event, leg)}
-						onmouseleave={(event) => deselectElementByMouseLeave(event, leg)}
+						onmouseenter={(event) => selectElementByMouseEnter(event, leg, mode === 'measure')}
+						onmouseleave={(event) => deselectElementByMouseLeave(event, leg, mode === 'measure')}
 						ondblclick={() => deleteLegWithConfirm(leg)}
 						ondragmove={(event) => limitBox(event, leg)}
 						ondragend={() => updateLegChanges()}

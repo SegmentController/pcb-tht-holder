@@ -1,5 +1,11 @@
 # Change log
 
+## [1.6.0] - 2025-01-21
+
+### New
+
+- Measurement tool: can display distance in 1/10th millimeter, available by pressing M button
+
 ## [1.5.5] - 2025-01-19
 
 ### New

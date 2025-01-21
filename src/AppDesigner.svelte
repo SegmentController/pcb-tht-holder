@@ -1,12 +1,19 @@
+<script lang="ts" module>
+	export type DesignerMode = 'pointer' | 'measure';
+</script>
+
 <script lang="ts">
+	import { type Writable, writable } from 'svelte/store';
 	import {
 		Circle,
 		Image,
 		type KonvaDragTransformEvent,
 		type KonvaMouseEvent,
 		Layer,
+		Line,
 		Rect,
-		Stage
+		Stage,
+		Text
 	} from 'svelte-konva';
 
 	import ContextMenu from '$components/base/ContextMenu.svelte';
@@ -27,14 +34,30 @@
 		updateRectangleChanges
 	} from '$lib/elements/rectangle';
 	import { deselectElementByMouseLeave, selectElementByMouseEnter } from '$lib/fineMovement';
+	import {
+		empytMeasurementInfo,
+		type MeasurementInfo,
+		stageMeasureModeMouseDown,
+		stageMeasureModeMouseUp,
+		stageMouseMove
+	} from '$lib/measurement';
 	import { projectStore } from '$stores/projectStore';
 	import type { CircleData } from '$types/CircleData';
 	import type { ImageSize } from '$types/ImageSize';
 	import { LEG_SIZE, type LegData } from '$types/LegData';
 	import type { RectangleData } from '$types/RectangleData';
 
-	export let pcbImage: HTMLImageElement | undefined;
-	export let imageSize: ImageSize | undefined;
+	interface Properties {
+		pcbImage: HTMLImageElement | undefined;
+		imageSize: ImageSize | undefined;
+		mode: DesignerMode;
+	}
+
+	const {
+		pcbImage = $bindable(),
+		imageSize = $bindable(),
+		mode = $bindable()
+	}: Properties = $props();
 
 	const limitBox = (event: KonvaDragTransformEvent, box: RectangleData | LegData) => {
 		const target = event.target;
@@ -59,9 +82,9 @@
 		if (target.y() > maxY) target.y(maxY);
 	};
 
-	let contextMenu: ContextMenu;
+	let contextMenu: ContextMenu | undefined = $state();
 	const stageClick = (event: KonvaMouseEvent) => {
-		if (event.evt.button === 2) {
+		if (event.evt.button === 2 && mode === 'pointer') {
 			const id = event.target.id();
 
 			for (const retriever of [
@@ -71,13 +94,15 @@
 			]) {
 				const items = retriever(id);
 				if (items !== undefined) {
-					contextMenu.setItems(items);
-					contextMenu.toggleAt(event.evt.pageX, event.evt.pageY);
+					contextMenu?.setItems(items);
+					contextMenu?.toggleAt(event.evt.pageX, event.evt.pageY);
 					return;
 				}
 			}
 		}
 	};
+
+	const measurementInfo: Writable<MeasurementInfo> = writable(empytMeasurementInfo);
 </script>
 
 {#if imageSize}
@@ -86,6 +111,26 @@
 	</div>
 	<div class="flex justify-center">
 		<Stage
+			onmousemove={(event) =>
+				stageMouseMove(
+					event,
+					mode === 'measure',
+					measurementInfo,
+					(imageSize.width / $projectStore.panelSettings.width) * ($projectStore.zoom / 100),
+					(imageSize.height / $projectStore.panelSettings.height) * ($projectStore.zoom / 100)
+				)}
+			onmousedown={(event) => {
+				if (mode === 'measure')
+					stageMeasureModeMouseDown(
+						event,
+						measurementInfo,
+						(imageSize.width / $projectStore.panelSettings.width) * ($projectStore.zoom / 100),
+						(imageSize.height / $projectStore.panelSettings.height) * ($projectStore.zoom / 100)
+					);
+			}}
+			onmouseup={(event) => {
+				if (mode === 'measure') stageMeasureModeMouseUp(event, measurementInfo);
+			}}
 			onclick={stageClick}
 			width={imageSize.width * ($projectStore.zoom / 100)}
 			height={imageSize.height * ($projectStore.zoom / 100)}
@@ -104,13 +149,13 @@
 					<Circle
 						id={circle.id}
 						fill="orange"
-						draggable
+						draggable={mode === 'pointer'}
 						opacity={0.75}
 						radius={circle.radius}
 						bind:x={circle.x}
 						bind:y={circle.y}
-						onmouseenter={(event) => selectElementByMouseEnter(event, circle)}
-						onmouseleave={(event) => deselectElementByMouseLeave(event, circle)}
+						onmouseenter={(event) => selectElementByMouseEnter(event, circle, mode === 'measure')}
+						onmouseleave={(event) => deselectElementByMouseLeave(event, circle, mode === 'measure')}
 						ondblclick={() => modifyCircle(circle)}
 						ondragmove={(event) => limitCircle(event, circle)}
 						ondragend={() => updateCircleChanges()}
@@ -120,14 +165,16 @@
 					<Rect
 						id={rectangle.id}
 						fill="green"
-						draggable
+						draggable={mode === 'pointer'}
 						opacity={0.75}
 						width={rectangle.width}
 						height={rectangle.height}
 						bind:x={rectangle.x}
 						bind:y={rectangle.y}
-						onmouseenter={(event) => selectElementByMouseEnter(event, rectangle)}
-						onmouseleave={(event) => deselectElementByMouseLeave(event, rectangle)}
+						onmouseenter={(event) =>
+							selectElementByMouseEnter(event, rectangle, mode === 'measure')}
+						onmouseleave={(event) =>
+							deselectElementByMouseLeave(event, rectangle, mode === 'measure')}
 						ondblclick={() => modifyRectangle(rectangle)}
 						ondragmove={(event) => limitBox(event, rectangle)}
 						ondragend={() => updateRectangleChanges()}
@@ -137,19 +184,47 @@
 					<Rect
 						id={leg.id}
 						fill="gray"
-						draggable
+						draggable={mode === 'pointer'}
 						opacity={0.75}
 						width={leg.width}
 						height={leg.height}
 						bind:x={leg.x}
 						bind:y={leg.y}
-						onmouseenter={(event) => selectElementByMouseEnter(event, leg)}
-						onmouseleave={(event) => deselectElementByMouseLeave(event, leg)}
+						onmouseenter={(event) => selectElementByMouseEnter(event, leg, mode === 'measure')}
+						onmouseleave={(event) => deselectElementByMouseLeave(event, leg, mode === 'measure')}
 						ondblclick={() => deleteLegWithConfirm(leg)}
 						ondragmove={(event) => limitBox(event, leg)}
 						ondragend={() => updateLegChanges()}
 					/>
 				{/each}
+				{#if $measurementInfo.visible}
+					<Line
+						listening={false}
+						dashEnabled
+						dash={[2, 1]}
+						points={[
+							$measurementInfo.startPoint.x,
+							$measurementInfo.startPoint.y,
+							$measurementInfo.endPoint.x,
+							$measurementInfo.endPoint.y
+						]}
+						stroke="#000"
+						opacity={0.75}
+						strokeWidth={0.25}
+					/>
+					<Text
+						listening={false}
+						x={5 +
+							$measurementInfo.startPoint.x +
+							($measurementInfo.endPoint.x - $measurementInfo.startPoint.x) / 2}
+						y={5 +
+							$measurementInfo.startPoint.y +
+							($measurementInfo.endPoint.y - $measurementInfo.startPoint.y) / 2}
+						fontSize={3}
+						opacity={0.75}
+						text={$measurementInfo.text}
+					/>
+				{/if}
 			</Layer>
 		</Stage>
 		<ContextMenu bind:this={contextMenu} />

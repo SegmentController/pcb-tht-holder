@@ -22,6 +22,7 @@
 	import {
 		A,
 		Button,
+		ButtonGroup,
 		Dropdown,
 		DropdownDivider,
 		DropdownItem,
@@ -29,7 +30,8 @@
 		Navbar,
 		NavBrand,
 		NavLi,
-		NavUl
+		NavUl,
+		Tooltip
 	} from 'flowbite-svelte';
 	import NavContainer from 'flowbite-svelte/NavContainer.svelte';
 	import { createEventDispatcher } from 'svelte';
@@ -58,12 +60,16 @@
 	import { executeLastUndo, undoStoreLastItem } from '$stores/undoStore';
 	import type { LibraryItem } from '$types/Library';
 	import type { Project } from '$types/Project';
+
+	import type { DesignerMode } from './AppDesigner.svelte';
 	/*global __PKG_VERSION__*/
 	const APP_VERSION = __PKG_VERSION__;
 	/*global __BASE_URL__*/
 	const BASE_URL = __BASE_URL__;
 
 	export let projectLoaded: boolean;
+	export let mode: DesignerMode;
+
 	const dispatch = createEventDispatcher<{
 		reset: void;
 	}>();
@@ -137,6 +143,21 @@
 <svelte:window
 	use:shortcut={{
 		trigger: [
+			{
+				key: 'p',
+				callback: () => {
+					mode = 'pointer';
+				},
+				preventDefault: true
+			},
+			{
+				key: 'm',
+				callback: () => {
+					mode = 'measure';
+				},
+				preventDefault: true
+			},
+
 			{ key: 'C', modifier: ['shift'], callback: () => addNewCircle(), preventDefault: true },
 			{ key: 'R', modifier: ['shift'], callback: () => addNewRectangle(), preventDefault: true },
 			{ key: 'L', modifier: ['shift'], callback: () => addNewLeg(), preventDefault: true },
@@ -178,7 +199,7 @@
 />
 
 <Navbar class="bg-gray-100">
-	<NavContainer class="border w-3/5  px-5 py-2 rounded-lg bg-white">
+	<NavContainer class="border w-3/5 px-5 py-2 rounded-lg bg-white">
 		<NavBrand href="#">
 			<img src="{BASE_URL}/pcb-board-32.png" class="me-3 h-6 sm:h-9" alt="PCB THT Holder Logo" />
 			<span class="self-center whitespace-nowrap text-xl font-semibold">
@@ -197,6 +218,24 @@
 			{/if}
 		</NavBrand>
 		{#if projectLoaded}
+			<div class="flex">
+				<ButtonGroup>
+					{#each [{ title: 'Pointer', shortcut: 'P', mode: 'pointer' as DesignerMode, icon: 'mdi:button-pointer' }, { title: 'Measure', shortcut: 'M', mode: 'measure' as DesignerMode, icon: 'mdi:tape-measure' }] as modeItem}
+						<Button
+							size="xs"
+							checked={mode === modeItem.mode}
+							onclick={() => (mode = modeItem.mode)}
+							color={mode === modeItem.mode ? 'dark' : 'light'}
+						>
+							<Icon icon={modeItem.icon} width={20} />
+						</Button>
+						<Tooltip type="light" placement="bottom-end">
+							{modeItem.title}
+							<Kbd class="px-2">{modeItem.shortcut}</Kbd>
+						</Tooltip>
+					{/each}
+				</ButtonGroup>
+			</div>
 			<NavUl class="flex">
 				<NavLi class="cursor-pointer">
 					File

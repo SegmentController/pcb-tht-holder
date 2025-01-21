@@ -8,7 +8,7 @@
 	import { getProjectStoreValue } from '$stores/projectStore';
 	import type { ImageSize } from '$types/ImageSize';
 
-	import AppDesigner from './AppDesigner.svelte';
+	import AppDesigner, { type DesignerMode } from './AppDesigner.svelte';
 	import AppDropzone from './AppDropzone.svelte';
 	import AppNavigation from './AppNavigation.svelte';
 
@@ -23,12 +23,13 @@
 	const reset = () => (imageSize = pcbImage = undefined);
 
 	let dropzone: AppDropzone;
+	let designerMode: DesignerMode = 'pointer';
 </script>
 
-<AppNavigation projectLoaded={!!imageSize} on:reset={reset} />
+<AppNavigation projectLoaded={!!imageSize} bind:mode={designerMode} on:reset={reset} />
 <div class="flex flex-col justify-center">
 	{#if !!imageSize}
-		<AppDesigner bind:pcbImage bind:imageSize />
+		<AppDesigner bind:pcbImage bind:imageSize bind:mode={designerMode} />
 	{:else}
 		<AppDropzone bind:this={dropzone} bind:pcbImage bind:imageSize />
 	{/if}

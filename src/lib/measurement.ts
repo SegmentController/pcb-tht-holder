@@ -1,0 +1,72 @@
+import type { Writable } from 'svelte/store';
+import type { KonvaMouseEvent } from 'svelte-konva';
+
+export type MeasurementInfo = {
+	visible: boolean;
+	startPoint: { x: number; y: number };
+	endPoint: { x: number; y: number };
+	text: string;
+};
+export const empytMeasurementInfo: MeasurementInfo = {
+	visible: false,
+	startPoint: { x: 0, y: 0 },
+	endPoint: { x: 0, y: 0 },
+	text: ''
+};
+
+export const stageMouseMove = (
+	event: KonvaMouseEvent,
+	isMeasurementMode: boolean,
+	info: Writable<MeasurementInfo>,
+	scaleX: number,
+	scaleY: number
+) => {
+	const eventContainer = event.target.getStage()?.container();
+	if (eventContainer)
+		if (isMeasurementMode) {
+			if (eventContainer.style.cursor !== 'crosshair') eventContainer.style.cursor = 'crosshair';
+		} else {
+			if (eventContainer.style.cursor === 'crosshair') eventContainer.style.cursor = 'default';
+		}
+
+	if (isMeasurementMode)
+		info.update((previous) => {
+			previous.endPoint = event.evt.shiftKey
+				? { x: event.evt.offsetX / scaleX, y: previous.startPoint.y }
+				: event.evt.ctrlKey
+					? { x: previous.startPoint.x, y: event.evt.offsetY / scaleY }
+					: { x: event.evt.offsetX / scaleX, y: event.evt.offsetY / scaleY };
+
+			let distance = Math.hypot(
+				Math.abs(previous.startPoint.x - previous.endPoint.x),
+				Math.abs(previous.startPoint.y - previous.endPoint.y)
+			);
+			distance = Math.round(distance * 10) / 10;
+			previous.text = `Distance: ${distance} mm`;
+			return previous;
+		});
+};
+
+export const stageMeasureModeMouseDown = (
+	event: KonvaMouseEvent,
+	info: Writable<MeasurementInfo>,
+	scaleX: number,
+	scaleY: number
+) => {
+	info.update((previous) => {
+		previous.visible = true;
+		previous.startPoint = { x: event.evt.offsetX / scaleX, y: event.evt.offsetY / scaleY };
+		previous.endPoint = previous.startPoint;
+		return previous;
+	});
+};
+
+export const stageMeasureModeMouseUp = (
+	event: KonvaMouseEvent,
+	info: Writable<MeasurementInfo>
+) => {
+	info.update((previous) => {
+		previous.visible = false;
+		return previous;
+	});
+};

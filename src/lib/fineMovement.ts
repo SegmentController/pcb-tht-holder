@@ -11,23 +11,39 @@ export type FinemoveDirection = 'left' | 'up' | 'right' | 'down';
 
 const selectedElements: GenericElement[] = [];
 
-const setCursor = (event: KonvaMouseEvent, cursor: 'pointer' | 'default') => {
+const getModeBasedCursor = (
+	isMeasurementMode: boolean,
+	isSelected: boolean
+): 'pointer' | 'default' | 'crosshair' => {
+	if (isMeasurementMode) return 'crosshair';
+	return isSelected ? 'pointer' : 'default';
+};
+
+const setStageCursor = (event: KonvaMouseEvent, cursor: 'pointer' | 'default' | 'crosshair') => {
 	const eventContainer = event.target.getStage()?.container();
 	if (eventContainer) eventContainer.style.cursor = cursor;
 };
 
-export const selectElementByMouseEnter = (event: KonvaMouseEvent, element: GenericElement) => {
+export const selectElementByMouseEnter = (
+	event: KonvaMouseEvent,
+	element: GenericElement,
+	isMeasurementMode: boolean
+) => {
 	selectedElements.push(element);
-	setCursor(event, 'pointer');
+	setStageCursor(event, getModeBasedCursor(isMeasurementMode, true));
 };
 
-export const deselectElementByMouseLeave = (event: KonvaMouseEvent, element: GenericElement) => {
+export const deselectElementByMouseLeave = (
+	event: KonvaMouseEvent,
+	element: GenericElement,
+	isMeasurementMode: boolean
+) => {
 	let index = selectedElements.findIndex((elementItem) => elementItem == element);
 	while (index >= 0) {
 		selectedElements.splice(index, 1);
 		index = selectedElements.findIndex((elementItem) => elementItem == element);
 	}
-	setCursor(event, 'default');
+	setStageCursor(event, getModeBasedCursor(isMeasurementMode, false));
 };
 
 export const finemoveSelectedElement = (direction: FinemoveDirection) => {

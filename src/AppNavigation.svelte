@@ -138,6 +138,21 @@
 		});
 		showModalMesh($projectStore.name, meshInfo);
 	};
+
+	const ModeButtons = [
+		{
+			title: 'Pointer',
+			shortcut: 'P',
+			recentMode: 'pointer' as DesignerMode,
+			icon: 'mdi:button-pointer'
+		},
+		{
+			title: 'Measure',
+			shortcut: 'M',
+			recentMode: 'measure' as DesignerMode,
+			icon: 'mdi:tape-measure'
+		}
+	];
 </script>
 
 <svelte:window
@@ -220,18 +235,18 @@
 		{#if projectLoaded}
 			<div class="flex">
 				<ButtonGroup>
-					{#each [{ title: 'Pointer', shortcut: 'P', mode: 'pointer' as DesignerMode, icon: 'mdi:button-pointer' }, { title: 'Measure', shortcut: 'M', mode: 'measure' as DesignerMode, icon: 'mdi:tape-measure' }] as modeItem}
+					{#each ModeButtons as { title, shortcut, recentMode, icon }}
 						<Button
 							size="xs"
-							checked={mode === modeItem.mode}
-							onclick={() => (mode = modeItem.mode)}
-							color={mode === modeItem.mode ? 'dark' : 'light'}
+							checked={mode === recentMode}
+							onclick={() => (mode = recentMode)}
+							color={mode === recentMode ? 'dark' : 'light'}
 						>
-							<Icon icon={modeItem.icon} width={20} />
+							<Icon {icon} width={20} />
 						</Button>
 						<Tooltip type="light" placement="bottom-end">
-							{modeItem.title}
-							<Kbd class="px-2">{modeItem.shortcut}</Kbd>
+							{title}
+							<Kbd class="px-2">{shortcut}</Kbd>
 						</Tooltip>
 					{/each}
 				</ButtonGroup>

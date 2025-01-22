@@ -18,6 +18,7 @@
 
 	import ContextMenu from '$components/base/ContextMenu.svelte';
 	import ZoomRange from '$components/base/input/ZoomRange.svelte';
+	import DesignerGrid from '$components/DesignerGrid.svelte';
 	import {
 		getContextMenuItemForCircle,
 		modifyCircle,
@@ -191,6 +192,12 @@
 						ondragend={() => updateLegChanges()}
 					/>
 				{/each}
+				{#if mode === 'measure'}
+					<DesignerGrid
+						width={$projectStore.panelSettings.width}
+						height={$projectStore.panelSettings.height}
+					/>
+				{/if}
 				{#if $measurementInfo.visible}
 					<Line
 						listening={false}

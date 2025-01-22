@@ -20,7 +20,6 @@
 <script lang="ts">
 	import Icon from '@iconify/svelte';
 	import {
-		A,
 		Button,
 		ButtonGroup,
 		Dropdown,
@@ -217,20 +216,10 @@
 	<NavContainer class="border w-3/5 px-5 py-2 rounded-lg bg-white">
 		<NavBrand href="#">
 			<img src="{BASE_URL}/pcb-board-32.png" class="me-3 h-6 sm:h-9" alt="PCB THT Holder Logo" />
-			<span class="self-center whitespace-nowrap text-xl font-semibold">
-				{#if projectLoaded}
-					<A class="text-inherit hover:no-underline" onclick={() => openProjectSettings()}
-						>{$projectStore.name}</A
-					>
-				{:else}
-					PCB THT Holder
-				{/if}
+			<span class="self-center whitespace-nowrap font-semibold">
+				<div class="text-inherit hover:no-underline">PCB THT Holder</div>
+				<div class="text-xs text-gray-500">v{APP_VERSION}</div>
 			</span>
-			{#if !projectLoaded}
-				<span class="ml-2 self-center whitespace-nowrap text-sm dark:text-white"
-					>v{APP_VERSION}</span
-				>
-			{/if}
 		</NavBrand>
 		{#if projectLoaded}
 			<div class="flex">
@@ -259,11 +248,6 @@
 				<Dropdown class="w-60 z-20 -mt-2" trigger="hover">
 					<DropdownItem href="#" onclick={() => reset()}>New</DropdownItem>
 					<DropdownItem href="#" onclick={() => downloadProjectFile()}>Save project</DropdownItem>
-					<DropdownDivider />
-					<DropdownItem href="#" onclick={() => openProjectSettings()}>
-						Project settings...
-						<Kbd class="float-right px-2">shift + P</Kbd>
-					</DropdownItem>
 				</Dropdown>
 
 				<NavLi class="cursor-pointer">
@@ -309,6 +293,11 @@
 							{/each}
 						</Dropdown>
 					{/if}
+					<DropdownDivider />
+					<DropdownItem href="#" onclick={() => openProjectSettings()}>
+						Project settings...
+						<Kbd class="float-right px-2">shift + P</Kbd>
+					</DropdownItem>
 				</Dropdown>
 				<NavLi class="cursor-pointer" onclick={() => showModalLibrary()}>Library</NavLi>
 			</NavUl>

@@ -18,6 +18,7 @@
 
 	import ContextMenu from '$components/base/ContextMenu.svelte';
 	import ZoomRange from '$components/base/input/ZoomRange.svelte';
+	import DesignerCrosshair from '$components/DesignerCrosshair.svelte';
 	import DesignerGrid from '$components/DesignerGrid.svelte';
 	import {
 		getContextMenuItemForCircle,
@@ -199,6 +200,7 @@
 					/>
 				{/if}
 				{#if $measurementInfo.visible}
+					<DesignerCrosshair x={$measurementInfo.startPoint.x} y={$measurementInfo.startPoint.y} />
 					<Line
 						listening={false}
 						dashEnabled

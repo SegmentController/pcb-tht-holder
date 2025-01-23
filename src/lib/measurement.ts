@@ -49,7 +49,13 @@ export const stageMouseMove = (
 				Math.abs(previous.startPoint.y - previous.endPoint.y)
 			);
 			distance = Math.round(distance * 10) / 10;
-			previous.text = `${distance} mm`;
+
+			const deltaY = previous.endPoint.y - previous.startPoint.y;
+			const deltaX = previous.endPoint.x - previous.startPoint.x;
+			const radians = Math.atan2(deltaY, deltaX);
+			const degrees = Math.round(radians * (180 / Math.PI));
+
+			previous.text = `${distance.toFixed(1)} mm [${degrees}°]`;
 			return previous;
 		});
 };

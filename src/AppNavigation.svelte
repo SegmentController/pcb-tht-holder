@@ -213,7 +213,7 @@
 />
 
 <Navbar class="bg-gray-100">
-	<NavContainer class="border w-3/5 px-5 py-2 rounded-lg bg-white">
+	<NavContainer class="border border-gray-200 w-3/5 px-5 py-2 rounded-lg bg-white">
 		<NavBrand href="#">
 			<img src="{BASE_URL}/pcb-board-32.png" class="me-3 h-6 sm:h-9" alt="PCB THT Holder Logo" />
 			<span class="self-center whitespace-nowrap font-semibold">

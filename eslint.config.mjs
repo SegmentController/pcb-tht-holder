@@ -47,7 +47,7 @@ export default [
 		plugins: {
 			'@typescript-eslint': typescriptEslint,
 			'simple-import-sort': simpleImportSort,
-			unicorn,
+			unicorn
 		},
 
 		languageOptions: {

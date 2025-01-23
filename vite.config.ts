@@ -1,14 +1,14 @@
 /* eslint-disable unicorn/prefer-module */
 /* eslint-disable unicorn/prefer-node-protocol */
 import { svelte } from '@sveltejs/vite-plugin-svelte';
+import tailwindcss from '@tailwindcss/vite'
 import path from 'path';
 import { defineConfig } from 'vite';
-import { purgeCss } from 'vite-plugin-tailwind-purgecss';
 
 import package_ from './package.json';
 
 export default defineConfig({
-	plugins: [svelte(), purgeCss()],
+	plugins: [svelte(), tailwindcss()],
 	build: {
 		target: 'modules',
 		sourcemap: false,

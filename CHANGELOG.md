@@ -1,5 +1,12 @@
 # Change log
 
+## [1.6.6] - 2025-01-24
+
+### Fix
+
+- Disable doubleclick editor when measure mode
+- Rename Coverage to Hollow
+
 ## [1.6.3] - 2025-01-22
 
 ### New

@@ -29,15 +29,16 @@
 			.catch(() => (volume = 1));
 	});
 
-	let wireframe: boolean = false;
-	let coverageOnly: boolean = false;
+	let isWireframe: boolean = false;
+	let isHollow: boolean = false;
 
 	const generateFilename = () => name + '.stl';
 
 	const downloadStlFile = async (isBinary: boolean) => {
 		try {
 			const meshinfotuple = await meshInfoTuple;
-			const vertices = (coverageOnly ? meshinfotuple.coverage : meshinfotuple.main).vertexArray;
+			const activeMesh = isHollow ? meshinfotuple.hollow : meshinfotuple.main;
+			const vertices = activeMesh.vertexArray;
 			virtualDownload(
 				generateFilename(),
 				isBinary
@@ -60,14 +61,12 @@
 			{#await meshInfoTuple}
 				<p>Generating mesh...</p>
 			{:then meshInfoTuple}
-				{(coverageOnly ? meshInfoTuple.coverage : meshInfoTuple.main).dimensions.width} x
-				{(coverageOnly ? meshInfoTuple.coverage : meshInfoTuple.main).dimensions.height} x
-				{(coverageOnly ? meshInfoTuple.coverage : meshInfoTuple.main).dimensions.depth} mm |
-				{(coverageOnly ? meshInfoTuple.coverage : meshInfoTuple.main).vertexArray.length / 9} polygons
-				|
-				{getBinaryStlSizeKbFromVertices(
-					(coverageOnly ? meshInfoTuple.coverage : meshInfoTuple.main).vertexArray.length
-				)} kB
+				{@const activeMesh = isHollow ? meshInfoTuple.hollow : meshInfoTuple.main}
+				{activeMesh.dimensions.width} x
+				{activeMesh.dimensions.height} x
+				{activeMesh.dimensions.depth} mm |
+				{activeMesh.vertexArray.length / 9} polygons |
+				{getBinaryStlSizeKbFromVertices(activeMesh.vertexArray.length)} kB
 			{:catch message}
 				<span class="text-red-500 text-xl">Error '{message}' occured while rendering mesh</span>
 			{/await}
@@ -77,8 +76,8 @@
 				{#await meshInfoTuple}
 					{''}
 				{:then}
-					<Toggle id="wireframe" bind:checked={wireframe}>Wireframe</Toggle>
-					<Toggle id="coverageOnly" class="ml-4" bind:checked={coverageOnly}>Coverage only</Toggle>
+					<Toggle id="wireframe" bind:checked={isWireframe}>Wireframe</Toggle>
+					<Toggle id="hollow" class="ml-4" bind:checked={isHollow}>Hollow top layer</Toggle>
 				{:catch}
 					{''}
 				{/await}
@@ -105,11 +104,10 @@
 				{#await meshInfoTuple}
 					{''}
 				{:then meshInfoTuple}
-					{#if coverageOnly}
-						<Mesh3DScene vertices={meshInfoTuple.coverage.vertexArray} {volume} {wireframe} />
-					{:else}
-						<Mesh3DScene vertices={meshInfoTuple.main.vertexArray} {volume} {wireframe} />
-					{/if}
+					{@const activeMesh = isHollow ? meshInfoTuple.hollow : meshInfoTuple.main}
+					{#key activeMesh}
+						<Mesh3DScene vertices={activeMesh.vertexArray} {volume} wireframe={isWireframe} />
+					{/key}
 				{:catch}
 					{''}
 				{/await}

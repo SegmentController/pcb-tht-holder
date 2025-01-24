@@ -152,7 +152,9 @@
 						bind:y={circle.y}
 						onmouseenter={(event) => selectElementByMouseEnter(event, circle, mode === 'measure')}
 						onmouseleave={(event) => deselectElementByMouseLeave(event, circle, mode === 'measure')}
-						ondblclick={() => modifyCircle(circle)}
+						ondblclick={() => {
+							if (mode === 'pointer') modifyCircle(circle);
+						}}
 						ondragmove={(event) => limitCircle(event, circle)}
 						ondragend={() => updateCircleChanges()}
 					/>
@@ -171,7 +173,9 @@
 							selectElementByMouseEnter(event, rectangle, mode === 'measure')}
 						onmouseleave={(event) =>
 							deselectElementByMouseLeave(event, rectangle, mode === 'measure')}
-						ondblclick={() => modifyRectangle(rectangle)}
+						ondblclick={() => {
+							if (mode === 'pointer') modifyRectangle(rectangle);
+						}}
 						ondragmove={(event) => limitBox(event, rectangle)}
 						ondragend={() => updateRectangleChanges()}
 					/>
@@ -188,7 +192,9 @@
 						bind:y={leg.y}
 						onmouseenter={(event) => selectElementByMouseEnter(event, leg, mode === 'measure')}
 						onmouseleave={(event) => deselectElementByMouseLeave(event, leg, mode === 'measure')}
-						ondblclick={() => deleteLegWithConfirm(leg)}
+						ondblclick={() => {
+							if (mode === 'pointer') deleteLegWithConfirm(leg);
+						}}
 						ondragmove={(event) => limitBox(event, leg)}
 						ondragend={() => updateLegChanges()}
 					/>

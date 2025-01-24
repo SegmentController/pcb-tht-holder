@@ -4,8 +4,10 @@ import { Font, FontLoader } from 'three/addons/loaders/FontLoader.js';
 import { ADDITION, Brush, Evaluator, SUBTRACTION } from 'three-bvh-csg';
 
 import { MathMax, MathMinMax } from '$lib/Math';
+import type { CircleData } from '$types/CircleData';
 import type { MeshInfoTuple } from '$types/MeshInfo';
 import type { RenderableProject } from '$types/Project';
+import type { RectangleData } from '$types/RectangleData';
 import { switchType } from '$types/switchType';
 
 const BOTTOM_THICKNESS = 2;
@@ -88,9 +90,9 @@ const generateMesh = (project: RenderableProject, font: Font): MeshInfoTuple => 
 	]);
 	const needHeight = panel.pcbThickness + componentHeigh;
 
-	const coverageHeight = panel.pcbThickness + panel.smdHeight;
+	const hollowHeight = panel.pcbThickness + panel.smdHeight;
 
-	// Lets create mesh+meshCoverage...
+	// Lets create mesh+hollow...
 	let mesh = MESH(
 		BOX(
 			panel.width + 2 * EDGE_THICKNESS,
@@ -99,15 +101,15 @@ const generateMesh = (project: RenderableProject, font: Font): MeshInfoTuple => 
 		)
 	);
 	mesh.updateMatrixWorld();
-	let meshCoverage = MESH(
+	let meshHollow = MESH(
 		BOX(
 			panel.width + 2 * EDGE_THICKNESS,
 			panel.height + 2 * EDGE_THICKNESS,
-			coverageHeight + BOTTOM_THICKNESS
+			hollowHeight + BOTTOM_THICKNESS
 		)
 	);
-	meshCoverage.position.z += needHeight - coverageHeight;
-	meshCoverage.updateMatrixWorld();
+	meshHollow.position.z += needHeight - hollowHeight;
+	meshHollow.updateMatrixWorld();
 
 	// Go operations
 	const evaluator = new Evaluator();
@@ -116,7 +118,7 @@ const generateMesh = (project: RenderableProject, font: Font): MeshInfoTuple => 
 		emptySpace.position.z += BOTTOM_THICKNESS + needHeight - emptyHeight;
 		emptySpace.updateMatrixWorld();
 		mesh = evaluator.evaluate(mesh, emptySpace, SUBTRACTION);
-		meshCoverage = evaluator.evaluate(meshCoverage, emptySpace, SUBTRACTION);
+		meshHollow = evaluator.evaluate(meshHollow, emptySpace, SUBTRACTION);
 	}
 	const remover = MESH(BOX(panel.width / 3, panel.height / 3, emptyHeight + ROUND_CORRECTION));
 	{
@@ -135,31 +137,48 @@ const generateMesh = (project: RenderableProject, font: Font): MeshInfoTuple => 
 			try {
 				remover.updateMatrixWorld();
 				mesh = evaluator.evaluate(mesh, remover, SUBTRACTION);
-				meshCoverage = evaluator.evaluate(meshCoverage, remover, SUBTRACTION);
+				meshHollow = evaluator.evaluate(meshHollow, remover, SUBTRACTION);
 			} finally {
 				remover.position.x -= delta.dx;
 				remover.position.y -= delta.dy;
 			}
 		}
 	}
-	for (const rectangle of project.rectangles) {
-		const box = MESH(BOX(rectangle.width, rectangle.height, rectangle.depth + ROUND_CORRECTION));
+
+	const boxFactory = (rectangle: RectangleData, depthOverride?: number | undefined) => {
+		const box = MESH(
+			BOX(rectangle.width, rectangle.height, depthOverride ?? rectangle.depth + ROUND_CORRECTION)
+		);
 		box.position.x += rectangle.x + rectangle.width / 2 - panel.width / 2;
 		box.position.y -= rectangle.y + rectangle.height / 2 - panel.height / 2;
-		box.position.z += BOTTOM_THICKNESS + (componentHeigh - rectangle.depth);
+		box.position.z += BOTTOM_THICKNESS + (componentHeigh - (depthOverride ?? rectangle.depth));
 		box.updateMatrixWorld();
+		return box;
+	};
+	for (const rectangle of project.rectangles) {
+		let box = boxFactory(rectangle);
 		mesh = evaluator.evaluate(mesh, box, SUBTRACTION);
-		meshCoverage = evaluator.evaluate(meshCoverage, box, SUBTRACTION);
+		if (rectangle.depth < hollowHeight) box = boxFactory(rectangle, hollowHeight * 2);
+		meshHollow = evaluator.evaluate(meshHollow, box, SUBTRACTION);
 	}
-	for (const circle of project.circles) {
-		const cylinder = MESH(CYLINDER(circle.radius, circle.depth + ROUND_CORRECTION));
+
+	const circleFactory = (circle: CircleData, depthOverride?: number | undefined) => {
+		const cylinder = MESH(
+			CYLINDER(circle.radius, depthOverride ?? circle.depth + ROUND_CORRECTION)
+		);
 		cylinder.position.x += circle.x - panel.width / 2;
 		cylinder.position.y -= circle.y - panel.height / 2;
-		cylinder.position.z += BOTTOM_THICKNESS + (componentHeigh - circle.depth);
+		cylinder.position.z += BOTTOM_THICKNESS + (componentHeigh - (depthOverride ?? circle.depth));
 		cylinder.updateMatrixWorld();
+		return cylinder;
+	};
+	for (const circle of project.circles) {
+		let cylinder = circleFactory(circle);
 		mesh = evaluator.evaluate(mesh, cylinder, SUBTRACTION);
-		meshCoverage = evaluator.evaluate(meshCoverage, cylinder, SUBTRACTION);
+		if (circle.depth < hollowHeight) cylinder = circleFactory(circle, hollowHeight * 2);
+		meshHollow = evaluator.evaluate(meshHollow, cylinder, SUBTRACTION);
 	}
+
 	for (const leg of project.legs) {
 		const box = MESH(BOX(leg.width, leg.height, panel.smdHeight));
 		box.position.x += leg.x + leg.width / 2 - panel.width / 2;
@@ -167,7 +186,7 @@ const generateMesh = (project: RenderableProject, font: Font): MeshInfoTuple => 
 		box.position.z += BOTTOM_THICKNESS + (componentHeigh - panel.smdHeight);
 		box.updateMatrixWorld();
 		mesh = evaluator.evaluate(mesh, box, ADDITION);
-		meshCoverage = evaluator.evaluate(meshCoverage, box, ADDITION);
+		meshHollow = evaluator.evaluate(meshHollow, box, ADDITION);
 	}
 	if (project.label) {
 		const textGeometryInfo = TEXT(font, project.label, {
@@ -195,12 +214,12 @@ const generateMesh = (project: RenderableProject, font: Font): MeshInfoTuple => 
 				depth: needHeight + BOTTOM_THICKNESS
 			}
 		},
-		coverage: {
-			vertexArray: new Float32Array(meshCoverage.geometry.attributes['position'].array),
+		hollow: {
+			vertexArray: new Float32Array(meshHollow.geometry.attributes['position'].array),
 			dimensions: {
 				width: panel.width + 2 * EDGE_THICKNESS,
 				height: panel.height + 2 * EDGE_THICKNESS,
-				depth: coverageHeight + BOTTOM_THICKNESS
+				depth: hollowHeight + BOTTOM_THICKNESS
 			}
 		}
 	};

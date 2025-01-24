@@ -30,14 +30,14 @@
 	});
 
 	let wireframe: boolean = false;
-	let coverageOnly: boolean = false;
+	let hollow: boolean = false;
 
 	const generateFilename = () => name + '.stl';
 
 	const downloadStlFile = async (isBinary: boolean) => {
 		try {
 			const meshinfotuple = await meshInfoTuple;
-			const vertices = (coverageOnly ? meshinfotuple.coverage : meshinfotuple.main).vertexArray;
+			const vertices = (hollow ? meshinfotuple.hollow : meshinfotuple.main).vertexArray;
 			virtualDownload(
 				generateFilename(),
 				isBinary
@@ -60,13 +60,12 @@
 			{#await meshInfoTuple}
 				<p>Generating mesh...</p>
 			{:then meshInfoTuple}
-				{(coverageOnly ? meshInfoTuple.coverage : meshInfoTuple.main).dimensions.width} x
-				{(coverageOnly ? meshInfoTuple.coverage : meshInfoTuple.main).dimensions.height} x
-				{(coverageOnly ? meshInfoTuple.coverage : meshInfoTuple.main).dimensions.depth} mm |
-				{(coverageOnly ? meshInfoTuple.coverage : meshInfoTuple.main).vertexArray.length / 9} polygons
-				|
+				{(hollow ? meshInfoTuple.hollow : meshInfoTuple.main).dimensions.width} x
+				{(hollow ? meshInfoTuple.hollow : meshInfoTuple.main).dimensions.height} x
+				{(hollow ? meshInfoTuple.hollow : meshInfoTuple.main).dimensions.depth} mm |
+				{(hollow ? meshInfoTuple.hollow : meshInfoTuple.main).vertexArray.length / 9} polygons |
 				{getBinaryStlSizeKbFromVertices(
-					(coverageOnly ? meshInfoTuple.coverage : meshInfoTuple.main).vertexArray.length
+					(hollow ? meshInfoTuple.hollow : meshInfoTuple.main).vertexArray.length
 				)} kB
 			{:catch message}
 				<span class="text-red-500 text-xl">Error '{message}' occured while rendering mesh</span>
@@ -78,7 +77,7 @@
 					{''}
 				{:then}
 					<Toggle id="wireframe" bind:checked={wireframe}>Wireframe</Toggle>
-					<Toggle id="coverageOnly" class="ml-4" bind:checked={coverageOnly}>Coverage only</Toggle>
+					<Toggle id="hollow" class="ml-4" bind:checked={hollow}>Hollow top layer</Toggle>
 				{:catch}
 					{''}
 				{/await}
@@ -105,8 +104,8 @@
 				{#await meshInfoTuple}
 					{''}
 				{:then meshInfoTuple}
-					{#if coverageOnly}
-						<Mesh3DScene vertices={meshInfoTuple.coverage.vertexArray} {volume} {wireframe} />
+					{#if hollow}
+						<Mesh3DScene vertices={meshInfoTuple.hollow.vertexArray} {volume} {wireframe} />
 					{:else}
 						<Mesh3DScene vertices={meshInfoTuple.main.vertexArray} {volume} {wireframe} />
 					{/if}

@@ -29,15 +29,16 @@
 			.catch(() => (volume = 1));
 	});
 
-	let wireframe: boolean = false;
-	let hollow: boolean = false;
+	let isWireframe: boolean = false;
+	let isHollow: boolean = false;
 
 	const generateFilename = () => name + '.stl';
 
 	const downloadStlFile = async (isBinary: boolean) => {
 		try {
 			const meshinfotuple = await meshInfoTuple;
-			const vertices = (hollow ? meshinfotuple.hollow : meshinfotuple.main).vertexArray;
+			const activeMesh = isHollow ? meshinfotuple.hollow : meshinfotuple.main;
+			const vertices = activeMesh.vertexArray;
 			virtualDownload(
 				generateFilename(),
 				isBinary
@@ -60,13 +61,12 @@
 			{#await meshInfoTuple}
 				<p>Generating mesh...</p>
 			{:then meshInfoTuple}
-				{(hollow ? meshInfoTuple.hollow : meshInfoTuple.main).dimensions.width} x
-				{(hollow ? meshInfoTuple.hollow : meshInfoTuple.main).dimensions.height} x
-				{(hollow ? meshInfoTuple.hollow : meshInfoTuple.main).dimensions.depth} mm |
-				{(hollow ? meshInfoTuple.hollow : meshInfoTuple.main).vertexArray.length / 9} polygons |
-				{getBinaryStlSizeKbFromVertices(
-					(hollow ? meshInfoTuple.hollow : meshInfoTuple.main).vertexArray.length
-				)} kB
+				{@const activeMesh = isHollow ? meshInfoTuple.hollow : meshInfoTuple.main}
+				{activeMesh.dimensions.width} x
+				{activeMesh.dimensions.height} x
+				{activeMesh.dimensions.depth} mm |
+				{activeMesh.vertexArray.length / 9} polygons |
+				{getBinaryStlSizeKbFromVertices(activeMesh.vertexArray.length)} kB
 			{:catch message}
 				<span class="text-red-500 text-xl">Error '{message}' occured while rendering mesh</span>
 			{/await}
@@ -76,8 +76,8 @@
 				{#await meshInfoTuple}
 					{''}
 				{:then}
-					<Toggle id="wireframe" bind:checked={wireframe}>Wireframe</Toggle>
-					<Toggle id="hollow" class="ml-4" bind:checked={hollow}>Hollow top layer</Toggle>
+					<Toggle id="wireframe" bind:checked={isWireframe}>Wireframe</Toggle>
+					<Toggle id="hollow" class="ml-4" bind:checked={isHollow}>Hollow top layer</Toggle>
 				{:catch}
 					{''}
 				{/await}
@@ -104,11 +104,10 @@
 				{#await meshInfoTuple}
 					{''}
 				{:then meshInfoTuple}
-					{#if hollow}
-						<Mesh3DScene vertices={meshInfoTuple.hollow.vertexArray} {volume} {wireframe} />
-					{:else}
-						<Mesh3DScene vertices={meshInfoTuple.main.vertexArray} {volume} {wireframe} />
-					{/if}
+					{@const activeMesh = isHollow ? meshInfoTuple.hollow : meshInfoTuple.main}
+					{#key activeMesh}
+						<Mesh3DScene vertices={activeMesh.vertexArray} {volume} wireframe={isWireframe} />
+					{/key}
 				{:catch}
 					{''}
 				{/await}

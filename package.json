@@ -13,7 +13,7 @@
 		"preview": "vite preview",
 		"ts:check": "svelte-check --tsconfig ./tsconfig.json",
 		"format:check": "prettier --check .",
-		"format:fix": "prettier --write .",
+		"format:fix": "prettier --write . | grep -v 'unchanged' | sed G",
 		"lint:check": "eslint .",
 		"lint:fix": "eslint --fix .",
 		"npm:reinstall": "rm -rf ./node_modules && rm -f ./package-lock.json && npm i && npm i",

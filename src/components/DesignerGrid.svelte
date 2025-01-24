@@ -26,7 +26,6 @@
 			dash={[0.5, 0.5]}
 			{points}
 			stroke={color}
-			opacity={1}
 			strokeWidth={0.1}
 		/>
 	{/each}

@@ -51,7 +51,7 @@
 </script>
 
 <EscapeClose on:escape={() => resolve()}>
-	<Modal open={true} size="lg" dismissable={false}>
+	<Modal open={true} size="lg" classBackdrop="bg-black/50" dismissable={false}>
 		<div class="flex justify-start">
 			<span class="font-semibold mr-4">
 				{generateFilename()}

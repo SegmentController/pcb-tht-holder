@@ -27,7 +27,13 @@
 	export let settings: CircleSettings;
 </script>
 
-<Modal open={true} size="sm" dismissable={false} title="Circle settings">
+<Modal
+	open={true}
+	size="sm"
+	classBackdrop="bg-black/50"
+	dismissable={false}
+	title="Circle settings"
+>
 	<AutoFocus />
 	<div class="flex flex-col">
 		<div class="grid gap-6 md:grid-cols-2">

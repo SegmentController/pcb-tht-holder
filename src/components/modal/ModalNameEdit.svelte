@@ -19,7 +19,7 @@
 	export let name: string;
 </script>
 
-<Modal open={true} size="sm" dismissable={false}>
+<Modal open={true} size="sm" classBackdrop="bg-black/50" dismissable={false}>
 	<AutoFocus />
 	<div class="flex flex-col space-y-6">
 		<div>

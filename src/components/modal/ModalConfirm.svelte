@@ -15,7 +15,7 @@
 	export let title: string;
 </script>
 
-<Modal open={true} size="sm" dismissable={false} title="Confirm">
+<Modal open={true} size="sm" classBackdrop="bg-black/50" dismissable={false} title="Confirm">
 	<div class="text-center">
 		<h3 class="mb-5 text-lg font-normal text-gray-500 dark:text-gray-400">
 			{title}

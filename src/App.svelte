@@ -41,4 +41,8 @@
 	:global(body) {
 		background-color: #f3f4f6;
 	}
+
+	:global(button) {
+		cursor: pointer;
+	}
 </style>

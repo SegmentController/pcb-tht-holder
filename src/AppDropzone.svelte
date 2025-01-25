@@ -1,11 +1,12 @@
 <script lang="ts">
+	import { createCanvas, loadImage } from 'canvas';
+
 	import Dropzone from '$components/base/input/Dropzone.svelte';
-	// import { showModalResizeImage } from '$stores/modalStore';
+	import { showModalResizeImage } from '$stores/modalStore';
 	import { projectStore } from '$stores/projectStore';
 	import type { ImageSize } from '$types/ImageSize';
 	import { Project } from '$types/Project';
 
-	// import { createCanvas, loadImage } from 'canvas';
 	import { openProjectSettings } from './AppNavigation.svelte';
 
 	export let pcbImage: HTMLImageElement | undefined;
@@ -59,32 +60,22 @@
 					return value;
 				});
 			}
-			// if (isManualUpload && pcbImage && (pcbImage.width > 1280 || pcbImage.height > 1024)) {
-			// 	const { confirmed, width } = await showModalResizeImage(pcbImage.width, pcbImage.height);
-			// 	if (confirmed) {
-			// 		const height = width * (pcbImage.height / pcbImage.width);
+			if (isManualUpload && pcbImage && (pcbImage.width > 1280 || pcbImage.height > 1024)) {
+				const { confirmed, width } = await showModalResizeImage(pcbImage.width, pcbImage.height);
+				if (confirmed) {
+					const height = width * (pcbImage.height / pcbImage.width);
 
-			// 		const image = await loadImage(_fileData.toString());
-			// 		const canvas = createCanvas(width, height);
-			// 		const ctx = canvas.getContext('2d');
-			// 		ctx.drawImage(image, 0, 0, width, height);
-			// 		canvas.toBlob(
-			// 			(blob) => {
-			// 				if (blob) {
-			// 					console.log(blob);
-			// 					imageSize = { width, height };
-			// 					$projectStore.panelSettings.height = Math.round(
-			// 						$projectStore.panelSettings.width * (imageSize.height / imageSize.width)
-			// 					);
-			// 					$projectStore.image = blob;
-			// 					if (pcbImage) pcbImage.src = URL.createObjectURL(blob);
-			// 				} else errorMessage = 'Canvas conversion failed.';
-			// 			},
-			// 			'image/jpeg',
-			// 			1.0
-			// 		);
-			// 	}
-			// }
+					const image = await loadImage(_fileData.toString());
+					const canvas = createCanvas(width, height);
+					const context = canvas.getContext('2d');
+					context.drawImage(image, 0, 0, width, height);
+
+					// emulate load again
+					isManualUpload = false;
+					_fileData = canvas.toDataURL('image/jpeg', 0.9);
+					if (pcbImage) pcbImage.src = _fileData;
+				}
+			}
 			if (isManualUpload) {
 				const confirmed = await openProjectSettings();
 				if (!confirmed) {

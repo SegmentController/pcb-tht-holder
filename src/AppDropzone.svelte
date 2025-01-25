@@ -1,5 +1,8 @@
 <script lang="ts">
+	import { createCanvas, loadImage } from 'canvas';
+
 	import Dropzone from '$components/base/input/Dropzone.svelte';
+	import { showModalResizeImage } from '$stores/modalStore';
 	import { projectStore } from '$stores/projectStore';
 	import type { ImageSize } from '$types/ImageSize';
 	import { Project } from '$types/Project';
@@ -40,7 +43,7 @@
 		}
 
 		pcbImage = document.createElement('img');
-		pcbImage.addEventListener('load', () => {
+		pcbImage.addEventListener('load', async () => {
 			$projectStore.name = _name;
 			if (pcbImage) {
 				imageSize = { width: pcbImage.width, height: pcbImage.height };
@@ -57,7 +60,37 @@
 					return value;
 				});
 			}
-			if (isManualUpload) openProjectSettings();
+			if (isManualUpload && pcbImage && (pcbImage.width > 1280 || pcbImage.height > 1024)) {
+				const { confirmed, width } = await showModalResizeImage(pcbImage.width, pcbImage.height);
+				if (confirmed) {
+					const height = width * (pcbImage.height / pcbImage.width);
+					try {
+						const image = await loadImage(_fileData.toString());
+						const canvas = createCanvas(width, height);
+						const context = canvas.getContext('2d');
+						context.drawImage(image, 0, 0, width, height);
+
+						// emulate load again
+						isManualUpload = false;
+						_fileData = canvas.toDataURL('image/jpeg', 0.9);
+						if (pcbImage) pcbImage.src = _fileData;
+						canvas.width = 0;
+						canvas.height = 0;
+					} catch {
+						errorMessage = 'Failed to resize image';
+						return;
+					}
+				}
+			}
+			if (isManualUpload) {
+				const confirmed = await openProjectSettings();
+				if (!confirmed) {
+					pcbImage = undefined;
+					imageSize = undefined;
+					$projectStore.image = '';
+					$projectStore.name = '';
+				}
+			}
 		});
 		pcbImage.addEventListener('error', () => {
 			pcbImage = undefined;

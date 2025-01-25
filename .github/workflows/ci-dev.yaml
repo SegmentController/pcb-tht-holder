@@ -14,10 +14,10 @@ jobs:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
         with:
-          node-version: '22.13.0'
+          node-version: '22.13.1'
           cache: 'npm'
 
       - run: npm ci
-      - run: npm run format:check
-      - run: npm run lint:check
-      - run: npm run ts:check
+      - run: node --run format:check
+      - run: node --run lint:check
+      - run: node --run ts:check

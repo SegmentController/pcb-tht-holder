@@ -9,6 +9,7 @@ import ModalProjectSettings from '$components/modal/ModalProjectSettings.svelte'
 import ModalRectangleSettings, {
 	type RectangleSettings
 } from '$components/modal/ModalRectangleSettings.svelte';
+import ModalResizeImage from '$components/modal/ModalResizeImage.svelte';
 import { createModalStore } from '$lib/svelteModal/modal';
 import type { MeshInfoTuple } from '$types/MeshInfo';
 import type { PanelSettings } from '$types/PanelSettings';
@@ -52,6 +53,21 @@ export const showModalProjectSettings = async (
 			}
 		})
 		.resolve();
+
+export const showModalResizeImage = async (
+	width: number,
+	height: number
+): Promise<{ confirmed: boolean; width: number }> =>
+	await modalStore
+		.push({
+			component: ModalResizeImage,
+			props: {
+				width,
+				height
+			}
+		})
+		.resolve();
+
 export const showModalCircleSettings = async (
 	settings: CircleSettings
 ): Promise<{ confirmed: boolean; settings: CircleSettings }> =>
@@ -63,6 +79,7 @@ export const showModalCircleSettings = async (
 			}
 		})
 		.resolve();
+
 export const showModalRectangleSettings = async (
 	settings: RectangleSettings
 ): Promise<{ confirmed: boolean; settings: RectangleSettings }> =>

@@ -54,7 +54,7 @@
 		"ieee754": "^1.2.1",
 		"konva": "^9.3.18",
 		"nanoid": "^5.0.9",
-		"svelte": "^5.19.2",
+		"svelte": "^5.19.3",
 		"svelte-konva": "^1.0.0-next.2",
 		"svelte-persisted-store": "^0.12.0",
 		"three": "^0.172.0",

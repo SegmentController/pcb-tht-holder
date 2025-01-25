@@ -80,6 +80,7 @@
 			updateProjectStoreValue((value) => {
 				value.image = '';
 				value.name = '';
+				value.zoom = 100;
 				value.circles = [];
 				value.rectangles = [];
 				value.legs = [];

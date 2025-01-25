@@ -67,9 +67,11 @@ export const stageMeasureModeMouseDown = (
 	scaleY: number
 ) => {
 	info.update((previous) => {
-		previous.visible = true;
 		previous.startPoint = { x: event.evt.offsetX / scaleX, y: event.evt.offsetY / scaleY };
 		previous.endPoint = previous.startPoint;
+		previous.textPoint = previous.startPoint;
+		previous.text = `0 mm [0°]`;
+		previous.visible = true;
 		return previous;
 	});
 };

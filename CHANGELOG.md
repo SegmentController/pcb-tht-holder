@@ -1,5 +1,11 @@
 # Change log
 
+## [1.7.0] - 2025-01-25
+
+### New
+
+- Image resize to avoid using zoom after loading (if larger than 1280x1024)
+
 ## [1.6.6] - 2025-01-24
 
 ### Fix

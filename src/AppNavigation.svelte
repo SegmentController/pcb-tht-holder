@@ -6,14 +6,14 @@
 			projectStore.name,
 			projectStore.label
 		);
-		if (confirmed) {
+		if (confirmed)
 			updateProjectStoreValue((value) => {
 				value.panelSettings = panelSettings;
 				value.name = name;
 				value.label = label;
 				return value;
 			});
-		}
+		return confirmed;
 	};
 </script>
 

@@ -40,7 +40,7 @@
 		}
 
 		pcbImage = document.createElement('img');
-		pcbImage.addEventListener('load', () => {
+		pcbImage.addEventListener('load', async () => {
 			$projectStore.name = _name;
 			if (pcbImage) {
 				imageSize = { width: pcbImage.width, height: pcbImage.height };
@@ -57,7 +57,15 @@
 					return value;
 				});
 			}
-			if (isManualUpload) openProjectSettings();
+			if (isManualUpload) {
+				const confirmed = await openProjectSettings();
+				if (!confirmed) {
+					pcbImage = undefined;
+					imageSize = undefined;
+					$projectStore.image = '';
+					$projectStore.name = '';
+				}
+			}
 		});
 		pcbImage.addEventListener('error', () => {
 			pcbImage = undefined;

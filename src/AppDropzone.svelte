@@ -64,16 +64,22 @@
 				const { confirmed, width } = await showModalResizeImage(pcbImage.width, pcbImage.height);
 				if (confirmed) {
 					const height = width * (pcbImage.height / pcbImage.width);
+					try {
+						const image = await loadImage(_fileData.toString());
+						const canvas = createCanvas(width, height);
+						const context = canvas.getContext('2d');
+						context.drawImage(image, 0, 0, width, height);
 
-					const image = await loadImage(_fileData.toString());
-					const canvas = createCanvas(width, height);
-					const context = canvas.getContext('2d');
-					context.drawImage(image, 0, 0, width, height);
-
-					// emulate load again
-					isManualUpload = false;
-					_fileData = canvas.toDataURL('image/jpeg', 0.9);
-					if (pcbImage) pcbImage.src = _fileData;
+						// emulate load again
+						isManualUpload = false;
+						_fileData = canvas.toDataURL('image/jpeg', 0.9);
+						if (pcbImage) pcbImage.src = _fileData;
+						canvas.width = 0;
+						canvas.height = 0;
+					} catch {
+						errorMessage = 'Failed to resize image';
+						return;
+					}
 				}
 			}
 			if (isManualUpload) {

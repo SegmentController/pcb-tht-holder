@@ -39,7 +39,7 @@ const TEXT = (
 		const gText = new TextGeometry(text, {
 			font,
 			size,
-			height: TEXT_THICKNESS,
+			depth: TEXT_THICKNESS,
 			curveSegments: 4,
 			steps: 1,
 			bevelEnabled: false

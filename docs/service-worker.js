@@ -2,7 +2,7 @@ const GHPATH = 'https://segmentcontroller.github.io/pcb-tht-holder/';
 
 const APP_PREFIX = 'pwa_pcb-tht-holder_';
 
-const VERSION = 'v1.7.0';
+const VERSION = 'v1.7.3';
 
 // The files to make available for offline use. make sure to add others to this list
 const URLS = [

@@ -48,6 +48,7 @@
 		"@threlte/core": "^8.0.1",
 		"@threlte/extras": "^9.0.1",
 		"canvas": "^3.1.0",
+		"dayjs": "^1.11.13",
 		"flowbite": "^3.1.2",
 		"flowbite-svelte": "^0.47.4",
 		"ieee754": "^1.2.1",

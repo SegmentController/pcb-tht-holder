@@ -1,8 +1,10 @@
 <script lang="ts">
 	import Icon from '@iconify/svelte';
 	import { Canvas } from '@threlte/core';
-	import { Button, ButtonGroup, Modal, Toggle } from 'flowbite-svelte';
+	import dayjs from 'dayjs';
+	import { Button, Modal, Toggle } from 'flowbite-svelte';
 	import { createEventDispatcher, onMount } from 'svelte';
+	import { persisted } from 'svelte-persisted-store';
 
 	import {
 		generateBinaryStlFromVertices,
@@ -31,8 +33,13 @@
 
 	let isWireframe: boolean = false;
 	let isHollow: boolean = false;
+	let useDateInFilename = persisted('useDateInFilename', false);
 
-	const generateFilename = () => name + '.stl';
+	const generateFilename = () =>
+		name +
+		(useDateInFilename ? '-' + dayjs().format('YYYYMMDD-HHmmss') : '') +
+		(isHollow ? '-hollow' : '') +
+		'.stl';
 
 	const downloadStlFile = async (isBinary: boolean) => {
 		try {
@@ -76,8 +83,10 @@
 				{#await meshInfoTuple}
 					{''}
 				{:then}
-					<Toggle id="wireframe" bind:checked={isWireframe}>Wireframe</Toggle>
-					<Toggle id="hollow" class="ml-4" bind:checked={isHollow}>Hollow top layer</Toggle>
+					<Toggle id="wireframe" size="large" bind:checked={isWireframe}>Wireframe</Toggle>
+					<Toggle id="hollow" size="large" class="ml-4" bind:checked={isHollow}
+						>Hollow top layer</Toggle
+					>
 				{:catch}
 					{''}
 				{/await}
@@ -86,13 +95,13 @@
 				{#await meshInfoTuple}
 					{''}
 				{:then}
-					<ButtonGroup>
-						<Button color="primary" onclick={() => downloadStlFile(true)}>
-							<Icon icon="mdi:download" class="inline-flex mr-2" width={24} />
-							Download STL</Button
-						>
-						<Button onclick={() => downloadStlFile(false)}>Text STL</Button>
-					</ButtonGroup>
+					<Toggle id="dateInFilename" size="small" class="mr-4" bind:checked={$useDateInFilename}
+						>Date</Toggle
+					>
+					<Button color="primary" onclick={() => downloadStlFile(true)}>
+						<Icon icon="mdi:download" class="inline-flex mr-2" width={24} />
+						Download STL</Button
+					>
 				{:catch}
 					{''}
 				{/await}

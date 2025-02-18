@@ -4,7 +4,7 @@ export const writeInt16LE = (buffer: Uint8Array, value: number, offset: number) 
 	value = +value;
 	offset = offset >>> 0;
 
-	buffer[offset] = value & 0xff;
+	buffer[offset] = value & 0xFF;
 	buffer[offset + 1] = value >>> 8;
 
 	return offset + 2;
@@ -14,7 +14,7 @@ export const writeInt32LE = (buffer: Uint8Array, value: number, offset: number) 
 	value = +value;
 	offset = offset >>> 0;
 
-	buffer[offset] = value & 0xff;
+	buffer[offset] = value & 0xFF;
 	buffer[offset + 1] = value >>> 8;
 	buffer[offset + 2] = value >>> 16;
 	buffer[offset + 3] = value >>> 24;

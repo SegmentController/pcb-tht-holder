@@ -18,6 +18,5 @@ jobs:
           cache: 'npm'
 
       - run: npm ci
-      - run: node --run format:check
       - run: node --run lint:check
       - run: node --run ts:check

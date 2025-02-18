@@ -33,11 +33,11 @@ export const stageMouseMove = (
 
 	if (isMeasurementMode)
 		info.update((previous) => {
-			previous.endPoint = event.evt.shiftKey
-				? { x: event.evt.offsetX / scaleX, y: previous.startPoint.y }
-				: event.evt.ctrlKey
-					? { x: previous.startPoint.x, y: event.evt.offsetY / scaleY }
-					: { x: event.evt.offsetX / scaleX, y: event.evt.offsetY / scaleY };
+			previous.endPoint = { x: event.evt.offsetX / scaleX, y: event.evt.offsetY / scaleY };
+			if (event.evt.shiftKey)
+				previous.endPoint = { x: event.evt.offsetX / scaleX, y: previous.startPoint.y };
+			else if (event.evt.ctrlKey)
+				previous.endPoint = { x: previous.startPoint.x, y: event.evt.offsetY / scaleY };
 
 			previous.textPoint = {
 				x: previous.startPoint.x + (previous.endPoint.x - previous.startPoint.x) / 2,

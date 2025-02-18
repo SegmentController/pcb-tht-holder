@@ -1,6 +1,15 @@
 # Change log
 
-## [1.7.0] - 2025-01-30
+## [1.8.0] - 2025-02-18
+
+### Feat
+
+- Add hollow postfix for download filename
+- Add date and time for download filename
+- Remove text STL file download button
+- Some UI fix
+
+## [1.7.1] - 2025-01-30
 
 ### Fix
 

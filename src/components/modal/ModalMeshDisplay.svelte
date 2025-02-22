@@ -21,23 +21,27 @@
 	const dispatch = createEventDispatcher<{ resolve: object }>();
 	const resolve = () => dispatch('resolve', {});
 
-	export let name: string;
-	export let meshInfoTuple: Promise<MeshInfoTuple>;
+	interface Properties {
+		name: string;
+		meshInfoTuple: Promise<MeshInfoTuple>;
+	}
 
-	let volume: number;
+	let { name, meshInfoTuple }: Properties = $props();
+
+	let volume = $state(1);
 	onMount(async () => {
 		await meshInfoTuple
 			.then((m) => (volume = MathMax([...m.main.vertexArray.values()])))
 			.catch(() => (volume = 1));
 	});
 
-	let isWireframe: boolean = false;
-	let isHollow: boolean = false;
+	let isWireframe = $state(false);
+	let isHollow = $state(false);
 	let useDateInFilename = persisted('useDateInFilename', false);
 
 	const generateFilename = () =>
 		name +
-		(useDateInFilename ? '-' + dayjs().format('YYYYMMDD-HHmmss') : '') +
+		($useDateInFilename ? '-' + dayjs().format('YYYYMMDD-HHmmss') : '') +
 		(isHollow ? '-hollow' : '') +
 		'.stl';
 
@@ -59,7 +63,7 @@
 </script>
 
 <EscapeClose on:escape={() => resolve()}>
-	<Modal open={true} size="lg" classBackdrop="bg-black/50" dismissable={false}>
+	<Modal open={true} size="lg" dismissable={false}>
 		<div class="flex justify-start">
 			<span class="font-semibold mr-4">
 				{generateFilename()}

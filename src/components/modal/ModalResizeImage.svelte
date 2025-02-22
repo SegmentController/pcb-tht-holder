@@ -26,7 +26,6 @@
 <Modal
 	open={true}
 	size="sm"
-	classBackdrop="bg-black/50"
 	dismissable={false}
 	title={`Resize image from ${width} x ${height} px`}
 >

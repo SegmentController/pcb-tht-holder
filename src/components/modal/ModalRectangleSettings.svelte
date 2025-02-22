@@ -27,13 +27,7 @@
 	export let settings: RectangleSettings;
 </script>
 
-<Modal
-	open={true}
-	size="sm"
-	classBackdrop="bg-black/50"
-	dismissable={false}
-	title="Rectangle settings"
->
+<Modal open={true} size="sm" dismissable={false} title="Rectangle settings">
 	<AutoFocus />
 	<div class="flex flex-col">
 		<div class="grid gap-6 md:grid-cols-2">

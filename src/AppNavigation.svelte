@@ -241,7 +241,7 @@
 					{/each}
 				</ButtonGroup>
 			</div>
-			<NavUl class="flex" hidden={false}>
+			<NavUl class="flex">
 				<NavLi class="cursor-pointer">
 					File
 					<Icon icon="mdi:chevron-down" class="inline-flex" />

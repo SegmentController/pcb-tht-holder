@@ -7,7 +7,7 @@
 	export let min: number | undefined;
 	export let max: number | undefined;
 
-	$: isError = () => (min && value < min) || (max && value > max) || false;
+	$: isError = (min && value < min) || (max && value > max) || false;
 </script>
 
 <NumberInput
@@ -17,6 +17,6 @@
 		if (min && value < min) value = min;
 		if (max && value > max) value = max;
 	}}
-	color={isError() ? 'red' : 'base'}
+	color={isError ? 'red' : 'base'}
 />
 <Tooltip type="light" placement="bottom-end">{min} - {max}</Tooltip>

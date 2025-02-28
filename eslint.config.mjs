@@ -6,6 +6,7 @@ import js from '@eslint/js';
 import typescriptEslint from '@typescript-eslint/eslint-plugin';
 import tsParser from '@typescript-eslint/parser';
 import simpleImportSort from 'eslint-plugin-simple-import-sort';
+import svelte from 'eslint-plugin-svelte';
 import unicorn from 'eslint-plugin-unicorn';
 import globals from 'globals';
 import parser from 'svelte-eslint-parser';
@@ -36,12 +37,8 @@ export default [
 			'**/yarn.lock'
 		]
 	},
-	...compat.extends(
-		'eslint:recommended',
-		'plugin:@typescript-eslint/recommended',
-		'plugin:svelte/recommended',
-		'prettier'
-	),
+	...compat.extends('eslint:recommended', 'plugin:@typescript-eslint/recommended', 'prettier'),
+	...svelte.configs.recommended,
 	unicorn.configs.all,
 	{
 		plugins: {
@@ -67,6 +64,7 @@ export default [
 		rules: {
 			'simple-import-sort/imports': 'error',
 			'simple-import-sort/exports': 'error',
+			'svelte/require-each-key': 'off',
 			'unicorn/filename-case': 'off',
 			'unicorn/prefer-global-this': 'off',
 			'no-alert': 'error',

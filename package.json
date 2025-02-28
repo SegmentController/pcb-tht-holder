@@ -1,6 +1,6 @@
 {
 	"name": "pcb-tht-holder",
-	"version": "1.8.1",
+	"version": "1.8.2",
 	"type": "module",
 	"main": "build/index.js",
 	"engines": {
@@ -24,13 +24,13 @@
 		"@tailwindcss/postcss": "^4.0.9",
 		"@tailwindcss/vite": "^4.0.9",
 		"@tsconfig/svelte": "^5.0.4",
-		"@types/three": "^0.173.0",
+		"@types/three": "^0.174.0",
 		"@typescript-eslint/eslint-plugin": "^8.25.0",
 		"@typescript-eslint/parser": "^8.25.0",
 		"eslint": "^9.21.0",
 		"eslint-config-prettier": "^10.0.2",
 		"eslint-plugin-simple-import-sort": "^12.1.1",
-		"eslint-plugin-svelte": "^2.46.1",
+		"eslint-plugin-svelte": "^3.0.2",
 		"eslint-plugin-unicorn": "^57.0.0",
 		"postcss": "^8.5.3",
 		"prettier": "^3.5.2",
@@ -54,10 +54,10 @@
 		"ieee754": "^1.2.1",
 		"konva": "^9.3.18",
 		"nanoid": "^5.1.2",
-		"svelte": "^5.20.4",
+		"svelte": "^5.20.5",
 		"svelte-konva": "^1.0.0-next.2",
 		"svelte-persisted-store": "^0.12.0",
-		"three": "^0.173.0",
+		"three": "^0.174.0",
 		"three-bvh-csg": "^0.0.16",
 		"zod": "^3.24.2"
 	}

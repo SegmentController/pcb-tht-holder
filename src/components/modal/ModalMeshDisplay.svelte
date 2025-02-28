@@ -84,21 +84,15 @@
 		</div>
 		<div class="grid grid-cols-2">
 			<div class="flex justify-start">
-				{#await meshInfoTuple}
-					{''}
-				{:then}
+				{#await meshInfoTuple then}
 					<Toggle id="wireframe" size="large" bind:checked={isWireframe}>Wireframe</Toggle>
 					<Toggle id="hollow" size="large" class="ml-4" bind:checked={isHollow}
 						>Hollow top layer</Toggle
 					>
-				{:catch}
-					{''}
 				{/await}
 			</div>
 			<div class="flex justify-end">
-				{#await meshInfoTuple}
-					{''}
-				{:then}
+				{#await meshInfoTuple then}
 					<Toggle id="dateInFilename" size="small" class="mr-4" bind:checked={$useDateInFilename}
 						>Date</Toggle
 					>
@@ -106,23 +100,17 @@
 						<Icon icon="mdi:download" class="inline-flex mr-2" width={24} />
 						Download STL</Button
 					>
-				{:catch}
-					{''}
 				{/await}
 				<Button class="ml-2" onclick={() => resolve()} color="alternative">Close</Button>
 			</div>
 		</div>
 		<div class="canvasContainer">
 			<Canvas>
-				{#await meshInfoTuple}
-					{''}
-				{:then meshInfoTuple}
+				{#await meshInfoTuple then meshInfoTuple}
 					{@const activeMesh = isHollow ? meshInfoTuple.hollow : meshInfoTuple.main}
 					{#key activeMesh}
 						<Mesh3DScene vertices={activeMesh.vertexArray} {volume} wireframe={isWireframe} />
 					{/key}
-				{:catch}
-					{''}
 				{/await}
 			</Canvas>
 		</div>

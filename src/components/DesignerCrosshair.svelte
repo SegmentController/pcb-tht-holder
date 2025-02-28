@@ -12,15 +12,15 @@
 </script>
 
 <Line
-	listening={false}
 	dashEnabled={false}
+	listening={false}
 	points={[x - LINELENGTH_PX / 2, y, x + LINELENGTH_PX / 2, y]}
 	stroke="#000"
 	strokeWidth={0.2}
 />
 <Line
-	listening={false}
 	dashEnabled={false}
+	listening={false}
 	points={[x, y - LINELENGTH_PX / 2, x, y + LINELENGTH_PX / 2]}
 	stroke="#000"
 	strokeWidth={0.2}

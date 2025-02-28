@@ -15,12 +15,12 @@
 	export let title: string;
 </script>
 
-<Modal open={true} size="sm" dismissable={false} title="Confirm">
+<Modal dismissable={false} open={true} size="sm" title="Confirm">
 	<div class="text-center">
 		<h3 class="mb-5 text-lg font-normal text-gray-500 dark:text-gray-400">
 			{title}
 		</h3>
-		<Button onclick={() => resolve(true)} color="red" class="me-2">Yes</Button>
-		<Button onclick={() => resolve(false)} color="alternative">Cancel</Button>
+		<Button class="me-2" color="red" onclick={() => resolve(true)}>Yes</Button>
+		<Button color="alternative" onclick={() => resolve(false)}>Cancel</Button>
 	</div>
 </Modal>

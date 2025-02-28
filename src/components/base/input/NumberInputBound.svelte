@@ -12,11 +12,11 @@
 
 <NumberInput
 	{id}
-	bind:value
+	color={isError ? 'red' : 'base'}
 	onblur={() => {
 		if (min && value < min) value = min;
 		if (max && value > max) value = max;
 	}}
-	color={isError ? 'red' : 'base'}
+	bind:value
 />
-<Tooltip type="light" placement="bottom-end">{min} - {max}</Tooltip>
+<Tooltip placement="bottom-end" type="light">{min} - {max}</Tooltip>

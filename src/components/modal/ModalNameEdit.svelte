@@ -19,16 +19,16 @@
 	export let name: string;
 </script>
 
-<Modal open={true} size="sm" dismissable={false}>
+<Modal dismissable={false} open={true} size="sm">
 	<AutoFocus />
 	<div class="flex flex-col space-y-6">
 		<div>
-			<Label for="name" class="mb-2">Name</Label>
+			<Label class="mb-2" for="name">Name</Label>
 			<Input id="name" bind:value={name} />
 		</div>
 	</div>
 	<div class="text-center mt-4 space-y-6">
-		<Button onclick={() => resolve(true)} color="green" class="me-2">OK</Button>
-		<Button onclick={() => resolve(false)} color="alternative" class="me-2">Cancel</Button>
+		<Button class="me-2" color="green" onclick={() => resolve(true)}>OK</Button>
+		<Button class="me-2" color="alternative" onclick={() => resolve(false)}>Cancel</Button>
 	</div>
 </Modal>

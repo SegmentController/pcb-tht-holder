@@ -27,22 +27,22 @@
 	export let settings: CircleSettings;
 </script>
 
-<Modal open={true} size="sm" dismissable={false} title="Circle settings">
+<Modal dismissable={false} open={true} size="sm" title="Circle settings">
 	<AutoFocus />
 	<div class="flex flex-col">
 		<div class="grid gap-6 md:grid-cols-2">
 			<div>
-				<Label for="radius" class="mb-2">Radius (mm)</Label>
-				<NumberInputBound id="radius" min={0.5} max={99} bind:value={settings.radius} />
+				<Label class="mb-2" for="radius">Radius (mm)</Label>
+				<NumberInputBound id="radius" max={99} min={0.5} bind:value={settings.radius} />
 			</div>
 			<div>
-				<Label for="depth" class="mb-2">Depth (mm)</Label>
-				<NumberInputBound id="depth" min={0.5} max={99} bind:value={settings.depth} />
+				<Label class="mb-2" for="depth">Depth (mm)</Label>
+				<NumberInputBound id="depth" max={99} min={0.5} bind:value={settings.depth} />
 			</div>
 		</div>
 	</div>
 	<div class="text-center mt-4 space-y-6">
-		<Button onclick={() => resolve(true)} color="green" class="me-2">OK</Button>
-		<Button onclick={() => resolve(false)} color="alternative" class="me-2">Cancel</Button>
+		<Button class="me-2" color="green" onclick={() => resolve(true)}>OK</Button>
+		<Button class="me-2" color="alternative" onclick={() => resolve(false)}>Cancel</Button>
 	</div>
 </Modal>

@@ -21,9 +21,9 @@
 {#snippet line(points: number[])}
 	{#each GridLines as { isDash, color }}
 		<Line
-			listening={false}
-			dashEnabled={isDash}
 			dash={[0.5, 0.5]}
+			dashEnabled={isDash}
+			listening={false}
 			{points}
 			stroke={color}
 			strokeWidth={0.1}

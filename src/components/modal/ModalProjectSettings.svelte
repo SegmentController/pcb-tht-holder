@@ -26,43 +26,43 @@
 	export let label: string;
 </script>
 
-<Modal open={true} size="sm" dismissable={false} title="Project settings">
+<Modal dismissable={false} open={true} size="sm" title="Project settings">
 	<AutoFocus />
 	<div class="flex flex-col">
 		<div class="grid gap-6 grid-cols-2">
 			<div class="col-span-2">
-				<Label for="name" class="mb-2">Project name</Label>
+				<Label class="mb-2" for="name">Project name</Label>
 				<Input id="name" bind:value={name} />
 			</div>
 			<div>
-				<Label for="width" class="mb-2">Panel width (mm)</Label>
-				<NumberInputBound id="width" min={10} max={999} bind:value={panelSettings.width} />
+				<Label class="mb-2" for="width">Panel width (mm)</Label>
+				<NumberInputBound id="width" max={999} min={10} bind:value={panelSettings.width} />
 			</div>
 			<div>
-				<Label for="height" class="mb-2">Panel height (mm)</Label>
-				<NumberInputBound id="height" min={10} max={999} bind:value={panelSettings.height} />
+				<Label class="mb-2" for="height">Panel height (mm)</Label>
+				<NumberInputBound id="height" max={999} min={10} bind:value={panelSettings.height} />
 			</div>
 			<div>
-				<Label for="pcbThickness" class="mb-2">PCB thickness (mm)</Label>
+				<Label class="mb-2" for="pcbThickness">PCB thickness (mm)</Label>
 				<NumberInputBound
 					id="pcbThickness"
-					min={0.1}
 					max={10}
+					min={0.1}
 					bind:value={panelSettings.pcbThickness}
 				/>
 			</div>
 			<div>
-				<Label for="smdHeight" class="mb-2">SMD height (mm)</Label>
-				<NumberInputBound id="smdHeight" min={0.1} max={10} bind:value={panelSettings.smdHeight} />
+				<Label class="mb-2" for="smdHeight">SMD height (mm)</Label>
+				<NumberInputBound id="smdHeight" max={10} min={0.1} bind:value={panelSettings.smdHeight} />
 			</div>
 			<div class="col-span-2">
-				<Label for="label" class="mb-2">Print label</Label>
+				<Label class="mb-2" for="label">Print label</Label>
 				<Input id="label" bind:value={label} />
 			</div>
 		</div>
 	</div>
 	<div class="text-center mt-4 space-y-6">
-		<Button onclick={() => resolve(true)} color="green" class="me-2">OK</Button>
-		<Button onclick={() => resolve(false)} color="alternative" class="me-2">Cancel</Button>
+		<Button class="me-2" color="green" onclick={() => resolve(true)}>OK</Button>
+		<Button class="me-2" color="alternative" onclick={() => resolve(false)}>Cancel</Button>
 	</div>
 </Modal>

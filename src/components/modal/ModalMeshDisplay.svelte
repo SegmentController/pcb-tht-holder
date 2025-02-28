@@ -37,7 +37,7 @@
 
 	let isWireframe = $state(false);
 	let isHollow = $state(false);
-	let useDateInFilename = persisted('useDateInFilename', false);
+	const useDateInFilename = persisted('useDateInFilename', false);
 
 	const generateFilename = () =>
 		name +
@@ -63,7 +63,7 @@
 </script>
 
 <EscapeClose on:escape={() => resolve()}>
-	<Modal open={true} size="lg" dismissable={false}>
+	<Modal dismissable={false} open={true} size="lg">
 		<div class="flex justify-start">
 			<span class="font-semibold mr-4">
 				{generateFilename()}
@@ -86,22 +86,22 @@
 			<div class="flex justify-start">
 				{#await meshInfoTuple then}
 					<Toggle id="wireframe" size="large" bind:checked={isWireframe}>Wireframe</Toggle>
-					<Toggle id="hollow" size="large" class="ml-4" bind:checked={isHollow}
+					<Toggle id="hollow" class="ml-4" size="large" bind:checked={isHollow}
 						>Hollow top layer</Toggle
 					>
 				{/await}
 			</div>
 			<div class="flex justify-end">
 				{#await meshInfoTuple then}
-					<Toggle id="dateInFilename" size="small" class="mr-4" bind:checked={$useDateInFilename}
+					<Toggle id="dateInFilename" class="mr-4" size="small" bind:checked={$useDateInFilename}
 						>Date</Toggle
 					>
 					<Button color="primary" onclick={() => downloadStlFile(true)}>
-						<Icon icon="mdi:download" class="inline-flex mr-2" width={24} />
+						<Icon class="inline-flex mr-2" icon="mdi:download" width={24} />
 						Download STL</Button
 					>
 				{/await}
-				<Button class="ml-2" onclick={() => resolve()} color="alternative">Close</Button>
+				<Button class="ml-2" color="alternative" onclick={() => resolve()}>Close</Button>
 			</div>
 		</div>
 		<div class="canvasContainer">

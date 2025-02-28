@@ -65,6 +65,8 @@ export default [
 			'simple-import-sort/imports': 'error',
 			'simple-import-sort/exports': 'error',
 			'svelte/require-each-key': 'off',
+			'svelte/sort-attributes': 'error',
+			'svelte/prefer-const': 'error',
 			'unicorn/filename-case': 'off',
 			'unicorn/prefer-global-this': 'off',
 			'no-alert': 'error',

@@ -10,7 +10,7 @@
 	let fileInput: HTMLInputElement;
 	const importLibrary = async (event: Event) => {
 		if (!_onSelect) return;
-		let files = (event.target as HTMLInputElement).files;
+		const files = (event.target as HTMLInputElement).files;
 		if (files && files.length > 0) {
 			try {
 				const textData = await files[0].text();
@@ -22,7 +22,7 @@
 	};
 </script>
 
-<input type="file" id="textFile" {accept} bind:this={fileInput} onchange={importLibrary} />
+<input bind:this={fileInput} id="textFile" {accept} onchange={importLibrary} type="file" />
 
 <style>
 	input {

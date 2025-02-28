@@ -114,103 +114,104 @@
 		(imageSize.height / $projectStore.panelSettings.height) * ($projectStore.zoom / 100)}
 
 	<div class="flex justify-center mb-2">
-		<ZoomRange class="w-2/5" bind:value={$projectStore.zoom} min={10} max={300} step={10} />
+		<ZoomRange class="w-2/5" max={300} min={10} step={10} bind:value={$projectStore.zoom} />
 	</div>
 	<div class="flex justify-center">
 		<Stage
-			onmousemove={(event) =>
-				stageMouseMove(event, mode === 'measure', measurementInfo, getStageScaleX, getStageScaleY)}
+			height={imageSize.height * ($projectStore.zoom / 100)}
+			onclick={stageClick}
 			onmousedown={(event) => {
 				if (mode === 'measure')
 					stageMeasureModeMouseDown(event, measurementInfo, getStageScaleX, getStageScaleY);
 			}}
+			onmousemove={(event) =>
+				stageMouseMove(event, mode === 'measure', measurementInfo, getStageScaleX, getStageScaleY)}
 			onmouseup={(event) => {
 				if (mode === 'measure') stageMeasureModeMouseUp(event, measurementInfo);
 			}}
-			onclick={stageClick}
-			width={imageSize.width * ($projectStore.zoom / 100)}
-			height={imageSize.height * ($projectStore.zoom / 100)}
 			scaleX={getStageScaleX}
 			scaleY={getStageScaleY}
+			width={imageSize.width * ($projectStore.zoom / 100)}
 		>
 			<Layer>
 				<Image
 					image={pcbImage}
-					scaleX={$projectStore.panelSettings.width / imageSize.width}
-					scaleY={(-1 * $projectStore.panelSettings.height) / imageSize.height}
 					offsetY={imageSize.height}
 					opacity={0.25}
+					scaleX={$projectStore.panelSettings.width / imageSize.width}
+					scaleY={(-1 * $projectStore.panelSettings.height) / imageSize.height}
 				/>
 				{#each $projectStore.circles as circle}
 					<Circle
 						id={circle.id}
-						fill="orange"
 						draggable={mode === 'pointer'}
+						fill="orange"
+						ondblclick={() => {
+							if (mode === 'pointer') modifyCircle(circle);
+						}}
+						ondragend={() => updateCircleChanges()}
+						ondragmove={(event) => limitCircle(event, circle)}
+						onmouseenter={(event) => selectElementByMouseEnter(event, circle, mode === 'measure')}
+						onmouseleave={(event) => deselectElementByMouseLeave(event, circle, mode === 'measure')}
 						opacity={0.75}
 						radius={circle.radius}
 						bind:x={circle.x}
 						bind:y={circle.y}
-						onmouseenter={(event) => selectElementByMouseEnter(event, circle, mode === 'measure')}
-						onmouseleave={(event) => deselectElementByMouseLeave(event, circle, mode === 'measure')}
-						ondblclick={() => {
-							if (mode === 'pointer') modifyCircle(circle);
-						}}
-						ondragmove={(event) => limitCircle(event, circle)}
-						ondragend={() => updateCircleChanges()}
 					/>
 				{/each}
 				{#each $projectStore.rectangles as rectangle}
 					<Rect
 						id={rectangle.id}
-						fill="green"
 						draggable={mode === 'pointer'}
-						opacity={0.75}
-						width={rectangle.width}
+						fill="green"
 						height={rectangle.height}
-						bind:x={rectangle.x}
-						bind:y={rectangle.y}
+						ondblclick={() => {
+							if (mode === 'pointer') modifyRectangle(rectangle);
+						}}
+						ondragend={() => updateRectangleChanges()}
+						ondragmove={(event) => limitBox(event, rectangle)}
 						onmouseenter={(event) =>
 							selectElementByMouseEnter(event, rectangle, mode === 'measure')}
 						onmouseleave={(event) =>
 							deselectElementByMouseLeave(event, rectangle, mode === 'measure')}
-						ondblclick={() => {
-							if (mode === 'pointer') modifyRectangle(rectangle);
-						}}
-						ondragmove={(event) => limitBox(event, rectangle)}
-						ondragend={() => updateRectangleChanges()}
+						opacity={0.75}
+						width={rectangle.width}
+						bind:x={rectangle.x}
+						bind:y={rectangle.y}
 					/>
 				{/each}
 				{#each $projectStore.legs as leg}
 					<Rect
 						id={leg.id}
-						fill="gray"
 						draggable={mode === 'pointer'}
-						opacity={0.75}
-						width={leg.width}
+						fill="gray"
 						height={leg.height}
-						bind:x={leg.x}
-						bind:y={leg.y}
-						onmouseenter={(event) => selectElementByMouseEnter(event, leg, mode === 'measure')}
-						onmouseleave={(event) => deselectElementByMouseLeave(event, leg, mode === 'measure')}
 						ondblclick={() => {
 							if (mode === 'pointer') deleteLegWithConfirm(leg);
 						}}
-						ondragmove={(event) => limitBox(event, leg)}
 						ondragend={() => updateLegChanges()}
+						ondragmove={(event) => limitBox(event, leg)}
+						onmouseenter={(event) => selectElementByMouseEnter(event, leg, mode === 'measure')}
+						onmouseleave={(event) => deselectElementByMouseLeave(event, leg, mode === 'measure')}
+						opacity={0.75}
+						width={leg.width}
+						bind:x={leg.x}
+						bind:y={leg.y}
 					/>
 				{/each}
 				{#if mode === 'measure'}
 					<DesignerGrid
-						width={$projectStore.panelSettings.width}
 						height={$projectStore.panelSettings.height}
+						width={$projectStore.panelSettings.width}
 					/>
 				{/if}
 				{#if $measurementInfo.visible}
 					<DesignerCrosshair x={$measurementInfo.startPoint.x} y={$measurementInfo.startPoint.y} />
 					<Line
-						listening={false}
-						dashEnabled
 						dash={[0.5, 0.5]}
+						dashEnabled
+						listening={false}
+						opacity={0.75}
 						points={[
 							$measurementInfo.startPoint.x,
 							$measurementInfo.startPoint.y,
@@ -218,20 +219,19 @@
 							$measurementInfo.endPoint.y
 						]}
 						stroke="#000"
-						opacity={0.75}
 						strokeWidth={0.25}
 					/>
 					<Text
-						listening={false}
 						align="center"
+						fontSize={3}
+						listening={false}
+						opacity={0.75}
+						text={$measurementInfo.text}
 						verticalAlign="center"
 						x={($measurementInfo.textPoint.x < $projectStore.panelSettings.width / 2 ? 5 : -5) +
 							$measurementInfo.textPoint.x}
 						y={($measurementInfo.textPoint.y < $projectStore.panelSettings.height / 2 ? 5 : -5) +
 							$measurementInfo.textPoint.y}
-						fontSize={3}
-						opacity={0.75}
-						text={$measurementInfo.text}
 					/>
 				{/if}
 			</Layer>

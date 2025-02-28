@@ -50,10 +50,10 @@
 <div class={aClass + ' flex items-center space-x-2'}>
 	<Label
 		defaultClass="text-sm whitespace-nowrap cursor-pointer"
-		title="Reset zoom"
 		onclick={() => {
 			value = 100;
-		}}>Zoom: <span class="font-semibold">{value}</span>%</Label
+		}}
+		title="Reset zoom">Zoom: <span class="font-semibold">{value}</span>%</Label
 	>
-	<Range {min} {max} {step} bind:value id="imageZoom" />
+	<Range id="imageZoom" {max} {min} {step} bind:value />
 </div>

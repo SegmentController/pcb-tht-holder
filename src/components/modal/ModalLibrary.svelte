@@ -32,11 +32,11 @@
 </script>
 
 <EscapeClose on:escape={() => resolve()}>
-	<Modal open={true} size="lg" dismissable={false} title="Library">
+	<Modal dismissable={false} open={true} size="lg" title="Library">
 		<div class="grid">
 			<ButtonGroup class="justify-self-end">
 				<Button onclick={() => importLibrary()}>Import</Button>
-				<Button onclick={() => exportLibrary()} disabled={$libraryStore.length === 0}>Export</Button
+				<Button disabled={$libraryStore.length === 0} onclick={() => exportLibrary()}>Export</Button
 				>
 			</ButtonGroup>
 		</div>
@@ -47,7 +47,7 @@
 						{libraryItem.name}
 					</h5>
 					<A class="absolute right-4 text-gray" onclick={() => editName(libraryItem)}>
-						<Icon icon="mdi:edit" class="inline-flex" />
+						<Icon class="inline-flex" icon="mdi:edit" />
 					</A>
 					<p class="font-semibold">{libraryItem.type}</p>
 					{#if libraryItem.type === 'circle'}
@@ -64,15 +64,15 @@
 							$libraryStore = $libraryStore.filter((li) => li !== libraryItem);
 						}}
 					>
-						<Icon icon="mdi:trash" class="inline-flex" />
+						<Icon class="inline-flex" icon="mdi:trash" />
 					</A>
 				</Card>
 			{/each}
 		</div>
 		<div class="text-right pt-4">
-			<Button onclick={() => resolve()} color="alternative" class="ml-2">Close</Button>
+			<Button class="ml-2" color="alternative" onclick={() => resolve()}>Close</Button>
 		</div>
 	</Modal>
 </EscapeClose>
 
-<FileInput accept="application/json" bind:this={fileInput} />
+<FileInput bind:this={fileInput} accept="application/json" />

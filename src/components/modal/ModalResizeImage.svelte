@@ -24,9 +24,9 @@
 </script>
 
 <Modal
+	dismissable={false}
 	open={true}
 	size="sm"
-	dismissable={false}
 	title={`Resize image from ${width} x ${height} px`}
 >
 	<div class="text-center">
@@ -36,9 +36,9 @@
 					>{recentWidth} x {Math.round((height / width) * recentWidth)}px</span
 				></Label
 			>
-			<Range min={MIN_WIDTH} max={MAX_WIDTH} step={64} bind:value={recentWidth} id="resize" />
+			<Range id="resize" max={MAX_WIDTH} min={MIN_WIDTH} step={64} bind:value={recentWidth} />
 		</div>
-		<Button onclick={() => resolve(true)} color="green" class="me-2">Resize</Button>
-		<Button onclick={() => resolve(false)} color="alternative">Cancel</Button>
+		<Button class="me-2" color="green" onclick={() => resolve(true)}>Resize</Button>
+		<Button color="alternative" onclick={() => resolve(false)}>Cancel</Button>
 	</div>
 </Modal>

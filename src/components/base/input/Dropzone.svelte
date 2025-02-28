@@ -38,13 +38,13 @@
 </script>
 
 <Dropzone
+	class="m-4"
+	onchange={handleChange}
 	ondragover={(event) => event.preventDefault()}
 	ondrop={dropHandle}
-	onchange={handleChange}
-	class="m-4"
 >
 	<p class="mb-2 text-lg text-gray-500 dark:text-gray-400 font-semibold">{title}</p>
-	<Icon icon="mdi:cloud-upload-outline" class="inline-flex" width={48} color="gray" />
+	<Icon class="inline-flex" color="gray" icon="mdi:cloud-upload-outline" width={48} />
 	{#if errorMessage}
 		<p class="text-red-700 text-center text-lg font-semibold">
 			{errorMessage}

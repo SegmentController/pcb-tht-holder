@@ -25,12 +25,12 @@
 </script>
 
 <svelte:window
-	on:contextmenu|preventDefault={() => (visible = false)}
 	onclick={() => (visible = false)}
+	on:contextmenu|preventDefault={() => (visible = false)}
 />
 
 {#if visible}
-	<nav class="navbar" style="position: absolute; top:{posY}px; left:{posX}px">
+	<nav style="position: absolute; top:{posY}px; left:{posX}px" class="navbar">
 		<ul>
 			{#each items as item}
 				{#if item.name === ''}

@@ -23,7 +23,7 @@
 	<OrbitControls />
 </T.PerspectiveCamera>
 
-<T.PointLight position={[0, 1 * volume, 2 * volume]} decay={0.1} intensity={5} />
+<T.PointLight decay={0.1} intensity={5} position={[0, 1 * volume, 2 * volume]} />
 <T.AmbientLight color="white" intensity={1} />
 
 <T.Mesh rotation.x={-Math.PI / 2}>

@@ -216,7 +216,7 @@
 <Navbar class="bg-gray-100">
 	<NavContainer class="border border-gray-200 w-3/5 px-5 py-2 rounded-lg bg-gray-50">
 		<NavBrand href="#">
-			<img src="{BASE_URL}/pcb-board-32.png" class="me-3 h-6 sm:h-9" alt="PCB THT Holder Logo" />
+			<img class="me-3 h-6 sm:h-9" alt="PCB THT Holder Logo" src="{BASE_URL}/pcb-board-32.png" />
 			<span class="self-center whitespace-nowrap font-semibold">
 				<div class="text-inherit hover:no-underline">PCB THT Holder</div>
 				<div class="text-xs text-gray-500">v{APP_VERSION}</div>
@@ -227,14 +227,14 @@
 				<ButtonGroup>
 					{#each ModeButtons as { title, shortcut, recentMode, icon }}
 						<Button
-							size="xs"
 							checked={mode === recentMode}
-							onclick={() => (mode = recentMode)}
 							color={mode === recentMode ? 'dark' : 'light'}
+							onclick={() => (mode = recentMode)}
+							size="xs"
 						>
 							<Icon {icon} width={20} />
 						</Button>
-						<Tooltip type="light" placement="bottom-end">
+						<Tooltip placement="bottom-end" type="light">
 							{title}
 							<Kbd class="px-2">{shortcut}</Kbd>
 						</Tooltip>
@@ -244,7 +244,7 @@
 			<NavUl class="flex">
 				<NavLi class="cursor-pointer">
 					File
-					<Icon icon="mdi:chevron-down" class="inline-flex" />
+					<Icon class="inline-flex" icon="mdi:chevron-down" />
 				</NavLi>
 				<Dropdown class="w-60 z-20 -mt-2" trigger="hover">
 					<DropdownItem href="#" onclick={() => reset()}>New</DropdownItem>
@@ -253,7 +253,7 @@
 
 				<NavLi class="cursor-pointer">
 					Edit
-					<Icon icon="mdi:chevron-down" class="inline-flex" />
+					<Icon class="inline-flex" icon="mdi:chevron-down" />
 				</NavLi>
 				<Dropdown class="w-72 z-20 -mt-2" trigger="hover">
 					{#if $undoStoreLastItem}
@@ -284,7 +284,7 @@
 					{#if getLibraryStoreValue().length}
 						<DropdownItem class="flex items-center justify-between">
 							Add from library
-							<Icon icon="mdi:chevron-right" class="inline-flex" />
+							<Icon class="inline-flex" icon="mdi:chevron-right" />
 						</DropdownItem>
 						<Dropdown class="w-auto min-w-44 z-20" placement="right-start" trigger="hover">
 							{#each getLibraryStoreValue().sort( (a, b) => a.name.localeCompare(b.name) ) as libraryItem}
@@ -304,7 +304,7 @@
 			</NavUl>
 			<div class="flex">
 				<Button disabled={!projectLoaded} onclick={() => openDisplay()}>
-					<Icon icon="mdi:rotate-3d" class="inline-flex mr-2" width={24} />
+					<Icon class="inline-flex mr-2" icon="mdi:rotate-3d" width={24} />
 					Display
 					<Kbd class="ml-4 px-2 py-1">D</Kbd>
 				</Button>

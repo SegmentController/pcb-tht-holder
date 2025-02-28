@@ -104,9 +104,9 @@
 </script>
 
 <Dropzone
-	title="Top view of PCB image or a project file"
 	description="Click to upload or drag and drop a file. Image file (png, jpg) begins a new project, a .tht3d file restores a previously saved project."
 	{errorMessage}
 	onUpload={(imgData, filename) =>
 		onFileUpload(imgData, filename.slice(0, Math.max(0, filename.lastIndexOf('.'))), true, false)}
+	title="Top view of PCB image or a project file"
 />

@@ -27,26 +27,26 @@
 	export let settings: RectangleSettings;
 </script>
 
-<Modal open={true} size="sm" dismissable={false} title="Rectangle settings">
+<Modal dismissable={false} open={true} size="sm" title="Rectangle settings">
 	<AutoFocus />
 	<div class="flex flex-col">
 		<div class="grid gap-6 md:grid-cols-2">
 			<div>
-				<Label for="width" class="mb-2">Width (mm)</Label>
-				<NumberInputBound id="width" min={0.5} max={99} bind:value={settings.width} />
+				<Label class="mb-2" for="width">Width (mm)</Label>
+				<NumberInputBound id="width" max={99} min={0.5} bind:value={settings.width} />
 			</div>
 			<div>
-				<Label for="height" class="mb-2">Height (mm)</Label>
-				<NumberInputBound id="height" min={0.5} max={99} bind:value={settings.height} />
+				<Label class="mb-2" for="height">Height (mm)</Label>
+				<NumberInputBound id="height" max={99} min={0.5} bind:value={settings.height} />
 			</div>
 			<div>
-				<Label for="depth" class="mb-2">Depth (mm)</Label>
-				<NumberInputBound id="depth" min={0.5} max={99} bind:value={settings.depth} />
+				<Label class="mb-2" for="depth">Depth (mm)</Label>
+				<NumberInputBound id="depth" max={99} min={0.5} bind:value={settings.depth} />
 			</div>
 		</div>
 	</div>
 	<div class="text-center mt-4 space-y-6">
-		<Button onclick={() => resolve(true)} color="green" class="me-2">OK</Button>
-		<Button onclick={() => resolve(false)} color="alternative" class="me-2">Cancel</Button>
+		<Button class="me-2" color="green" onclick={() => resolve(true)}>OK</Button>
+		<Button class="me-2" color="alternative" onclick={() => resolve(false)}>Cancel</Button>
 	</div>
 </Modal>

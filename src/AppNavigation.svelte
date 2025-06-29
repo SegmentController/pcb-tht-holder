@@ -228,16 +228,16 @@
 					{#each ModeButtons as { title, shortcut, recentMode, icon }}
 						<Button
 							checked={mode === recentMode}
-							color={mode === recentMode ? 'dark' : 'light'}
+							color={mode === recentMode ? 'gray' : 'light'}
 							onclick={() => (mode = recentMode)}
 							size="xs"
 						>
 							<Icon {icon} width={20} />
+							<Tooltip placement="bottom-end" type="light">
+								{title}
+								<Kbd class="px-2 py-0">{shortcut}</Kbd>
+							</Tooltip>
 						</Button>
-						<Tooltip placement="bottom-end" type="light">
-							{title}
-							<Kbd class="px-2">{shortcut}</Kbd>
-						</Tooltip>
 					{/each}
 				</ButtonGroup>
 			</div>
@@ -246,7 +246,7 @@
 					File
 					<Icon class="inline-flex" icon="mdi:chevron-down" />
 				</NavLi>
-				<Dropdown class="w-60 z-20 -mt-2" trigger="hover">
+				<Dropdown simple class="w-60 z-20 -mt-2" trigger="hover">
 					<DropdownItem href="#" onclick={() => reset()}>New</DropdownItem>
 					<DropdownItem href="#" onclick={() => downloadProjectFile()}>Save project</DropdownItem>
 				</Dropdown>
@@ -255,25 +255,25 @@
 					Edit
 					<Icon class="inline-flex" icon="mdi:chevron-down" />
 				</NavLi>
-				<Dropdown class="w-72 z-20 -mt-2" trigger="hover">
+				<Dropdown simple class="w-72 z-20 -mt-2" trigger="hover">
 					{#if $undoStoreLastItem}
 						<DropdownItem href="#" onclick={() => executeLastUndo()}
 							>Undo: {$undoStoreLastItem}
-							<Kbd class="float-right px-2">ctrl + Z</Kbd>
+							<Kbd class="float-right px-2 py-0">ctrl + Z</Kbd>
 						</DropdownItem>
 						<DropdownDivider />
 					{/if}
 					<DropdownItem href="#" onclick={() => addNewCircle()}>
 						Add circle...
-						<Kbd class="float-right px-2">shift + C</Kbd>
+						<Kbd class="float-right px- py-02">shift + C</Kbd>
 					</DropdownItem>
 					<DropdownItem href="#" onclick={() => addNewRectangle()}>
 						Add rectangle...
-						<Kbd class="float-right px-2">shift + R</Kbd>
+						<Kbd class="float-right px-2 py-0">shift + R</Kbd>
 					</DropdownItem>
 					<DropdownItem href="#" onclick={() => addNewLeg()}>
 						Add leg
-						<Kbd class="float-right px-2">shift + L</Kbd>
+						<Kbd class="float-right px-2 py-0">shift + L</Kbd>
 					</DropdownItem>
 					<DropdownItem href="#" onclick={() => addCornerLegs()}>Auto legs at corner</DropdownItem>
 					{#if getProjectStoreLegCount()}
@@ -297,7 +297,7 @@
 					<DropdownDivider />
 					<DropdownItem href="#" onclick={() => openProjectSettings()}>
 						Project settings...
-						<Kbd class="float-right px-2">shift + P</Kbd>
+						<Kbd class="float-right px-2 py-0">shift + P</Kbd>
 					</DropdownItem>
 				</Dropdown>
 				<NavLi class="cursor-pointer" onclick={() => showModalLibrary()}>Library</NavLi>

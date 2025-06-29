@@ -49,7 +49,7 @@
 
 <div class={aClass + ' flex items-center space-x-2'}>
 	<Label
-		defaultClass="text-sm whitespace-nowrap cursor-pointer"
+		class="text-sm whitespace-nowrap cursor-pointer"
 		onclick={() => {
 			value = 100;
 		}}

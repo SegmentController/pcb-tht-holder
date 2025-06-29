@@ -265,7 +265,7 @@
 					{/if}
 					<DropdownItem href="#" onclick={() => addNewCircle()}>
 						Add circle...
-						<Kbd class="float-right px- py-02">shift + C</Kbd>
+						<Kbd class="float-right px-2 py-0">shift + C</Kbd>
 					</DropdownItem>
 					<DropdownItem href="#" onclick={() => addNewRectangle()}>
 						Add rectangle...

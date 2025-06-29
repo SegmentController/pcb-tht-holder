@@ -1,5 +1,5 @@
 <script lang="ts">
-	import { NumberInput, Tooltip } from 'flowbite-svelte';
+	import { Input, Tooltip } from 'flowbite-svelte';
 
 	export let id: string;
 
@@ -10,9 +10,9 @@
 	$: isError = (min && value < min) || (max && value > max) || false;
 </script>
 
-<NumberInput
+<Input
 	{id}
-	color={isError ? 'red' : 'base'}
+	color={isError ? 'red' : 'default'}
 	onblur={() => {
 		if (min && value < min) value = min;
 		if (max && value > max) value = max;

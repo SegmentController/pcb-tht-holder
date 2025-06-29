@@ -31,7 +31,7 @@
 >
 	<div class="text-center">
 		<div class="flex flex-col items-center gap-4 mb-6">
-			<Label defaultClass="text-sm whitespace-nowrap"
+			<Label class="text-sm whitespace-nowrap"
 				>New size: <span class="font-semibold"
 					>{recentWidth} x {Math.round((height / width) * recentWidth)}px</span
 				></Label

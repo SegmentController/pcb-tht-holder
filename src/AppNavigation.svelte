@@ -246,7 +246,7 @@
 					File
 					<Icon class="inline-flex" icon="mdi:chevron-down" />
 				</NavLi>
-				<Dropdown simple class="w-60 z-20 -mt-2" trigger="hover">
+				<Dropdown class="w-60 z-20 -mt-2" simple trigger="hover">
 					<DropdownItem href="#" onclick={() => reset()}>New</DropdownItem>
 					<DropdownItem href="#" onclick={() => downloadProjectFile()}>Save project</DropdownItem>
 				</Dropdown>
@@ -255,7 +255,7 @@
 					Edit
 					<Icon class="inline-flex" icon="mdi:chevron-down" />
 				</NavLi>
-				<Dropdown simple class="w-72 z-20 -mt-2" trigger="hover">
+				<Dropdown class="w-72 z-20 -mt-2" simple trigger="hover">
 					{#if $undoStoreLastItem}
 						<DropdownItem href="#" onclick={() => executeLastUndo()}
 							>Undo: {$undoStoreLastItem}

@@ -42,6 +42,7 @@
 	onchange={handleChange}
 	ondragover={(event) => event.preventDefault()}
 	ondrop={dropHandle}
+	oninput={handleChange}
 >
 	<p class="mb-2 text-lg text-gray-500 dark:text-gray-400 font-semibold">{title}</p>
 	<Icon class="inline-flex" color="gray" icon="mdi:cloud-upload-outline" width={48} />

@@ -22,6 +22,7 @@ export const addNewRectangle = async (source?: RectangleSettings) => {
 		y: project.panelSettings.height / 2,
 		width: source?.width || 10,
 		height: source?.height || 5,
+		rotation: source?.rotation || 0,
 
 		fill: 'green',
 		draggable: true,
@@ -36,12 +37,13 @@ export const addNewRectangle = async (source?: RectangleSettings) => {
 			rectangle.width = settings.width;
 			rectangle.height = settings.height;
 			rectangle.depth = settings.depth;
+			rectangle.rotation = settings.rotation;
 			updateRectangleChanges();
 		} else deleteRectangle(rectangle);
 	}
 };
 export const duplicateRectangle = (source: RectangleData) => addNewRectangle(source);
-export const rotateRectangle = (rectangle: RectangleData) => {
+export const flipRectangleDimensions = (rectangle: RectangleData) => {
 	const oldWidth = rectangle.width;
 	rectangle.width = rectangle.height;
 	rectangle.height = oldWidth;
@@ -56,7 +58,8 @@ export const addRectangleToLibrary = async (source: RectangleData) => {
 			type: 'rectangle',
 			width: source.width,
 			height: source.height,
-			depth: source.depth
+			depth: source.depth,
+			rotation: source.rotation
 		});
 		setLibraryStoreValue(library);
 	}
@@ -67,8 +70,17 @@ export const modifyRectangle = async (rectangle: RectangleData) => {
 		rectangle.width = settings.width;
 		rectangle.height = settings.height;
 		rectangle.depth = settings.depth;
+		rectangle.rotation = settings.rotation;
 		updateRectangleChanges();
 	}
+};
+export const rotateRectangleDegrees = (rectangle: RectangleData, delta: number) => {
+	rectangle.rotation = (rectangle.rotation + delta + 360) % 360;
+	updateRectangleChanges();
+};
+export const resetRectangleRotation = (rectangle: RectangleData) => {
+	rectangle.rotation = 0;
+	updateRectangleChanges();
 };
 export const deleteRectangle = (rectangle: RectangleData) => {
 	const project = getProjectStoreValue();
@@ -92,12 +104,14 @@ export const getContextMenuItemForRectangle = (id: string): ContextMenuItem[] | 
 	const rectangle = project.rectangles.find((r) => r.id === id);
 	if (rectangle)
 		return [
-			{ name: `Rectangle ${rectangle.width}x${rectangle.height}x${rectangle.depth}mm` },
+			{
+				name: `Rectangle ${rectangle.width}x${rectangle.height}x${rectangle.depth}mm ${rectangle.rotation}°`
+			},
 			{
 				name: 'Properties...',
 				onClick: () => modifyRectangle(rectangle)
 			},
-			{ name: 'Rotate 90°', onClick: () => rotateRectangle(rectangle) },
+			{ name: 'Flip dimensions', onClick: () => flipRectangleDimensions(rectangle) },
 			{ name: 'Duplicate', onClick: () => duplicateRectangle(rectangle) },
 			{ name: 'Add to library...', onClick: () => addRectangleToLibrary(rectangle) },
 			{ name: '' },

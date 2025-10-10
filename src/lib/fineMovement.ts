@@ -1,6 +1,10 @@
 import type { KonvaMouseEvent } from 'svelte-konva';
 
-import { rotateRectangle } from '$lib/elements/rectangle';
+import {
+	flipRectangleDimensions,
+	resetRectangleRotation,
+	rotateRectangleDegrees
+} from '$lib/elements/rectangle';
 import { projectStore } from '$stores/projectStore';
 import type { CircleData } from '$types/CircleData';
 import type { LegData } from '$types/LegData';
@@ -54,7 +58,7 @@ export const getSelectedElementInfo = (): string | undefined => {
 		return `Circle ${element.radius}x${element.depth}mm`;
 	} else if ('depth' in element) {
 		// RectangleData
-		return `Rectangle ${element.width}x${element.height}x${element.depth}mm`;
+		return `Rectangle ${element.width}x${element.height}x${element.depth}mm ${element.rotation}°`;
 	} else {
 		// LegData
 		return 'Leg';
@@ -103,7 +107,19 @@ export const finemoveSelectedElement = (direction: FinemoveDirection, multiplier
 	});
 };
 
-export const rotateSelectedRectangle = () => {
+export const flipSelectedRectangleDimensions = () => {
+	if (selectedElements.size !== 1) return;
+
+	const element = selectedElements.values().next().value;
+	if (!element) return;
+
+	// Only flip if it's a rectangle (has width, height, and depth)
+	if ('width' in element && 'height' in element && 'depth' in element) {
+		flipRectangleDimensions(element as RectangleData);
+	}
+};
+
+export const rotateSelectedRectangleDegrees = (delta: number) => {
 	if (selectedElements.size !== 1) return;
 
 	const element = selectedElements.values().next().value;
@@ -111,6 +127,18 @@ export const rotateSelectedRectangle = () => {
 
 	// Only rotate if it's a rectangle (has width, height, and depth)
 	if ('width' in element && 'height' in element && 'depth' in element) {
-		rotateRectangle(element as RectangleData);
+		rotateRectangleDegrees(element as RectangleData, delta);
+	}
+};
+
+export const resetSelectedRectangleRotation = () => {
+	if (selectedElements.size !== 1) return;
+
+	const element = selectedElements.values().next().value;
+	if (!element) return;
+
+	// Only reset rotation if it's a rectangle (has width, height, and depth)
+	if ('width' in element && 'height' in element && 'depth' in element) {
+		resetRectangleRotation(element as RectangleData);
 	}
 };

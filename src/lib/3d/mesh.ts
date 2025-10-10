@@ -167,12 +167,26 @@ const generateMesh = (project: RenderableProject, font: Font): MeshInfoTuple => 
 	}
 
 	const boxFactory = (rectangle: RectangleData, depthOverride?: number | undefined) => {
-		const box = MESH(
-			BOX(rectangle.width, rectangle.height, depthOverride ?? rectangle.depth + ROUND_CORRECTION)
-		);
-		box.position.x += rectangle.x + rectangle.width / 2 - panel.width / 2;
-		box.position.y -= rectangle.y + rectangle.height / 2 - panel.height / 2;
+		const width = rectangle.width;
+		const height = rectangle.height;
+		const depth = depthOverride ?? rectangle.depth + ROUND_CORRECTION;
+
+		// Create geometry and translate to make top-left corner the pivot point
+		const geometry = BOX(width, height, depth);
+		geometry.translate(width / 2, -height / 2, 0);
+
+		const box = MESH(geometry);
+
+		// Position at top-left corner in world space
+		box.position.x += rectangle.x - panel.width / 2;
+		box.position.y -= rectangle.y - panel.height / 2;
 		box.position.z += BOTTOM_THICKNESS + (componentHeigh - (depthOverride ?? rectangle.depth));
+
+		// Apply rotation around top-left corner
+		if (rectangle.rotation) {
+			box.rotateZ((-rectangle.rotation * Math.PI) / 180);
+		}
+
 		box.updateMatrixWorld();
 		return box;
 	};

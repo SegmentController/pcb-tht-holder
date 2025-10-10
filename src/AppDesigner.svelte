@@ -18,6 +18,7 @@
 	} from 'svelte-konva';
 
 	import ContextMenu from '$components/base/ContextMenu.svelte';
+	import HoverInfo from '$components/base/HoverInfo.svelte';
 	import ZoomRange from '$components/base/input/ZoomRange.svelte';
 	import DesignerCrosshair from '$components/DesignerCrosshair.svelte';
 	import DesignerGrid from '$components/DesignerGrid.svelte';
@@ -36,7 +37,11 @@
 		modifyRectangle,
 		updateRectangleChanges
 	} from '$lib/elements/rectangle';
-	import { deselectElementByMouseLeave, selectElementByMouseEnter } from '$lib/fineMovement';
+	import {
+		deselectElementByMouseLeave,
+		getSelectedElementInfo,
+		selectElementByMouseEnter
+	} from '$lib/fineMovement';
 	import {
 		cleanupMeasurement,
 		empytMeasurementInfo,
@@ -87,6 +92,46 @@
 	};
 
 	let contextMenu: ContextMenu | undefined = $state();
+	let hoverInfo: HoverInfo | undefined = $state();
+
+	const handleMouseEnter = (
+		event: KonvaMouseEvent,
+		element: CircleData | RectangleData | LegData
+	) => {
+		selectElementByMouseEnter(event, element, mode === 'measure');
+
+		if (mode === 'pointer') {
+			const elementInfo = getSelectedElementInfo();
+			if (elementInfo) {
+				const OFFSET_X = 20;
+				const OFFSET_Y = 20;
+				const instructions = [
+					'Mouse: free move',
+					'Arrow keys: finemove (0.1mm)',
+					'SHIFT + arrows: move (0.5mm)'
+				];
+				if ('width' in element && 'height' in element && 'depth' in element)
+					instructions.push('F: rotate 90°');
+				instructions.push('Right click: context menu');
+
+				hoverInfo?.show(
+					event.evt.pageX + OFFSET_X,
+					event.evt.pageY + OFFSET_Y,
+					elementInfo,
+					instructions.join('\n')
+				);
+			}
+		}
+	};
+
+	const handleMouseLeave = (
+		event: KonvaMouseEvent,
+		element: CircleData | RectangleData | LegData
+	) => {
+		deselectElementByMouseLeave(event, element, mode === 'measure');
+		hoverInfo?.hide();
+	};
+
 	const stageClick = (event: KonvaMouseEvent) => {
 		if (event.evt.button === 2 && mode === 'pointer') {
 			const id = event.target.id();
@@ -163,8 +208,8 @@
 						}}
 						ondragend={() => updateCircleChanges()}
 						ondragmove={(event) => limitCircle(event, circle)}
-						onmouseenter={(event) => selectElementByMouseEnter(event, circle, mode === 'measure')}
-						onmouseleave={(event) => deselectElementByMouseLeave(event, circle, mode === 'measure')}
+						onmouseenter={(event) => handleMouseEnter(event, circle)}
+						onmouseleave={(event) => handleMouseLeave(event, circle)}
 						opacity={0.75}
 						radius={circle.radius}
 						bind:x={circle.x}
@@ -182,10 +227,8 @@
 						}}
 						ondragend={() => updateRectangleChanges()}
 						ondragmove={(event) => limitBox(event, rectangle)}
-						onmouseenter={(event) =>
-							selectElementByMouseEnter(event, rectangle, mode === 'measure')}
-						onmouseleave={(event) =>
-							deselectElementByMouseLeave(event, rectangle, mode === 'measure')}
+						onmouseenter={(event) => handleMouseEnter(event, rectangle)}
+						onmouseleave={(event) => handleMouseLeave(event, rectangle)}
 						opacity={0.75}
 						width={rectangle.width}
 						bind:x={rectangle.x}
@@ -203,8 +246,8 @@
 						}}
 						ondragend={() => updateLegChanges()}
 						ondragmove={(event) => limitBox(event, leg)}
-						onmouseenter={(event) => selectElementByMouseEnter(event, leg, mode === 'measure')}
-						onmouseleave={(event) => deselectElementByMouseLeave(event, leg, mode === 'measure')}
+						onmouseenter={(event) => handleMouseEnter(event, leg)}
+						onmouseleave={(event) => handleMouseLeave(event, leg)}
 						opacity={0.75}
 						width={leg.width}
 						bind:x={leg.x}
@@ -249,5 +292,6 @@
 			</Layer>
 		</Stage>
 		<ContextMenu bind:this={contextMenu} />
+		<HoverInfo bind:this={hoverInfo} />
 	</div>
 {/if}

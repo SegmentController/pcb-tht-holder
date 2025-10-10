@@ -40,7 +40,7 @@
 	import { addNewCircle } from '$lib/elements/circle';
 	import { addCornerLegs, addNewLeg, deleteAllLegsWithConfirm } from '$lib/elements/leg';
 	import { addNewRectangle } from '$lib/elements/rectangle';
-	import { finemoveSelectedElement } from '$lib/fineMovement';
+	import { finemoveSelectedElement, rotateSelectedRectangle } from '$lib/fineMovement';
 	import { shortcut } from '$lib/shortcut';
 	import { getLibraryStoreValue } from '$stores/libraryStore';
 	import {
@@ -207,6 +207,40 @@
 			{
 				key: 'ArrowDown',
 				callback: () => finemoveSelectedElement('down'),
+				preventDefault: true
+			},
+			{
+				key: 'ArrowLeft',
+				modifier: ['shift'],
+				callback: () => finemoveSelectedElement('left', 5),
+				preventDefault: true
+			},
+			{
+				key: 'ArrowRight',
+				modifier: ['shift'],
+				callback: () => finemoveSelectedElement('right', 5),
+				preventDefault: true
+			},
+			{
+				key: 'ArrowUp',
+				modifier: ['shift'],
+				callback: () => finemoveSelectedElement('up', 5),
+				preventDefault: true
+			},
+			{
+				key: 'ArrowDown',
+				modifier: ['shift'],
+				callback: () => finemoveSelectedElement('down', 5),
+				preventDefault: true
+			},
+			{
+				key: 'f',
+				callback: () => rotateSelectedRectangle(),
+				preventDefault: true
+			},
+			{
+				key: 'F',
+				callback: () => rotateSelectedRectangle(),
 				preventDefault: true
 			}
 		]

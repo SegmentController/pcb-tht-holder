@@ -97,7 +97,7 @@ export const getContextMenuItemForRectangle = (id: string): ContextMenuItem[] | 
 				name: 'Properties...',
 				onClick: () => modifyRectangle(rectangle)
 			},
-			{ name: 'Rotate', onClick: () => rotateRectangle(rectangle) },
+			{ name: 'Rotate 90°', onClick: () => rotateRectangle(rectangle) },
 			{ name: 'Duplicate', onClick: () => duplicateRectangle(rectangle) },
 			{ name: 'Add to library...', onClick: () => addRectangleToLibrary(rectangle) },
 			{ name: '' },

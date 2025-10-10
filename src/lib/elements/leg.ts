@@ -46,12 +46,13 @@ export const deleteLegWithConfirm = async (leg: LegData) => {
 	if (!confirmed) return;
 
 	const project = getProjectStoreValue();
-	project.legs = project.legs.filter((l) => l != leg);
+	project.legs = project.legs.filter((l) => l !== leg);
 	updateLegChanges(project.legs);
 
 	addUndo('Delete leg', () => {
-		project.legs.push(leg);
-		updateLegChanges(project.legs);
+		const currentProject = getProjectStoreValue();
+		currentProject.legs.push(leg);
+		updateLegChanges(currentProject.legs);
 	});
 };
 export const deleteAllLegsWithConfirm = async () => {
@@ -59,13 +60,14 @@ export const deleteAllLegsWithConfirm = async () => {
 	if (!confirmed) return;
 
 	const project = getProjectStoreValue();
-	const legs = project.legs;
+	const legsBackup = [...project.legs];
 	project.legs = [];
 	updateLegChanges(project.legs);
 
 	addUndo('Delete all legs', () => {
-		project.legs.push(...legs);
-		updateLegChanges(project.legs);
+		const currentProject = getProjectStoreValue();
+		currentProject.legs.push(...legsBackup);
+		updateLegChanges(currentProject.legs);
 	});
 };
 export const updateLegChanges = (legs?: LegData[]) =>
@@ -83,9 +85,7 @@ export const getContextMenuItemForLeg = (id: string): ContextMenuItem[] | undefi
 			{ name: 'Leg' },
 			{
 				name: 'Delete',
-				onClick: async () => {
-					await deleteLegWithConfirm(leg);
-				}
+				onClick: async () => await deleteLegWithConfirm(leg)
 			}
 		];
 };

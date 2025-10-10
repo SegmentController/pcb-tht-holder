@@ -1,5 +1,19 @@
 # Change log
 
+## [1.9.1] - 2025-10-10
+
+### Fixed
+
+- Three.js memory leak when closing 3D mesh modal (proper disposal of BufferGeometry and Material)
+
+### Removed
+
+- Unused `ieee754` dependency
+
+### Changed
+
+- Code cleanup: removed unnecessary brackets from single-line statements in TypeScript files
+
 ## [1.9.0] - 2025-06-29
 
 ### Fix

@@ -3,7 +3,7 @@ import { TextGeometry } from 'three/addons/geometries/TextGeometry.js';
 import { Font, FontLoader } from 'three/addons/loaders/FontLoader.js';
 import { ADDITION, Brush, Evaluator, SUBTRACTION } from 'three-bvh-csg';
 
-import { MathMax, MathMinMax } from '$lib/Math';
+import { MathMinMax } from '$lib/Math';
 import type { CircleData } from '$types/CircleData';
 import type { MeshInfoTuple } from '$types/MeshInfo';
 import type { RenderableProject } from '$types/Project';
@@ -16,6 +16,22 @@ const TEXT_THICKNESS = 1;
 const ROUND_CORRECTION = 1;
 /*global __BASE_URL__*/
 const BASE_URL = __BASE_URL__;
+
+let cachedFont: Font | undefined;
+const loadFont = (): Promise<Font> => {
+	if (cachedFont) return Promise.resolve(cachedFont);
+	return new Promise((resolve, reject) => {
+		new FontLoader().load(
+			BASE_URL + '/roboto_regular.json',
+			(font: Font) => {
+				cachedFont = font;
+				resolve(font);
+			},
+			undefined,
+			reject
+		);
+	});
+};
 
 const CYLINDER = (radius: number, height: number) =>
 	new CylinderGeometry(radius, radius, height, MathMinMax(radius * 8, 16, 48));
@@ -83,11 +99,16 @@ const generateMesh = (project: RenderableProject, font: Font): MeshInfoTuple => 
 	// Constant helper values
 	const panel = project.panelSettings;
 	const emptyHeight = panel.pcbThickness + panel.smdHeight;
-	const componentHeigh = MathMax([
-		panel.smdHeight,
-		...project.rectangles.map((r) => r.depth),
-		...project.circles.map((c) => c.depth)
-	]);
+
+	// Calculate max component height in single pass (avoid intermediate arrays)
+	let componentHeigh = panel.smdHeight;
+	for (const rectangle of project.rectangles) {
+		if (rectangle.depth > componentHeigh) componentHeigh = rectangle.depth;
+	}
+	for (const circle of project.circles) {
+		if (circle.depth > componentHeigh) componentHeigh = circle.depth;
+	}
+
 	const needHeight = panel.pcbThickness + componentHeigh;
 
 	const hollowHeight = panel.pcbThickness + panel.smdHeight;
@@ -225,13 +246,11 @@ const generateMesh = (project: RenderableProject, font: Font): MeshInfoTuple => 
 	};
 };
 
-export const generateMeshLazy = async (project: RenderableProject): Promise<MeshInfoTuple> =>
-	new Promise((resolve, reject) =>
-		new FontLoader().load(BASE_URL + '/roboto_regular.json', (font: Font) => {
-			try {
-				resolve(generateMesh(project, font));
-			} catch (error) {
-				reject(error instanceof Error ? error.message : error);
-			}
-		})
-	);
+export const generateMeshLazy = async (project: RenderableProject): Promise<MeshInfoTuple> => {
+	try {
+		const font = await loadFont();
+		return generateMesh(project, font);
+	} catch (error) {
+		throw error instanceof Error ? error.message : error;
+	}
+};

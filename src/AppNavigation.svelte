@@ -287,7 +287,7 @@
 							<Icon class="inline-flex" icon="mdi:chevron-right" />
 						</DropdownItem>
 						<Dropdown class="w-auto min-w-44 z-20" placement="right-start" trigger="hover">
-							{#each getLibraryStoreValue().sort( (a, b) => a.name.localeCompare(b.name) ) as libraryItem}
+							{#each getLibraryStoreValue().toSorted( (a, b) => a.name.localeCompare(b.name) ) as libraryItem}
 								<DropdownItem onclick={() => addItemFromLibrary(libraryItem)}
 									>{libraryItem.name} ({libraryItem.type})</DropdownItem
 								>

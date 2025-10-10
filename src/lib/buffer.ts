@@ -1,32 +1,17 @@
-import ieee754 from 'ieee754';
-
 export const writeInt16LE = (buffer: Uint8Array, value: number, offset: number) => {
-	value = +value;
-	offset = offset >>> 0;
-
-	buffer[offset] = value & 255; // 0xff
-	buffer[offset + 1] = value >>> 8;
-
+	const view = new DataView(buffer.buffer);
+	view.setInt16(offset, value, true);
 	return offset + 2;
 };
 
 export const writeInt32LE = (buffer: Uint8Array, value: number, offset: number) => {
-	value = +value;
-	offset = offset >>> 0;
-
-	buffer[offset] = value & 255; // 0xff
-	buffer[offset + 1] = value >>> 8;
-	buffer[offset + 2] = value >>> 16;
-	buffer[offset + 3] = value >>> 24;
-
+	const view = new DataView(buffer.buffer);
+	view.setInt32(offset, value, true);
 	return offset + 4;
 };
 
 export const writeFloatLE = (buffer: Uint8Array, value: number, offset: number) => {
-	value = +value;
-	offset = offset >>> 0;
-
-	ieee754.write(buffer, value, offset, true, 23, 4);
-
+	const view = new DataView(buffer.buffer);
+	view.setFloat32(offset, value, true);
 	return offset + 4;
 };

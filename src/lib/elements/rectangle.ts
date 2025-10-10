@@ -72,10 +72,11 @@ export const modifyRectangle = async (rectangle: RectangleData) => {
 };
 export const deleteRectangle = (rectangle: RectangleData) => {
 	const project = getProjectStoreValue();
-	project.rectangles = project.rectangles.filter((r) => r != rectangle);
+	project.rectangles = project.rectangles.filter((r) => r !== rectangle);
 	updateRectangleChanges();
 	addUndo('Delete rectangle', () => {
-		project.rectangles.push(rectangle);
+		const currentProject = getProjectStoreValue();
+		currentProject.rectangles.push(rectangle);
 		updateRectangleChanges();
 	});
 };

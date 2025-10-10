@@ -16,6 +16,10 @@
 
 	const generateInterval = (length: number, step = 1) =>
 		Array.from({ length: length / step }, (_, y) => step * y);
+
+	// Memoize grid calculations to prevent regeneration on every render
+	const horizontalLines = $derived(generateInterval(height, GRIDSIZE_MM));
+	const verticalLines = $derived(generateInterval(width, GRIDSIZE_MM));
 </script>
 
 {#snippet line(points: number[])}
@@ -31,9 +35,9 @@
 	{/each}
 {/snippet}
 
-{#each generateInterval(height, GRIDSIZE_MM) as y}
+{#each horizontalLines as y}
 	{@render line([0, y, width, y])}
-	{#each generateInterval(width, GRIDSIZE_MM) as x}
+	{#each verticalLines as x}
 		{@render line([x, 0, x, height])}
 	{/each}
 {/each}

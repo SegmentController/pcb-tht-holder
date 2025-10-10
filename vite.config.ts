@@ -10,7 +10,7 @@ import package_ from './package.json';
 export default defineConfig({
 	plugins: [svelte(), tailwindcss()],
 	build: {
-		target: 'modules',
+		target: 'esnext',
 		sourcemap: false,
 		minify: true,
 		cssMinify: true,

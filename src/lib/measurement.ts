@@ -16,7 +16,9 @@ export const empytMeasurementInfo: MeasurementInfo = {
 	text: ''
 };
 
-export const stageMouseMove = (
+let rafId: number | undefined;
+
+const updateMeasurement = (
 	event: KonvaMouseEvent,
 	isMeasurementMode: boolean,
 	info: Writable<MeasurementInfo>,
@@ -27,9 +29,7 @@ export const stageMouseMove = (
 	if (eventContainer)
 		if (isMeasurementMode) {
 			if (eventContainer.style.cursor !== 'crosshair') eventContainer.style.cursor = 'crosshair';
-		} else {
-			if (eventContainer.style.cursor === 'crosshair') eventContainer.style.cursor = 'default';
-		}
+		} else if (eventContainer.style.cursor === 'crosshair') eventContainer.style.cursor = 'default';
 
 	if (isMeasurementMode)
 		info.update((previous) => {
@@ -60,6 +60,22 @@ export const stageMouseMove = (
 		});
 };
 
+export const stageMouseMove = (
+	event: KonvaMouseEvent,
+	isMeasurementMode: boolean,
+	info: Writable<MeasurementInfo>,
+	scaleX: number,
+	scaleY: number
+) => {
+	if (rafId !== undefined) {
+		cancelAnimationFrame(rafId);
+	}
+	rafId = requestAnimationFrame(() => {
+		updateMeasurement(event, isMeasurementMode, info, scaleX, scaleY);
+		rafId = undefined;
+	});
+};
+
 export const stageMeasureModeMouseDown = (
 	event: KonvaMouseEvent,
 	info: Writable<MeasurementInfo>,
@@ -84,4 +100,11 @@ export const stageMeasureModeMouseUp = (
 		previous.visible = false;
 		return previous;
 	});
+};
+
+export const cleanupMeasurement = () => {
+	if (rafId !== undefined) {
+		cancelAnimationFrame(rafId);
+		rafId = undefined;
+	}
 };

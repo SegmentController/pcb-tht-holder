@@ -3,6 +3,7 @@
 </script>
 
 <script lang="ts">
+	import { onDestroy } from 'svelte';
 	import { type Writable, writable } from 'svelte/store';
 	import {
 		Circle,
@@ -37,6 +38,7 @@
 	} from '$lib/elements/rectangle';
 	import { deselectElementByMouseLeave, selectElementByMouseEnter } from '$lib/fineMovement';
 	import {
+		cleanupMeasurement,
 		empytMeasurementInfo,
 		type MeasurementInfo,
 		stageMeasureModeMouseDown,
@@ -105,14 +107,24 @@
 	};
 
 	const measurementInfo: Writable<MeasurementInfo> = writable(empytMeasurementInfo);
+
+	const getStageScaleX = $derived(
+		imageSize
+			? (imageSize.width / $projectStore.panelSettings.width) * ($projectStore.zoom / 100)
+			: 1
+	);
+	const getStageScaleY = $derived(
+		imageSize
+			? (imageSize.height / $projectStore.panelSettings.height) * ($projectStore.zoom / 100)
+			: 1
+	);
+
+	onDestroy(() => {
+		cleanupMeasurement();
+	});
 </script>
 
 {#if imageSize}
-	{@const getStageScaleX =
-		(imageSize.width / $projectStore.panelSettings.width) * ($projectStore.zoom / 100)}
-	{@const getStageScaleY =
-		(imageSize.height / $projectStore.panelSettings.height) * ($projectStore.zoom / 100)}
-
 	<div class="flex justify-center mb-2">
 		<ZoomRange class="w-2/5" max={300} min={10} step={10} bind:value={$projectStore.zoom} />
 	</div>

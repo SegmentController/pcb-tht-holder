@@ -17,6 +17,7 @@
 		if (min && value < min) value = min;
 		if (max && value > max) value = max;
 	}}
+	type="number"
 	bind:value
 />
 <Tooltip placement="bottom-end" type="light">{min} - {max}</Tooltip>

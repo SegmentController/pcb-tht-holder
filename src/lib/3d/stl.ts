@@ -11,9 +11,7 @@ export const generateStlFromVertices = (vertices: Float32Array): string[] => {
 		while (index < vertices.length) {
 			lines.push('facet normal 0 0 0', '    outer loop');
 			for (let pointIndex = 0; pointIndex < 3; pointIndex++)
-				lines.push(
-					`        vertex ${vertices.at(index++)} ${vertices.at(index++)} ${vertices.at(index++)}`
-				);
+				lines.push(`        vertex ${vertices[index++]} ${vertices[index++]} ${vertices[index++]}`);
 			lines.push('    endloop', 'endfacet');
 		}
 	}
@@ -33,7 +31,7 @@ export const generateBinaryStlFromVertices = (vertices: Float32Array): Uint8Arra
 		while (index < vertices.length) {
 			for (let pointIndex = 0; pointIndex < 3; pointIndex++) pos = writeFloatLE(buffer, 0, pos);
 			for (let pointIndex = 0; pointIndex < 9; pointIndex++)
-				pos = writeFloatLE(buffer, vertices.at(index++)!, pos);
+				pos = writeFloatLE(buffer, vertices[index++]!, pos);
 			pos = writeInt16LE(buffer, 0, pos);
 		}
 	}

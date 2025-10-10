@@ -17,6 +17,22 @@ const ROUND_CORRECTION = 1;
 /*global __BASE_URL__*/
 const BASE_URL = __BASE_URL__;
 
+let cachedFont: Font | undefined;
+const loadFont = (): Promise<Font> => {
+	if (cachedFont) return Promise.resolve(cachedFont);
+	return new Promise((resolve, reject) => {
+		new FontLoader().load(
+			BASE_URL + '/roboto_regular.json',
+			(font: Font) => {
+				cachedFont = font;
+				resolve(font);
+			},
+			undefined,
+			reject
+		);
+	});
+};
+
 const CYLINDER = (radius: number, height: number) =>
 	new CylinderGeometry(radius, radius, height, MathMinMax(radius * 8, 16, 48));
 
@@ -225,13 +241,11 @@ const generateMesh = (project: RenderableProject, font: Font): MeshInfoTuple => 
 	};
 };
 
-export const generateMeshLazy = async (project: RenderableProject): Promise<MeshInfoTuple> =>
-	new Promise((resolve, reject) =>
-		new FontLoader().load(BASE_URL + '/roboto_regular.json', (font: Font) => {
-			try {
-				resolve(generateMesh(project, font));
-			} catch (error) {
-				reject(error instanceof Error ? error.message : error);
-			}
-		})
-	);
+export const generateMeshLazy = async (project: RenderableProject): Promise<MeshInfoTuple> => {
+	try {
+		const font = await loadFont();
+		return generateMesh(project, font);
+	} catch (error) {
+		throw error instanceof Error ? error.message : error;
+	}
+};

@@ -53,7 +53,6 @@
 		"dayjs": "^1.11.13",
 		"flowbite": "^3.1.2",
 		"flowbite-svelte": "^1.8.2",
-		"ieee754": "^1.2.1",
 		"konva": "^9.3.20",
 		"nanoid": "^5.1.5",
 		"svelte": "^5.34.9",

@@ -58,10 +58,11 @@ export const modifyCircle = async (circle: CircleData) => {
 };
 export const deleteCircle = (circle: CircleData) => {
 	const project = getProjectStoreValue();
-	project.circles = project.circles.filter((c) => c != circle);
+	project.circles = project.circles.filter((c) => c !== circle);
 	updateCircleChanges();
+	const projectForUndo = getProjectStoreValue();
 	addUndo('Delete circle', () => {
-		project.circles.push(circle);
+		projectForUndo.circles.push(circle);
 		updateCircleChanges();
 	});
 };

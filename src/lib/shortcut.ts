@@ -36,11 +36,25 @@ export type ShortcutAction = Action<HTMLElement, ShortcutParameter, ShortcutAttr
 
 export type ShortcutActionReturn = ActionReturn<ShortcutParameter, ShortcutAttributes>;
 
+type NormalizedTrigger = Omit<ShortcutTrigger, 'modifier'> & {
+	modifierDefs: ShortcutModifier[][];
+};
+
+const normalizeTrigger = (trigger: ShortcutTrigger): NormalizedTrigger => {
+	const { modifier = [], ...rest } = trigger;
+	const modifierDefs = (Array.isArray(modifier) ? modifier : [modifier]).map((deferred) =>
+		typeof deferred === 'string' ? [deferred] : deferred
+	);
+	return { ...rest, modifierDefs };
+};
+
 export function shortcut(node: HTMLElement, parameter: ShortcutParameter) {
 	let { enabled = true, trigger, type = 'keydown' } = parameter;
+	let normalizedTriggers = (Array.isArray(trigger) ? trigger : [trigger]).map((t) =>
+		normalizeTrigger(t)
+	);
 
 	function handler(event: KeyboardEvent) {
-		const normalizedTriggers = Array.isArray(trigger) ? trigger : [trigger];
 		/** @type {Record<import('./public').ShortcutModifier, boolean>} */
 		const modifiedMap = {
 			alt: event.altKey,
@@ -48,19 +62,16 @@ export function shortcut(node: HTMLElement, parameter: ShortcutParameter) {
 			shift: event.shiftKey,
 			meta: event.metaKey
 		};
-		for (const trigger of normalizedTriggers) {
-			const mergedTrigger = {
-				modifier: [],
-				preventDefault: false,
-				enabled: true,
-				...trigger
-			};
-			const { modifier, key, callback, preventDefault, enabled: triggerEnabled } = mergedTrigger;
+		for (const normalizedTrigger of normalizedTriggers) {
+			const {
+				modifierDefs,
+				key,
+				callback,
+				preventDefault = false,
+				enabled: triggerEnabled = true
+			} = normalizedTrigger;
 			if (triggerEnabled) {
-				if (modifier.length > 0) {
-					const modifierDefs = (Array.isArray(modifier) ? modifier : [modifier]).map((deferred) =>
-						typeof deferred === 'string' ? [deferred] : deferred
-					);
+				if (modifierDefs.length > 0) {
 					const modified = modifierDefs.some((deferred) =>
 						deferred.every((modifier) => modifiedMap[modifier])
 					);
@@ -71,7 +82,7 @@ export function shortcut(node: HTMLElement, parameter: ShortcutParameter) {
 					/** @type {import('./public').ShortcutEventDetail} */
 					const detail = {
 						node,
-						trigger: mergedTrigger,
+						trigger: normalizedTrigger as ShortcutTrigger,
 						originalEvent: event
 					};
 					node.dispatchEvent(new CustomEvent('shortcut', { detail }));
@@ -96,6 +107,9 @@ export function shortcut(node: HTMLElement, parameter: ShortcutParameter) {
 			enabled = currentEnabled;
 			type = currentType;
 			trigger = update.trigger;
+			normalizedTriggers = (Array.isArray(trigger) ? trigger : [trigger]).map((t) =>
+				normalizeTrigger(t)
+			);
 		},
 		destroy: () => {
 			node.removeEventListener(type, handler);

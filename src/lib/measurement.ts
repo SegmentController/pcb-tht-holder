@@ -16,7 +16,9 @@ export const empytMeasurementInfo: MeasurementInfo = {
 	text: ''
 };
 
-export const stageMouseMove = (
+let rafId: number | undefined;
+
+const updateMeasurement = (
 	event: KonvaMouseEvent,
 	isMeasurementMode: boolean,
 	info: Writable<MeasurementInfo>,
@@ -58,6 +60,22 @@ export const stageMouseMove = (
 			previous.text = `${distance.toFixed(1)} mm [${degrees}°]`;
 			return previous;
 		});
+};
+
+export const stageMouseMove = (
+	event: KonvaMouseEvent,
+	isMeasurementMode: boolean,
+	info: Writable<MeasurementInfo>,
+	scaleX: number,
+	scaleY: number
+) => {
+	if (rafId !== undefined) {
+		cancelAnimationFrame(rafId);
+	}
+	rafId = requestAnimationFrame(() => {
+		updateMeasurement(event, isMeasurementMode, info, scaleX, scaleY);
+		rafId = undefined;
+	});
 };
 
 export const stageMeasureModeMouseDown = (

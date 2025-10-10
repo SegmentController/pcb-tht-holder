@@ -9,7 +9,7 @@ type GenericElement = CircleData | RectangleData | LegData;
 
 export type FinemoveDirection = 'left' | 'up' | 'right' | 'down';
 
-const selectedElements: GenericElement[] = [];
+const selectedElements = new Set<GenericElement>();
 
 const getModeBasedCursor = (
 	isMeasurementMode: boolean,
@@ -29,7 +29,7 @@ export const selectElementByMouseEnter = (
 	element: GenericElement,
 	isMeasurementMode: boolean
 ) => {
-	selectedElements.push(element);
+	selectedElements.add(element);
 	setStageCursor(event, getModeBasedCursor(isMeasurementMode, true));
 };
 
@@ -38,32 +38,31 @@ export const deselectElementByMouseLeave = (
 	element: GenericElement,
 	isMeasurementMode: boolean
 ) => {
-	let index = selectedElements.findIndex((elementItem) => elementItem == element);
-	while (index >= 0) {
-		selectedElements.splice(index, 1);
-		index = selectedElements.findIndex((elementItem) => elementItem == element);
-	}
+	selectedElements.delete(element);
 	setStageCursor(event, getModeBasedCursor(isMeasurementMode, false));
 };
 
 export const finemoveSelectedElement = (direction: FinemoveDirection) => {
-	if (selectedElements.length != 1) return;
+	if (selectedElements.size !== 1) return;
+
+	const element = selectedElements.values().next().value;
+	if (!element) return;
 
 	switch (direction) {
 		case 'left': {
-			selectedElements[0].x -= 0.1;
+			element.x -= 0.1;
 			break;
 		}
 		case 'right': {
-			selectedElements[0].x += 0.1;
+			element.x += 0.1;
 			break;
 		}
 		case 'up': {
-			selectedElements[0].y -= 0.1;
+			element.y -= 0.1;
 			break;
 		}
 		case 'down': {
-			selectedElements[0].y += 0.1;
+			element.y += 0.1;
 			break;
 		}
 	}

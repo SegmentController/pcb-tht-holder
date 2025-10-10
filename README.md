@@ -19,7 +19,20 @@ I make almost all of my printed circuit boards with online design software and e
 
 In its current state, it facilitates the installation of circular and oblong components. This is sufficient in the following cases: **relays, capacitors, resistors, terminals and pin-headers.** It automatically calculates the required area and volume based on the height of the parts. But it doesn't mean that there aren't any mistakes in it: if you experience anything, I welcome your comments.
 
-## Try yout first PCB to STL
+## Features
+
+- **Component Shapes**: Support for circular and rectangular (with rotation) components
+- **Measurement Tool**: Press `M` to measure distances in 1/10th millimeter precision
+- **Undo/Redo**: Press `Ctrl+Z` to undo component deletions and modifications
+- **Component Library**: Save and reuse your favorite component configurations
+- **Keyboard Shortcuts**: Quick access to common operations
+- **Hollow Option**: Generate top-layer-only coverage for faster printing
+- **Custom Labels**: Print text labels on the side of your holder
+- **Auto Image Resize**: Automatically resizes large images (>1280x1024) for easier handling
+- **PWA Support**: Install as a standalone application on your device
+- **Offline Ready**: Works without internet connection after first load
+
+## Try your first PCB to STL
 
 Click here: https://segmentcontroller.github.io/pcb-tht-holder/
 
@@ -50,3 +63,59 @@ If you want to analyze the location of the components, you can also see how thin
 ### Print it with a 3D printer...
 
 Use a PLA printer to save time and money. Practice shows that it is enough to produce the STL file once, of which 1-3 prints are enough to implant hundreds of PCBs.
+
+## Development
+
+### Tech Stack
+
+- **Framework**: Svelte 5 with TypeScript
+- **Build Tool**: Vite
+- **3D Rendering**: Three.js with @threlte/core
+- **3D Operations**: three-bvh-csg for CSG boolean operations
+- **2D Canvas**: Konva.js for component placement
+- **UI**: Flowbite Svelte with Tailwind CSS 4
+- **State**: svelte-persisted-store for local storage
+
+### Requirements
+
+- Node.js >= 22.0.0
+- npm >= 10.0.0
+
+### Local Development
+
+```bash
+# Install dependencies
+npm install
+
+# Start development server (accessible on network)
+npm run dev
+
+# Run type checking
+npm run ts:check
+
+# Run linting
+npm run lint:check
+
+# Format code
+npm run format:fix
+
+# Build for production
+npm run build
+
+# Run all checks and build
+npm run all
+```
+
+### Project Structure
+
+- `src/` - Source code
+  - `components/` - Svelte components
+  - `lib/` - Utility functions and 3D generation logic
+  - `stores/` - Svelte stores for state management
+  - `types/` - TypeScript type definitions
+- `public/` - Static assets
+- `docs/` - Production build output (GitHub Pages)
+
+### Contributing
+
+See [CHANGELOG.md](CHANGELOG.md) for recent changes and version history.

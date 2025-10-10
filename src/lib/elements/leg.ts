@@ -84,9 +84,7 @@ export const getContextMenuItemForLeg = (id: string): ContextMenuItem[] | undefi
 			{ name: 'Leg' },
 			{
 				name: 'Delete',
-				onClick: async () => {
-					await deleteLegWithConfirm(leg);
-				}
+				onClick: async () => await deleteLegWithConfirm(leg)
 			}
 		];
 };

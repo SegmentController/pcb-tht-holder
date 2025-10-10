@@ -29,9 +29,7 @@ const updateMeasurement = (
 	if (eventContainer)
 		if (isMeasurementMode) {
 			if (eventContainer.style.cursor !== 'crosshair') eventContainer.style.cursor = 'crosshair';
-		} else {
-			if (eventContainer.style.cursor === 'crosshair') eventContainer.style.cursor = 'default';
-		}
+		} else if (eventContainer.style.cursor === 'crosshair') eventContainer.style.cursor = 'default';
 
 	if (isMeasurementMode)
 		info.update((previous) => {

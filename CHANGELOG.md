@@ -1,5 +1,42 @@
 # Change log
 
+## [1.10.0] - 2025-10-11
+
+### Added
+
+- Rectangle rotation feature (0-359 degrees)
+  - R key: rotate +5°
+  - SHIFT+R: reset rotation to 0°
+  - F key: flip dimensions (swap width/height)
+  - Rotation field in rectangle settings modal
+  - Rotation displayed in context menu and hover info
+  - 3D mesh generation with rotation applied
+- Hover info panel for elements
+  - Shows element dimensions and type
+  - Displays available keyboard shortcuts
+  - Positioned to avoid overlapping elements
+- Library support for rotated rectangles
+
+### Changed
+
+- Keyboard shortcuts remapped for consistency
+  - Creation shortcuts: SHIFT+C/R/L → CTRL/CMD+C/R/L (circle/rectangle/leg)
+  - Project settings: SHIFT+P → CTRL+P
+  - SHIFT modifier now reserved for element modifications
+- Fine movement enhanced: SHIFT+arrow keys move 5x faster (0.5mm vs 0.1mm)
+
+### Fixed
+
+- Rectangle rotation implementation
+  - Restored top-left origin for rectangles (removed offsetX/offsetY)
+  - Fixed 3D mesh rotation direction to match 2D canvas
+  - Fixed 3D mesh rotation pivot point (now uses top-left corner)
+  - Backward compatibility with saved projects maintained
+- Boundary limiting bugs
+  - Fixed rectangle boundary check using actual dimensions instead of LEG_SIZE
+  - Added rotation-aware boundary checking (calculates axis-aligned bounding box)
+  - Rectangles and legs now properly constrained on all edges
+
 ## [1.9.1] - 2025-10-10
 
 ### Fixed

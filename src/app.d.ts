@@ -8,5 +8,3 @@ declare global {
 	declare const __PKG_VERSION__: string;
 	declare const __BASE_URL__: string;
 }
-
-export {};

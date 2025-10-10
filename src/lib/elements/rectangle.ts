@@ -74,9 +74,9 @@ export const deleteRectangle = (rectangle: RectangleData) => {
 	const project = getProjectStoreValue();
 	project.rectangles = project.rectangles.filter((r) => r !== rectangle);
 	updateRectangleChanges();
-	const projectForUndo = getProjectStoreValue();
 	addUndo('Delete rectangle', () => {
-		projectForUndo.rectangles.push(rectangle);
+		const currentProject = getProjectStoreValue();
+		currentProject.rectangles.push(rectangle);
 		updateRectangleChanges();
 	});
 };

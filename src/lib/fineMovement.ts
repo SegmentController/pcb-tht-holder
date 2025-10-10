@@ -48,23 +48,38 @@ export const finemoveSelectedElement = (direction: FinemoveDirection) => {
 	const element = selectedElements.values().next().value;
 	if (!element) return;
 
+	const delta = 0.1;
 	switch (direction) {
 		case 'left': {
-			element.x -= 0.1;
+			element.x -= delta;
 			break;
 		}
 		case 'right': {
-			element.x += 0.1;
+			element.x += delta;
 			break;
 		}
 		case 'up': {
-			element.y -= 0.1;
+			element.y -= delta;
 			break;
 		}
 		case 'down': {
-			element.y += 0.1;
+			element.y += delta;
 			break;
 		}
 	}
-	projectStore.update((v) => v);
+
+	// Trigger reactivity by reassigning only the specific array
+	projectStore.update((v) => {
+		if ('radius' in element) {
+			// CircleData has radius property
+			v.circles = [...v.circles];
+		} else if ('width' in element && 'depth' in element) {
+			// RectangleData has width and depth properties
+			v.rectangles = [...v.rectangles];
+		} else {
+			// LegData
+			v.legs = [...v.legs];
+		}
+		return v;
+	});
 };

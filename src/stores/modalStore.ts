@@ -47,7 +47,7 @@ export const showModalProjectSettings = async (
 		.push({
 			component: ModalProjectSettings,
 			props: {
-				panelSettings: structuredClone(panelSettings),
+				panelSettings: { ...panelSettings },
 				name,
 				label
 			}
@@ -75,7 +75,7 @@ export const showModalCircleSettings = async (
 		.push({
 			component: ModalCircleSettings,
 			props: {
-				settings: structuredClone(settings)
+				settings: { ...settings }
 			}
 		})
 		.resolve();
@@ -87,7 +87,7 @@ export const showModalRectangleSettings = async (
 		.push({
 			component: ModalRectangleSettings,
 			props: {
-				settings: structuredClone(settings)
+				settings: { ...settings }
 			}
 		})
 		.resolve();

@@ -60,9 +60,9 @@ export const deleteCircle = (circle: CircleData) => {
 	const project = getProjectStoreValue();
 	project.circles = project.circles.filter((c) => c !== circle);
 	updateCircleChanges();
-	const projectForUndo = getProjectStoreValue();
 	addUndo('Delete circle', () => {
-		projectForUndo.circles.push(circle);
+		const currentProject = getProjectStoreValue();
+		currentProject.circles.push(circle);
 		updateCircleChanges();
 	});
 };

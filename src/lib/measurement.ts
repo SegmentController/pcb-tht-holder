@@ -101,3 +101,10 @@ export const stageMeasureModeMouseUp = (
 		return previous;
 	});
 };
+
+export const cleanupMeasurement = () => {
+	if (rafId !== undefined) {
+		cancelAnimationFrame(rafId);
+		rafId = undefined;
+	}
+};

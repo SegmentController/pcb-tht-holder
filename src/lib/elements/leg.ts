@@ -49,10 +49,10 @@ export const deleteLegWithConfirm = async (leg: LegData) => {
 	project.legs = project.legs.filter((l) => l !== leg);
 	updateLegChanges(project.legs);
 
-	const projectForUndo = getProjectStoreValue();
 	addUndo('Delete leg', () => {
-		projectForUndo.legs.push(leg);
-		updateLegChanges(projectForUndo.legs);
+		const currentProject = getProjectStoreValue();
+		currentProject.legs.push(leg);
+		updateLegChanges(currentProject.legs);
 	});
 };
 export const deleteAllLegsWithConfirm = async () => {
@@ -60,13 +60,14 @@ export const deleteAllLegsWithConfirm = async () => {
 	if (!confirmed) return;
 
 	const project = getProjectStoreValue();
-	const legs = project.legs;
+	const legsBackup = [...project.legs];
 	project.legs = [];
 	updateLegChanges(project.legs);
 
 	addUndo('Delete all legs', () => {
-		project.legs.push(...legs);
-		updateLegChanges(project.legs);
+		const currentProject = getProjectStoreValue();
+		currentProject.legs.push(...legsBackup);
+		updateLegChanges(currentProject.legs);
 	});
 };
 export const updateLegChanges = (legs?: LegData[]) =>

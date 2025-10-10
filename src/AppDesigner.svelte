@@ -18,6 +18,7 @@
 	} from 'svelte-konva';
 
 	import ContextMenu from '$components/base/ContextMenu.svelte';
+	import HoverInfo from '$components/base/HoverInfo.svelte';
 	import ZoomRange from '$components/base/input/ZoomRange.svelte';
 	import DesignerCrosshair from '$components/DesignerCrosshair.svelte';
 	import DesignerGrid from '$components/DesignerGrid.svelte';
@@ -36,7 +37,11 @@
 		modifyRectangle,
 		updateRectangleChanges
 	} from '$lib/elements/rectangle';
-	import { deselectElementByMouseLeave, selectElementByMouseEnter } from '$lib/fineMovement';
+	import {
+		deselectElementByMouseLeave,
+		getSelectedElementInfo,
+		selectElementByMouseEnter
+	} from '$lib/fineMovement';
 	import {
 		cleanupMeasurement,
 		empytMeasurementInfo,
@@ -48,7 +53,7 @@
 	import { projectStore } from '$stores/projectStore';
 	import type { CircleData } from '$types/CircleData';
 	import type { ImageSize } from '$types/ImageSize';
-	import { LEG_SIZE, type LegData } from '$types/LegData';
+	import { type LegData } from '$types/LegData';
 	import type { RectangleData } from '$types/RectangleData';
 
 	interface Properties {
@@ -65,13 +70,54 @@
 
 	const limitBox = (event: KonvaDragTransformEvent, box: RectangleData | LegData) => {
 		const target = event.target;
-		const maxX = $projectStore.panelSettings.width - ('sizeX' in box ? box.width : LEG_SIZE);
-		const maxY = $projectStore.panelSettings.height - ('sizeY' in box ? box.height : LEG_SIZE);
 
-		if (target.x() < 0) target.x(0);
-		if (target.x() > maxX) target.x(maxX);
-		if (target.y() < 0) target.y(0);
-		if (target.y() > maxY) target.y(maxY);
+		let minX = 0,
+			maxX = 0,
+			minY = 0,
+			maxY = 0;
+
+		// Check if it's a rectangle with rotation
+		if ('rotation' in box && box.rotation !== 0) {
+			const angleRad = (box.rotation * Math.PI) / 180;
+			const cos = Math.cos(angleRad);
+			const sin = Math.sin(angleRad);
+
+			// Four corners relative to top-left origin (pivot point)
+			const corners = [
+				{ dx: 0, dy: 0 }, // top-left
+				{ dx: box.width, dy: 0 }, // top-right
+				{ dx: box.width, dy: box.height }, // bottom-right
+				{ dx: 0, dy: box.height } // bottom-left
+			];
+
+			// Rotate each corner around origin
+			const rotatedCorners = corners.map((c) => ({
+				x: c.dx * cos - c.dy * sin,
+				y: c.dx * sin + c.dy * cos
+			}));
+
+			// Find bounding box
+			minX = Math.min(...rotatedCorners.map((c) => c.x));
+			maxX = Math.max(...rotatedCorners.map((c) => c.x));
+			minY = Math.min(...rotatedCorners.map((c) => c.y));
+			maxY = Math.max(...rotatedCorners.map((c) => c.y));
+		} else {
+			// No rotation (leg or 0° rectangle)
+			minX = 0;
+			maxX = box.width;
+			minY = 0;
+			maxY = box.height;
+		}
+
+		// Apply boundary limits
+		if (target.x() + minX < 0) target.x(-minX);
+		if (target.y() + minY < 0) target.y(-minY);
+		if (target.x() + maxX > $projectStore.panelSettings.width) {
+			target.x($projectStore.panelSettings.width - maxX);
+		}
+		if (target.y() + maxY > $projectStore.panelSettings.height) {
+			target.y($projectStore.panelSettings.height - maxY);
+		}
 	};
 	const limitCircle = (event: KonvaDragTransformEvent, circle: CircleData) => {
 		const target = event.target;
@@ -87,6 +133,51 @@
 	};
 
 	let contextMenu: ContextMenu | undefined = $state();
+	let hoverInfo: HoverInfo | undefined = $state();
+
+	const handleMouseEnter = (
+		event: KonvaMouseEvent,
+		element: CircleData | RectangleData | LegData
+	) => {
+		selectElementByMouseEnter(event, element, mode === 'measure');
+
+		if (mode === 'pointer') {
+			const elementInfo = getSelectedElementInfo();
+			if (elementInfo) {
+				const instructions = [
+					'Mouse: free move',
+					'Arrow keys: finemove (0.1mm)',
+					'SHIFT+arrows: move (0.5mm)'
+				];
+				if ('width' in element && 'height' in element && 'depth' in element) {
+					instructions.push('F: flip dimensions', 'R: rotate +5°', 'SHIFT+R: reset rotation');
+				}
+				instructions.push('Right click: context menu');
+
+				// Calculate position to the right of the element
+				const stage = event.target.getStage();
+				if (stage) {
+					const elementBounds = event.target.getClientRect();
+					const stageContainer = stage.container().getBoundingClientRect();
+
+					// Position to the right of the element with some padding
+					const infoX = stageContainer.left + elementBounds.x + elementBounds.width + 20;
+					const infoY = stageContainer.top + elementBounds.y;
+
+					hoverInfo?.show(infoX, infoY, elementInfo, instructions.join('\n'));
+				}
+			}
+		}
+	};
+
+	const handleMouseLeave = (
+		event: KonvaMouseEvent,
+		element: CircleData | RectangleData | LegData
+	) => {
+		deselectElementByMouseLeave(event, element, mode === 'measure');
+		hoverInfo?.hide();
+	};
+
 	const stageClick = (event: KonvaMouseEvent) => {
 		if (event.evt.button === 2 && mode === 'pointer') {
 			const id = event.target.id();
@@ -163,8 +254,8 @@
 						}}
 						ondragend={() => updateCircleChanges()}
 						ondragmove={(event) => limitCircle(event, circle)}
-						onmouseenter={(event) => selectElementByMouseEnter(event, circle, mode === 'measure')}
-						onmouseleave={(event) => deselectElementByMouseLeave(event, circle, mode === 'measure')}
+						onmouseenter={(event) => handleMouseEnter(event, circle)}
+						onmouseleave={(event) => handleMouseLeave(event, circle)}
 						opacity={0.75}
 						radius={circle.radius}
 						bind:x={circle.x}
@@ -182,11 +273,10 @@
 						}}
 						ondragend={() => updateRectangleChanges()}
 						ondragmove={(event) => limitBox(event, rectangle)}
-						onmouseenter={(event) =>
-							selectElementByMouseEnter(event, rectangle, mode === 'measure')}
-						onmouseleave={(event) =>
-							deselectElementByMouseLeave(event, rectangle, mode === 'measure')}
+						onmouseenter={(event) => handleMouseEnter(event, rectangle)}
+						onmouseleave={(event) => handleMouseLeave(event, rectangle)}
 						opacity={0.75}
+						rotation={rectangle.rotation}
 						width={rectangle.width}
 						bind:x={rectangle.x}
 						bind:y={rectangle.y}
@@ -203,8 +293,8 @@
 						}}
 						ondragend={() => updateLegChanges()}
 						ondragmove={(event) => limitBox(event, leg)}
-						onmouseenter={(event) => selectElementByMouseEnter(event, leg, mode === 'measure')}
-						onmouseleave={(event) => deselectElementByMouseLeave(event, leg, mode === 'measure')}
+						onmouseenter={(event) => handleMouseEnter(event, leg)}
+						onmouseleave={(event) => handleMouseLeave(event, leg)}
 						opacity={0.75}
 						width={leg.width}
 						bind:x={leg.x}
@@ -249,5 +339,6 @@
 			</Layer>
 		</Stage>
 		<ContextMenu bind:this={contextMenu} />
+		<HoverInfo bind:this={hoverInfo} />
 	</div>
 {/if}

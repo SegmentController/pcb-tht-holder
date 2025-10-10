@@ -21,16 +21,50 @@ In its current state, it facilitates the installation of circular and oblong com
 
 ## Features
 
-- **Component Shapes**: Support for circular and rectangular (with rotation) components
+- **Component Shapes**: Support for circular and rectangular components
+  - Rectangles support full 360° rotation (0-359 degrees)
+  - Flip dimensions to swap width/height instantly
 - **Measurement Tool**: Press `M` to measure distances in 1/10th millimeter precision
 - **Undo/Redo**: Press `Ctrl+Z` to undo component deletions and modifications
 - **Component Library**: Save and reuse your favorite component configurations
-- **Keyboard Shortcuts**: Quick access to common operations
+- **Keyboard Shortcuts**: Extensive keyboard shortcuts for efficient workflow
+- **Hover Info**: Real-time element information and available shortcuts when hovering
 - **Hollow Option**: Generate top-layer-only coverage for faster printing
 - **Custom Labels**: Print text labels on the side of your holder
 - **Auto Image Resize**: Automatically resizes large images (>1280x1024) for easier handling
 - **PWA Support**: Install as a standalone application on your device
 - **Offline Ready**: Works without internet connection after first load
+
+## Keyboard Shortcuts
+
+### Mode Selection
+
+- `P` - Pointer mode (select and move elements)
+- `M` - Measure mode (measure distances on PCB)
+
+### Creating Elements
+
+- `Ctrl+C` / `Cmd+C` - Add new circle
+- `Ctrl+R` / `Cmd+R` - Add new rectangle
+- `Ctrl+L` / `Cmd+L` - Add new support leg
+
+### Editing Elements (when element is selected)
+
+- **Movement**:
+  - `Arrow keys` - Fine move 0.1mm
+  - `Shift+Arrow keys` - Move 0.5mm (5x faster)
+- **Rectangle Rotation**:
+  - `R` - Rotate +5°
+  - `Shift+R` - Reset rotation to 0°
+  - `F` - Flip dimensions (swap width/height)
+- **Context Menu**: Right-click on any element
+
+### Other
+
+- `Ctrl+Z` / `Cmd+Z` - Undo last action
+- `Ctrl+P` / `Cmd+P` - Project settings
+- `D` - Display 3D mesh
+- `Double-click` - Edit element properties
 
 ## Try your first PCB to STL
 

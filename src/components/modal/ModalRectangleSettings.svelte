@@ -3,6 +3,7 @@
 		width: number;
 		height: number;
 		depth: number;
+		rotation: number;
 	};
 </script>
 
@@ -42,6 +43,10 @@
 			<div>
 				<Label class="mb-2" for="depth">Depth (mm)</Label>
 				<NumberInputBound id="depth" max={99} min={0.5} bind:value={settings.depth} />
+			</div>
+			<div>
+				<Label class="mb-2" for="rotation">Rotation (°)</Label>
+				<NumberInputBound id="rotation" max={359} min={0} bind:value={settings.rotation} />
 			</div>
 		</div>
 	</div>

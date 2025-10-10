@@ -8,6 +8,7 @@ export const RectangleData = z.object({
 	y: z.number(),
 	width: z.number(),
 	height: z.number(),
+	rotation: z.number().min(0).max(359).default(0),
 
 	fill: z.literal('green').default('green'),
 	draggable: z.literal(true).default(true),

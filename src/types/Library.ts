@@ -12,7 +12,8 @@ export const LibraryItem = z.union([
 		name: z.string(),
 		width: z.number(),
 		height: z.number(),
-		depth: z.number()
+		depth: z.number(),
+		rotation: z.number().default(0)
 	})
 ]);
 export type LibraryItem = z.infer<typeof LibraryItem>;

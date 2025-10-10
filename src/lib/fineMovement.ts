@@ -1,5 +1,10 @@
 import type { KonvaMouseEvent } from 'svelte-konva';
 
+import {
+	flipRectangleDimensions,
+	resetRectangleRotation,
+	rotateRectangleDegrees
+} from '$lib/elements/rectangle';
 import { projectStore } from '$stores/projectStore';
 import type { CircleData } from '$types/CircleData';
 import type { LegData } from '$types/LegData';
@@ -42,13 +47,31 @@ export const deselectElementByMouseLeave = (
 	setStageCursor(event, getModeBasedCursor(isMeasurementMode, false));
 };
 
-export const finemoveSelectedElement = (direction: FinemoveDirection) => {
+export const getSelectedElementInfo = (): string | undefined => {
+	if (selectedElements.size !== 1) return undefined;
+
+	const element = selectedElements.values().next().value;
+	if (!element) return undefined;
+
+	if ('radius' in element) {
+		// CircleData
+		return `Circle ${element.radius}x${element.depth}mm`;
+	} else if ('depth' in element) {
+		// RectangleData
+		return `Rectangle ${element.width}x${element.height}x${element.depth}mm ${element.rotation}°`;
+	} else {
+		// LegData
+		return 'Leg';
+	}
+};
+
+export const finemoveSelectedElement = (direction: FinemoveDirection, multiplier = 1) => {
 	if (selectedElements.size !== 1) return;
 
 	const element = selectedElements.values().next().value;
 	if (!element) return;
 
-	const delta = 0.1;
+	const delta = 0.1 * multiplier;
 	switch (direction) {
 		case 'left': {
 			element.x -= delta;
@@ -82,4 +105,40 @@ export const finemoveSelectedElement = (direction: FinemoveDirection) => {
 		}
 		return v;
 	});
+};
+
+export const flipSelectedRectangleDimensions = () => {
+	if (selectedElements.size !== 1) return;
+
+	const element = selectedElements.values().next().value;
+	if (!element) return;
+
+	// Only flip if it's a rectangle (has width, height, and depth)
+	if ('width' in element && 'height' in element && 'depth' in element) {
+		flipRectangleDimensions(element as RectangleData);
+	}
+};
+
+export const rotateSelectedRectangleDegrees = (delta: number) => {
+	if (selectedElements.size !== 1) return;
+
+	const element = selectedElements.values().next().value;
+	if (!element) return;
+
+	// Only rotate if it's a rectangle (has width, height, and depth)
+	if ('width' in element && 'height' in element && 'depth' in element) {
+		rotateRectangleDegrees(element as RectangleData, delta);
+	}
+};
+
+export const resetSelectedRectangleRotation = () => {
+	if (selectedElements.size !== 1) return;
+
+	const element = selectedElements.values().next().value;
+	if (!element) return;
+
+	// Only reset rotation if it's a rectangle (has width, height, and depth)
+	if ('width' in element && 'height' in element && 'depth' in element) {
+		resetRectangleRotation(element as RectangleData);
+	}
 };

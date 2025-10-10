@@ -40,7 +40,12 @@
 	import { addNewCircle } from '$lib/elements/circle';
 	import { addCornerLegs, addNewLeg, deleteAllLegsWithConfirm } from '$lib/elements/leg';
 	import { addNewRectangle } from '$lib/elements/rectangle';
-	import { finemoveSelectedElement } from '$lib/fineMovement';
+	import {
+		finemoveSelectedElement,
+		flipSelectedRectangleDimensions,
+		resetSelectedRectangleRotation,
+		rotateSelectedRectangleDegrees
+	} from '$lib/fineMovement';
 	import { shortcut } from '$lib/shortcut';
 	import { getLibraryStoreValue } from '$stores/libraryStore';
 	import {
@@ -102,7 +107,8 @@
 				addNewRectangle({
 					width: libraryItem.width,
 					height: libraryItem.height,
-					depth: libraryItem.depth
+					depth: libraryItem.depth,
+					rotation: libraryItem.rotation
 				});
 				break;
 			}
@@ -173,9 +179,19 @@
 				preventDefault: true
 			},
 
-			{ key: 'C', modifier: ['shift'], callback: () => addNewCircle(), preventDefault: true },
-			{ key: 'R', modifier: ['shift'], callback: () => addNewRectangle(), preventDefault: true },
-			{ key: 'L', modifier: ['shift'], callback: () => addNewLeg(), preventDefault: true },
+			{
+				key: 'c',
+				modifier: ['ctrl', 'meta'],
+				callback: () => addNewCircle(),
+				preventDefault: true
+			},
+			{
+				key: 'r',
+				modifier: ['ctrl', 'meta'],
+				callback: () => addNewRectangle(),
+				preventDefault: true
+			},
+			{ key: 'l', modifier: ['ctrl', 'meta'], callback: () => addNewLeg(), preventDefault: true },
 			{
 				key: 'z',
 				modifier: ['ctrl', 'meta'],
@@ -183,8 +199,8 @@
 				preventDefault: true
 			},
 			{
-				key: 'P',
-				modifier: ['shift'],
+				key: 'p',
+				modifier: ['ctrl', 'meta'],
 				callback: () => openProjectSettings(),
 				preventDefault: true
 			},
@@ -207,6 +223,51 @@
 			{
 				key: 'ArrowDown',
 				callback: () => finemoveSelectedElement('down'),
+				preventDefault: true
+			},
+			{
+				key: 'ArrowLeft',
+				modifier: ['shift'],
+				callback: () => finemoveSelectedElement('left', 5),
+				preventDefault: true
+			},
+			{
+				key: 'ArrowRight',
+				modifier: ['shift'],
+				callback: () => finemoveSelectedElement('right', 5),
+				preventDefault: true
+			},
+			{
+				key: 'ArrowUp',
+				modifier: ['shift'],
+				callback: () => finemoveSelectedElement('up', 5),
+				preventDefault: true
+			},
+			{
+				key: 'ArrowDown',
+				modifier: ['shift'],
+				callback: () => finemoveSelectedElement('down', 5),
+				preventDefault: true
+			},
+			{
+				key: 'f',
+				callback: () => flipSelectedRectangleDimensions(),
+				preventDefault: true
+			},
+			{
+				key: 'F',
+				callback: () => flipSelectedRectangleDimensions(),
+				preventDefault: true
+			},
+			{
+				key: 'r',
+				callback: () => rotateSelectedRectangleDegrees(5),
+				preventDefault: true
+			},
+			{
+				key: 'R',
+				modifier: ['shift'],
+				callback: () => resetSelectedRectangleRotation(),
 				preventDefault: true
 			}
 		]
@@ -265,15 +326,15 @@
 					{/if}
 					<DropdownItem href="#" onclick={() => addNewCircle()}>
 						Add circle...
-						<Kbd class="float-right px-2 py-0">shift + C</Kbd>
+						<Kbd class="float-right px-2 py-0">ctrl + C</Kbd>
 					</DropdownItem>
 					<DropdownItem href="#" onclick={() => addNewRectangle()}>
 						Add rectangle...
-						<Kbd class="float-right px-2 py-0">shift + R</Kbd>
+						<Kbd class="float-right px-2 py-0">ctrl + R</Kbd>
 					</DropdownItem>
 					<DropdownItem href="#" onclick={() => addNewLeg()}>
 						Add leg
-						<Kbd class="float-right px-2 py-0">shift + L</Kbd>
+						<Kbd class="float-right px-2 py-0">ctrl + L</Kbd>
 					</DropdownItem>
 					<DropdownItem href="#" onclick={() => addCornerLegs()}>Auto legs at corner</DropdownItem>
 					{#if getProjectStoreLegCount()}
@@ -297,7 +358,7 @@
 					<DropdownDivider />
 					<DropdownItem href="#" onclick={() => openProjectSettings()}>
 						Project settings...
-						<Kbd class="float-right px-2 py-0">shift + P</Kbd>
+						<Kbd class="float-right px-2 py-0">ctrl + P</Kbd>
 					</DropdownItem>
 				</Dropdown>
 				<NavLi class="cursor-pointer" onclick={() => showModalLibrary()}>Library</NavLi>

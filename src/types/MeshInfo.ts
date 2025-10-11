@@ -9,4 +9,4 @@ export type MeshInfo = {
 	dimensions: MeshDimensionInfo;
 };
 
-export type MeshInfoTuple = { main: MeshInfo; hollow: MeshInfo };
+export type MeshInfoTuple = { main: MeshInfo; hollow: MeshInfo; positive?: MeshInfo };

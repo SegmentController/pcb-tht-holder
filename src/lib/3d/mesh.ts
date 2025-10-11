@@ -239,6 +239,44 @@ const generateMesh = (project: RenderableProject, font: Font): MeshInfoTuple => 
 		}
 	}
 
+	// Generate positive mesh (thin base plate with components as pillars)
+	const POSITIVE_BASE_THICKNESS = 2;
+	let meshPositive = MESH(BOX(panel.width, panel.height, POSITIVE_BASE_THICKNESS));
+	meshPositive.updateMatrixWorld();
+
+	// Add rectangles as pillars
+	for (const rectangle of project.rectangles) {
+		const width = rectangle.width;
+		const height = rectangle.height;
+		const depth = rectangle.depth;
+
+		const geometry = BOX(width, height, depth);
+		const box = MESH(geometry);
+
+		// Position at center in world space
+		box.position.x += rectangle.x - panel.width / 2;
+		box.position.y -= rectangle.y - panel.height / 2;
+		box.position.z += POSITIVE_BASE_THICKNESS;
+
+		// Apply rotation around center
+		if (rectangle.rotation) {
+			box.rotateZ((-rectangle.rotation * Math.PI) / 180);
+		}
+
+		box.updateMatrixWorld();
+		meshPositive = evaluator.evaluate(meshPositive, box, ADDITION);
+	}
+
+	// Add circles as cylinders
+	for (const circle of project.circles) {
+		const cylinder = MESH(CYLINDER(circle.radius, circle.depth));
+		cylinder.position.x += circle.x - panel.width / 2;
+		cylinder.position.y -= circle.y - panel.height / 2;
+		cylinder.position.z += POSITIVE_BASE_THICKNESS;
+		cylinder.updateMatrixWorld();
+		meshPositive = evaluator.evaluate(meshPositive, cylinder, ADDITION);
+	}
+
 	return {
 		main: {
 			vertexArray: new Float32Array(mesh.geometry.attributes['position'].array),
@@ -254,6 +292,14 @@ const generateMesh = (project: RenderableProject, font: Font): MeshInfoTuple => 
 				width: panel.width + 2 * EDGE_THICKNESS,
 				height: panel.height + 2 * EDGE_THICKNESS,
 				depth: hollowHeight + BOTTOM_THICKNESS
+			}
+		},
+		positive: {
+			vertexArray: new Float32Array(meshPositive.geometry.attributes['position'].array),
+			dimensions: {
+				width: panel.width,
+				height: panel.height,
+				depth: POSITIVE_BASE_THICKNESS + componentHeigh
 			}
 		}
 	};

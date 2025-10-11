@@ -2,7 +2,7 @@
 	import Icon from '@iconify/svelte';
 	import { Canvas } from '@threlte/core';
 	import dayjs from 'dayjs';
-	import { Button, Modal, Toggle } from 'flowbite-svelte';
+	import { Button, Modal, Range, Toggle } from 'flowbite-svelte';
 	import { createEventDispatcher, onMount } from 'svelte';
 	import { persisted } from 'svelte-persisted-store';
 
@@ -37,6 +37,8 @@
 
 	let isWireframe = $state(false);
 	let isHollow = $state(false);
+	let showPositive = $state(false);
+	let meshDistance = $state(0);
 	const useDateInFilename = persisted('useDateInFilename', false);
 
 	const generateFilename = () =>
@@ -45,10 +47,14 @@
 		(isHollow ? '-hollow' : '') +
 		'.stl';
 
+	const getActiveMesh = (meshinfotuple: MeshInfoTuple) => {
+		return isHollow ? meshinfotuple.hollow : meshinfotuple.main;
+	};
+
 	const downloadStlFile = async (isBinary: boolean) => {
 		try {
 			const meshinfotuple = await meshInfoTuple;
-			const activeMesh = isHollow ? meshinfotuple.hollow : meshinfotuple.main;
+			const activeMesh = getActiveMesh(meshinfotuple);
 			const vertices = activeMesh.vertexArray;
 			virtualDownload(
 				generateFilename(),
@@ -72,7 +78,7 @@
 			{#await meshInfoTuple}
 				<p>Generating mesh...</p>
 			{:then meshInfoTuple}
-				{@const activeMesh = isHollow ? meshInfoTuple.hollow : meshInfoTuple.main}
+				{@const activeMesh = getActiveMesh(meshInfoTuple)}
 				{activeMesh.dimensions.width} x
 				{activeMesh.dimensions.height} x
 				{activeMesh.dimensions.depth} mm |
@@ -83,13 +89,26 @@
 			{/await}
 		</div>
 		<div class="grid grid-cols-2">
-			<div class="flex justify-start">
-				{#await meshInfoTuple then}
-					<Toggle id="wireframe" size="large" bind:checked={isWireframe}>Wireframe</Toggle>
-					<Toggle id="hollow" class="ml-4" size="large" bind:checked={isHollow}
-						>Hollow top layer</Toggle
-					>
-				{/await}
+			<div class="flex flex-col gap-2">
+				<div class="flex justify-start items-center gap-4">
+					{#await meshInfoTuple then}
+						<Toggle id="wireframe" size="large" bind:checked={isWireframe}>Wireframe</Toggle>
+						<Toggle id="hollow" size="large" bind:checked={isHollow}>Hollow</Toggle>
+						<Toggle id="positive" size="large" bind:checked={showPositive}>PCB</Toggle>
+					{/await}
+				</div>
+				<div class="flex items-center gap-2 ml-2">
+					<label class="text-sm whitespace-nowrap" for="distance">Distance:</label>
+					<Range
+						id="distance"
+						disabled={!showPositive}
+						max="50"
+						min="0"
+						size="sm"
+						bind:value={meshDistance}
+					/>
+					<span class="text-xs text-gray-500 w-12">{meshDistance}</span>
+				</div>
 			</div>
 			<div class="flex justify-end">
 				{#await meshInfoTuple then}
@@ -107,9 +126,23 @@
 		<div class="canvasContainer">
 			<Canvas>
 				{#await meshInfoTuple then meshInfoTuple}
-					{@const activeMesh = isHollow ? meshInfoTuple.hollow : meshInfoTuple.main}
-					{#key activeMesh}
+					{@const activeMesh = getActiveMesh(meshInfoTuple)}
+					{@const baseOffset = meshInfoTuple.positive
+						? (activeMesh.dimensions.depth + meshInfoTuple.positive.dimensions.depth) / 2
+						: 0}
+					{#key `${activeMesh.vertexArray}-${showPositive}`}
 						<Mesh3DScene vertices={activeMesh.vertexArray} {volume} wireframe={isWireframe} />
+						{#if showPositive && meshInfoTuple.positive}
+							<Mesh3DScene
+								color="#ff8811"
+								flipZ={true}
+								opacity={0.75}
+								positionOffset={baseOffset + meshDistance}
+								vertices={meshInfoTuple.positive.vertexArray}
+								{volume}
+								wireframe={isWireframe}
+							/>
+						{/if}
 					{/key}
 				{/await}
 			</Canvas>

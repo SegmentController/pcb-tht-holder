@@ -38,7 +38,7 @@
 	let isWireframe = $state(false);
 	let isHollow = $state(false);
 	let showPositive = $state(false);
-	let meshDistance = $state(0);
+	let meshDistance = $state(10);
 	const useDateInFilename = persisted('useDateInFilename', false);
 
 	const generateFilename = () =>
@@ -97,18 +97,13 @@
 						<Toggle id="positive" size="large" bind:checked={showPositive}>PCB</Toggle>
 					{/await}
 				</div>
-				<div class="flex items-center gap-2 ml-2">
-					<label class="text-sm whitespace-nowrap" for="distance">Distance:</label>
-					<Range
-						id="distance"
-						disabled={!showPositive}
-						max="50"
-						min="0"
-						size="sm"
-						bind:value={meshDistance}
-					/>
-					<span class="text-xs text-gray-500 w-12">{meshDistance}</span>
-				</div>
+				{#if showPositive}
+					<div class="flex items-center gap-2 ml-2">
+						<label class="text-sm whitespace-nowrap" for="distance">Distance:</label>
+						<Range id="distance" max="50" min="0" size="sm" bind:value={meshDistance} />
+						<span class="text-xs text-gray-500 w-12">{meshDistance}</span>
+					</div>
+				{/if}
 			</div>
 			<div class="flex justify-end">
 				{#await meshInfoTuple then}
@@ -131,7 +126,12 @@
 						? (activeMesh.dimensions.depth + meshInfoTuple.positive.dimensions.depth) / 2
 						: 0}
 					{#key `${activeMesh.vertexArray}-${showPositive}`}
-						<Mesh3DScene vertices={activeMesh.vertexArray} {volume} wireframe={isWireframe} />
+						<Mesh3DScene
+							opacity={showPositive ? 0.75 : 1}
+							vertices={activeMesh.vertexArray}
+							{volume}
+							wireframe={isWireframe}
+						/>
 						{#if showPositive && meshInfoTuple.positive}
 							<Mesh3DScene
 								color="#ff8811"

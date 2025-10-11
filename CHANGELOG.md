@@ -1,5 +1,17 @@
 # Change log
 
+## [1.10.1] - 2025-10-11
+
+### Changed
+
+- Code cleanup: refactored mesh generation code (`src/lib/3d/mesh.ts`)
+  - Fixed typo: `componentHeigh` → `componentHeight`
+  - Added named constants for magic numbers (`PANEL_EDGE_FACTOR`, `PANEL_CENTER_FACTOR`, `POSITIVE_BASE_THICKNESS`)
+  - Replaced all hardcoded division values with named constants for better maintainability
+  - Added comprehensive JSDoc documentation for main functions
+  - Improved inline comments for clarity throughout mesh generation process
+  - No functional changes, purely internal code quality improvements
+
 ## [1.10.0] - 2025-10-11
 
 ### Added

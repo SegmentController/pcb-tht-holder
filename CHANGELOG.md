@@ -1,5 +1,32 @@
 # Change log
 
+## [1.11.0] - 2025-10-11
+
+### Added
+
+- **Positive mesh (PCB) visualization** in 3D mesh display modal
+  - Toggle between holder mesh and PCB component visualization
+  - Adjustable distance slider (0-50mm) to separate holder and PCB views
+  - PCB mesh shows components as pillars extending from thin base plate
+  - Useful for visualizing component layout and holder fit
+  - Both meshes rendered simultaneously with adjustable spacing
+
+### Changed
+
+- **Major code quality improvements** across entire codebase
+  - Created `src/lib/constants.ts` for centralized configuration
+    - Element visual properties: `ELEMENT_OPACITY`, `ELEMENT_DRAGGABLE`
+    - Element colors: `CIRCLE_COLOR`, `RECTANGLE_COLOR`, `LEG_COLOR`
+    - Fine movement constants: `FINE_MOVEMENT_DELTA`, `FINE_MOVEMENT_SHIFT_MULTIPLIER`
+    - Unified `ELEMENT_SKIP_JSON_PROPERTIES` (replaced 3 separate arrays)
+  - Created `src/types/typeGuards.ts` for type-safe element discrimination
+    - Replaced 10+ unsafe string checks with proper TypeScript type guards
+    - `isCircle()`, `isRectangle()`, `isLeg()` functions with full type inference
+  - Fixed naming: `empytMeasurementInfo` → `emptyMeasurementInfo`
+  - Improved type safety and IDE support throughout
+  - ~150 lines of duplicated code eliminated
+  - No functional changes, purely internal improvements
+
 ## [1.10.1] - 2025-10-11
 
 ### Changed

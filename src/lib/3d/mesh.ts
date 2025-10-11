@@ -171,18 +171,17 @@ const generateMesh = (project: RenderableProject, font: Font): MeshInfoTuple => 
 		const height = rectangle.height;
 		const depth = depthOverride ?? rectangle.depth + ROUND_CORRECTION;
 
-		// Create geometry and translate to make top-left corner the pivot point
+		// Create geometry (no translation needed - pivot is already at center)
 		const geometry = BOX(width, height, depth);
-		geometry.translate(width / 2, -height / 2, 0);
 
 		const box = MESH(geometry);
 
-		// Position at top-left corner in world space
+		// Position at center in world space
 		box.position.x += rectangle.x - panel.width / 2;
 		box.position.y -= rectangle.y - panel.height / 2;
 		box.position.z += BOTTOM_THICKNESS + (componentHeigh - (depthOverride ?? rectangle.depth));
 
-		// Apply rotation around top-left corner
+		// Apply rotation around center
 		if (rectangle.rotation) {
 			box.rotateZ((-rectangle.rotation * Math.PI) / 180);
 		}

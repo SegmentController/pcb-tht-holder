@@ -82,34 +82,47 @@
 			const cos = Math.cos(angleRad);
 			const sin = Math.sin(angleRad);
 
-			// Four corners relative to top-left origin (pivot point)
+			// Four corners relative to center
+			const halfWidth = box.width / 2;
+			const halfHeight = box.height / 2;
 			const corners = [
-				{ dx: 0, dy: 0 }, // top-left
-				{ dx: box.width, dy: 0 }, // top-right
-				{ dx: box.width, dy: box.height }, // bottom-right
-				{ dx: 0, dy: box.height } // bottom-left
+				{ dx: -halfWidth, dy: -halfHeight }, // top-left
+				{ dx: halfWidth, dy: -halfHeight }, // top-right
+				{ dx: halfWidth, dy: halfHeight }, // bottom-right
+				{ dx: -halfWidth, dy: halfHeight } // bottom-left
 			];
 
-			// Rotate each corner around origin
+			// Rotate each corner around center
 			const rotatedCorners = corners.map((c) => ({
 				x: c.dx * cos - c.dy * sin,
 				y: c.dx * sin + c.dy * cos
 			}));
 
-			// Find bounding box
+			// Find bounding box offsets from center
 			minX = Math.min(...rotatedCorners.map((c) => c.x));
 			maxX = Math.max(...rotatedCorners.map((c) => c.x));
 			minY = Math.min(...rotatedCorners.map((c) => c.y));
 			maxY = Math.max(...rotatedCorners.map((c) => c.y));
 		} else {
 			// No rotation (leg or 0° rectangle)
-			minX = 0;
-			maxX = box.width;
-			minY = 0;
-			maxY = box.height;
+			// For legs: still top-left based, for rectangles: center-based
+			const isRectangle = 'rotation' in box;
+			if (isRectangle) {
+				// Rectangle at 0° rotation - offsets from center
+				minX = -box.width / 2;
+				maxX = box.width / 2;
+				minY = -box.height / 2;
+				maxY = box.height / 2;
+			} else {
+				// Leg - top-left based (no change needed for legs)
+				minX = 0;
+				maxX = box.width;
+				minY = 0;
+				maxY = box.height;
+			}
 		}
 
-		// Apply boundary limits
+		// Apply boundary limits (center + offset must stay within bounds)
 		if (target.x() + minX < 0) target.x(-minX);
 		if (target.y() + minY < 0) target.y(-minY);
 		if (target.x() + maxX > $projectStore.panelSettings.width) {
@@ -268,6 +281,8 @@
 						draggable={mode === 'pointer'}
 						fill="green"
 						height={rectangle.height}
+						offsetX={rectangle.width / 2}
+						offsetY={rectangle.height / 2}
 						ondblclick={() => {
 							if (mode === 'pointer') modifyRectangle(rectangle);
 						}}

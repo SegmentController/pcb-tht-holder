@@ -24,17 +24,22 @@
   - Project settings: SHIFT+P → CTRL+P
   - SHIFT modifier now reserved for element modifications
 - Fine movement enhanced: SHIFT+arrow keys move 5x faster (0.5mm vs 0.1mm)
+- **Rectangle coordinate system changed to center-based** (matching circles)
+  - Rectangles now store center position (x, y) instead of top-left corner
+  - Rotation now happens around the center point
+  - Konva rendering updated with `offsetX`/`offsetY` for center-based rendering
+  - 3D mesh generation simplified (removed pivot point translation)
+  - Boundary limiting logic updated for center-based calculations
+  - **Breaking change**: Existing saved projects with rectangles will need manual repositioning
 
 ### Fixed
 
 - Rectangle rotation implementation
-  - Restored top-left origin for rectangles (removed offsetX/offsetY)
   - Fixed 3D mesh rotation direction to match 2D canvas
-  - Fixed 3D mesh rotation pivot point (now uses top-left corner)
-  - Backward compatibility with saved projects maintained
+  - Simplified rotation logic (no longer needs pivot point adjustments)
 - Boundary limiting bugs
   - Fixed rectangle boundary check using actual dimensions instead of LEG_SIZE
-  - Added rotation-aware boundary checking (calculates axis-aligned bounding box)
+  - Added rotation-aware boundary checking (calculates axis-aligned bounding box from center)
   - Rectangles and legs now properly constrained on all edges
 
 ## [1.9.1] - 2025-10-10

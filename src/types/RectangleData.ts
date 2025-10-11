@@ -1,5 +1,7 @@
 import { z } from 'zod';
 
+import { ELEMENT_DRAGGABLE, ELEMENT_OPACITY, RECTANGLE_COLOR } from '$lib/constants';
+
 export const RectangleData = z.object({
 	depth: z.number(),
 
@@ -10,10 +12,8 @@ export const RectangleData = z.object({
 	height: z.number(),
 	rotation: z.number().min(0).max(359).default(0),
 
-	fill: z.literal('green').default('green'),
-	draggable: z.literal(true).default(true),
-	opacity: z.literal(0.75).default(0.75)
+	fill: z.literal(RECTANGLE_COLOR).default(RECTANGLE_COLOR),
+	draggable: z.literal(ELEMENT_DRAGGABLE).default(ELEMENT_DRAGGABLE),
+	opacity: z.literal(ELEMENT_OPACITY).default(ELEMENT_OPACITY)
 });
 export type RectangleData = z.infer<typeof RectangleData>;
-
-export const RectangleSkipJsonProperties = ['fill', 'draggable', 'opacity'];

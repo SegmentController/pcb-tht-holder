@@ -2,6 +2,7 @@ import { nanoid } from 'nanoid';
 
 import type { ContextMenuItem } from '$components/base/ContextMenu.svelte';
 import type { CircleSettings } from '$components/modal/ModalCircleSettings.svelte';
+import { CIRCLE_COLOR, ELEMENT_DRAGGABLE, ELEMENT_OPACITY } from '$lib/constants';
 import { getLibraryStoreValue, setLibraryStoreValue } from '$stores/libraryStore';
 import { showModalCircleSettings, showModalConfirm, showModalNameEdit } from '$stores/modalStore';
 import { getProjectStoreValue, projectStore } from '$stores/projectStore';
@@ -18,9 +19,9 @@ export const addNewCircle = async (source?: CircleSettings) => {
 		y: project.panelSettings.height / 2,
 		radius: source?.radius || 10,
 
-		fill: 'orange',
-		draggable: true,
-		opacity: 0.75
+		fill: CIRCLE_COLOR,
+		draggable: ELEMENT_DRAGGABLE,
+		opacity: ELEMENT_OPACITY
 	};
 	project.circles.push(circle);
 	updateCircleChanges(project.circles);

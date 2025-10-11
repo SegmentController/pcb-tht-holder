@@ -8,7 +8,7 @@ export type MeasurementInfo = {
 	textPoint: { x: number; y: number };
 	text: string;
 };
-export const empytMeasurementInfo: MeasurementInfo = {
+export const emptyMeasurementInfo: MeasurementInfo = {
 	visible: false,
 	startPoint: { x: 0, y: 0 },
 	endPoint: { x: 0, y: 0 },

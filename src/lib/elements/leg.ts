@@ -1,6 +1,7 @@
 import { nanoid } from 'nanoid';
 
 import type { ContextMenuItem } from '$components/base/ContextMenu.svelte';
+import { ELEMENT_DRAGGABLE, ELEMENT_OPACITY, LEG_COLOR } from '$lib/constants';
 import { showModalConfirm } from '$stores/modalStore';
 import { getProjectStoreValue, projectStore } from '$stores/projectStore';
 import { addUndo } from '$stores/undoStore';
@@ -15,9 +16,9 @@ export const addNewLeg = () => {
 		width: LEG_SIZE,
 		height: LEG_SIZE,
 
-		fill: 'gray',
-		draggable: true,
-		opacity: 0.75
+		fill: LEG_COLOR,
+		draggable: ELEMENT_DRAGGABLE,
+		opacity: ELEMENT_OPACITY
 	};
 	project.legs.push(leg);
 	updateLegChanges(project.legs);
@@ -33,9 +34,9 @@ export const addCornerLegs = () => {
 				width: LEG_SIZE,
 				height: LEG_SIZE,
 
-				fill: 'gray',
-				draggable: true,
-				opacity: 0.75
+				fill: LEG_COLOR,
+				draggable: ELEMENT_DRAGGABLE,
+				opacity: ELEMENT_OPACITY
 			};
 			project.legs.push(leg);
 		}

@@ -22,6 +22,7 @@
 	import ZoomRange from '$components/base/input/ZoomRange.svelte';
 	import DesignerCrosshair from '$components/DesignerCrosshair.svelte';
 	import DesignerGrid from '$components/DesignerGrid.svelte';
+	import { FINE_MOVEMENT_DELTA, FINE_MOVEMENT_SHIFT_MULTIPLIER } from '$lib/constants';
 	import {
 		getContextMenuItemForCircle,
 		modifyCircle,
@@ -44,7 +45,7 @@
 	} from '$lib/fineMovement';
 	import {
 		cleanupMeasurement,
-		empytMeasurementInfo,
+		emptyMeasurementInfo,
 		type MeasurementInfo,
 		stageMeasureModeMouseDown,
 		stageMeasureModeMouseUp,
@@ -55,6 +56,7 @@
 	import type { ImageSize } from '$types/ImageSize';
 	import { type LegData } from '$types/LegData';
 	import type { RectangleData } from '$types/RectangleData';
+	import { isRectangle } from '$types/typeGuards';
 
 	interface Properties {
 		pcbImage: HTMLImageElement | undefined;
@@ -159,10 +161,10 @@
 			if (elementInfo) {
 				const instructions = [
 					'Mouse: free move',
-					'Arrow keys: finemove (0.1mm)',
-					'SHIFT+arrows: move (0.5mm)'
+					`Arrow keys: finemove (${FINE_MOVEMENT_DELTA}mm)`,
+					`SHIFT+arrows: move (${FINE_MOVEMENT_DELTA * FINE_MOVEMENT_SHIFT_MULTIPLIER}mm)`
 				];
-				if ('width' in element && 'height' in element && 'depth' in element) {
+				if (isRectangle(element)) {
 					instructions.push('F: flip dimensions', 'R: rotate +5°', 'SHIFT+R: reset rotation');
 				}
 				instructions.push('Right click: context menu');
@@ -210,7 +212,7 @@
 		}
 	};
 
-	const measurementInfo: Writable<MeasurementInfo> = writable(empytMeasurementInfo);
+	const measurementInfo: Writable<MeasurementInfo> = writable(emptyMeasurementInfo);
 
 	const getStageScaleX = $derived(
 		imageSize

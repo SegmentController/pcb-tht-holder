@@ -1,6 +1,6 @@
 {
 	"name": "pcb-tht-holder",
-	"version": "1.10.1",
+	"version": "1.11.0",
 	"type": "module",
 	"main": "build/index.js",
 	"engines": {
@@ -48,7 +48,7 @@
 	"dependencies": {
 		"@iconify/svelte": "^5.0.2",
 		"@threlte/core": "^8.1.5",
-		"@threlte/extras": "^9.5.4",
+		"@threlte/extras": "^9.5.5",
 		"canvas": "^3.2.0",
 		"dayjs": "^1.11.18",
 		"flowbite": "^3.1.2",

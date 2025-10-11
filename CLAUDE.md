@@ -69,9 +69,11 @@ Build outputs to `docs/` directory (configured for GitHub Pages deployment).
 ```
 src/
 ├── stores/           # Svelte stores (projectStore, modalStore, undoStore, libraryStore)
-├── types/            # Zod schemas and TypeScript types
+├── types/            # Zod schemas, TypeScript types, and type guards
+│   ├── typeGuards.ts # Type guard functions (isCircle, isRectangle, isLeg)
 │   └── panels/       # Panel-specific type definitions
 ├── lib/
+│   ├── constants.ts  # Centralized constants (colors, opacity, movement deltas)
 │   ├── 3d/           # STL generation (stl.ts) and mesh operations (mesh.ts)
 │   ├── elements/     # Circle, rectangle, and leg element operations
 │   └── svelteModal/  # Modal management utilities
@@ -101,7 +103,10 @@ src/
 
 3. **3D Mesh Generation** (`src/lib/3d/mesh.ts`):
    - Uses CSG boolean operations (ADDITION/SUBTRACTION) via three-bvh-csg
-   - Generates two meshes: main holder and hollow version
+   - Generates three meshes:
+     - **Main mesh**: Full-depth holder with component holes
+     - **Hollow mesh**: Shallow version with reduced material usage
+     - **Positive mesh**: Inverted design showing components as pillars (for PCB visualization)
    - Creates base structure, subtracts component holes, adds support legs
    - Optional text label engraving using Three.js TextGeometry
    - Loads Roboto font from `/roboto_regular.json`
@@ -126,19 +131,19 @@ src/
 - **2D Konva Canvas**: Y-axis increases downward, rotation clockwise
 - **3D Three.js Scene**: Y-axis increases upward, rotation counter-clockwise
 
-**Rectangle Rotation Implementation:**
+**Rectangle Rotation Implementation (v1.10.0+):**
 
-- Rectangles rotate around their **top-left corner** (origin at x, y position)
-- 2D canvas (`AppDesigner.svelte`): Konva Rect with `rotation={rectangle.rotation}` property
+- Rectangles rotate around their **center** (x, y is the center position)
+- 2D canvas (`AppDesigner.svelte`): Konva Rect with `offsetX`/`offsetY` set to center, `rotation={rectangle.rotation}`
 - 3D mesh (`src/lib/3d/mesh.ts`):
-  - Geometry is translated to shift pivot from center to top-left: `geometry.translate(width / 2, -height / 2, 0)`
-  - Positioned at top-left corner in world space
+  - Geometry created at center (no translation needed)
+  - Positioned at center in world space
   - Rotation angle is **negated** to match 2D direction: `box.rotateZ((-rectangle.rotation * Math.PI) / 180)`
 
 **Boundary Limiting:**
 
 - Rectangles with rotation require axis-aligned bounding box (AABB) calculation
-- `limitBox()` function in `AppDesigner.svelte` rotates all 4 corners and finds min/max bounds
+- `limitBox()` function in `AppDesigner.svelte` rotates all 4 corners around center and finds min/max bounds
 - Ensures rotated rectangles stay within panel boundaries
 
 **Circles:**
@@ -158,6 +163,43 @@ export const updateProjectStoreValue = (updater: Updater<Project>) => projectSto
 ```
 
 Use `projectJsonSerializer` when working with project JSON to skip non-serializable properties (Konva internal state).
+
+### Constants and Configuration (`src/lib/constants.ts`)
+
+Centralized configuration for maintainability:
+
+```typescript
+// Element visual properties
+ELEMENT_OPACITY = 0.75;
+ELEMENT_DRAGGABLE = true;
+
+// Element colors
+CIRCLE_COLOR = 'orange';
+RECTANGLE_COLOR = 'green';
+LEG_COLOR = 'gray';
+
+// Fine movement
+FINE_MOVEMENT_DELTA = 0.1; // mm per arrow key press
+FINE_MOVEMENT_SHIFT_MULTIPLIER = 5; // 5x faster with shift (0.5mm)
+
+// JSON serialization
+ELEMENT_SKIP_JSON_PROPERTIES = ['fill', 'draggable', 'opacity'];
+```
+
+### Type Guards (`src/types/typeGuards.ts`)
+
+Type-safe element discrimination:
+
+```typescript
+export type GenericElement = CircleData | RectangleData | LegData;
+
+// Use these instead of string property checks
+isCircle(element: GenericElement): element is CircleData
+isRectangle(element: GenericElement): element is RectangleData
+isLeg(element: GenericElement): element is LegData
+```
+
+**Never use** `'radius' in element` or `'width' in element` checks - always use type guards.
 
 ### CI/CD
 
@@ -199,6 +241,7 @@ The application has extensive keyboard shortcuts that are critical to the user e
 - Tracks selected elements via `Set<GenericElement>`
 - Provides functions: `finemoveSelectedElement()`, `flipSelectedRectangleDimensions()`, `rotateSelectedRectangleDegrees()`, `resetSelectedRectangleRotation()`
 - Updates project store to trigger Svelte reactivity
+- Uses type guards for element discrimination (not string property checks)
 
 ### Context Menus
 
@@ -223,5 +266,42 @@ Manual testing only. Key test scenarios:
 3. Test rotation: rotate rectangle, verify 2D and 3D mesh match
 4. Test boundaries: ensure rotated rectangles cannot move outside panel
 5. Add support legs → verify positioning
-6. Generate 3D mesh → check wireframe and solid views
-7. Export STL → validate file in slicer software
+6. Generate 3D mesh → check wireframe and solid views, toggle positive mesh (PCB) view
+7. Test positive mesh: verify component visualization with adjustable distance slider
+8. Export STL → validate file in slicer software
+
+## Code Quality Standards
+
+### Always Use Type Guards
+
+**Bad:**
+
+```typescript
+if ('radius' in element) { ... }
+if ('width' in element && 'depth' in element) { ... }
+```
+
+**Good:**
+
+```typescript
+import { isCircle, isRectangle, isLeg } from '$types/typeGuards';
+
+if (isCircle(element)) { ... }
+if (isRectangle(element)) { ... }
+```
+
+### Use Constants for Configuration
+
+Import from `src/lib/constants.ts` instead of hardcoding:
+
+```typescript
+import { CIRCLE_COLOR, ELEMENT_OPACITY, FINE_MOVEMENT_DELTA } from '$lib/constants';
+```
+
+### Coordinate System Awareness
+
+When working with rotation or positioning:
+
+- Remember rectangles rotate around **center** (not top-left)
+- Negate rotation angles when converting 2D → 3D: `(-rotation * Math.PI) / 180`
+- Account for Y-axis flip between Konva (down) and Three.js (up)

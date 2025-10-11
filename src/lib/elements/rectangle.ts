@@ -2,6 +2,7 @@ import { nanoid } from 'nanoid';
 
 import type { ContextMenuItem } from '$components/base/ContextMenu.svelte';
 import type { RectangleSettings } from '$components/modal/ModalRectangleSettings.svelte';
+import { ELEMENT_DRAGGABLE, ELEMENT_OPACITY, RECTANGLE_COLOR } from '$lib/constants';
 import { getLibraryStoreValue, setLibraryStoreValue } from '$stores/libraryStore';
 import {
 	showModalConfirm,
@@ -24,9 +25,9 @@ export const addNewRectangle = async (source?: RectangleSettings) => {
 		height: source?.height || 5,
 		rotation: source?.rotation || 0,
 
-		fill: 'green',
-		draggable: true,
-		opacity: 0.75
+		fill: RECTANGLE_COLOR,
+		draggable: ELEMENT_DRAGGABLE,
+		opacity: ELEMENT_OPACITY
 	};
 	project.rectangles.push(rectangle);
 	updateRectangleChanges(project.rectangles);

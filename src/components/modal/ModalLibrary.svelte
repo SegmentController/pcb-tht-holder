@@ -42,7 +42,7 @@
 		</div>
 		<div class="grid grid-cols-3 gap-2 pt-4">
 			{#each $libraryStore.toSorted((a, b) => a.name.localeCompare(b.name)) as libraryItem}
-				<Card class="relative" color="gray">
+				<Card class="relative p-4 bg-gray-50" color="gray">
 					<h5 class="mb-2 text-md font-bold tracking-tight text-gray-900 dark:text-white">
 						{libraryItem.name}
 					</h5>

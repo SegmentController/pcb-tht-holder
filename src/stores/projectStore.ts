@@ -1,10 +1,8 @@
 import { get, type Updater } from 'svelte/store';
 import { persisted } from 'svelte-persisted-store';
 
-import { CircleSkipJsonProperties } from '$types/CircleData';
-import { LegSkipJsonProperties } from '$types/LegData';
+import { ELEMENT_SKIP_JSON_PROPERTIES } from '$lib/constants';
 import { Project } from '$types/Project';
-import { RectangleSkipJsonProperties } from '$types/RectangleData';
 
 const emptyProject: Project = {
 	image: '',
@@ -36,14 +34,7 @@ export const projectJsonSerializer = {
 		JSON.stringify(
 			object,
 			(key, value) => {
-				if (
-					![
-						...CircleSkipJsonProperties,
-						...RectangleSkipJsonProperties,
-						...LegSkipJsonProperties
-					].includes(key)
-				)
-					return value;
+				if (!ELEMENT_SKIP_JSON_PROPERTIES.includes(key)) return value;
 			},
 			2
 		)

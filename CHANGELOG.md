@@ -1,5 +1,26 @@
 # Change log
 
+## [1.11.1] - 2025-10-12
+
+### Added
+
+- **SEO metadata** in index.html
+  - Added meta description, keywords, and Open Graph tags
+  - Improved search engine discoverability
+  - Enhanced social media sharing preview
+
+### Fixed
+
+- Library rename item functionality
+  - Fixed bug preventing proper renaming of saved library items
+
+### Changed
+
+- Code quality improvements across multiple components
+  - Simplified logic in AppDesigner, AppNavigation, and modal components
+  - Reduced code complexity in mesh generation, fine movement, and measurement utilities
+  - Eliminated 17 lines of unnecessary code for better maintainability
+
 ## [1.11.0] - 2025-10-11
 
 ### Added

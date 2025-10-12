@@ -27,7 +27,11 @@
 
 	const editName = async (libraryItem: LibraryItem) => {
 		const { confirmed, name } = await showModalNameEdit(libraryItem.name);
-		if (confirmed) libraryItem.name = name;
+		if (confirmed) {
+			$libraryStore = $libraryStore.map((item) =>
+				item === libraryItem ? { ...item, name } : item
+			);
+		}
 	};
 </script>
 

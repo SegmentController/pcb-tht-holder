@@ -105,9 +105,7 @@ export const flipSelectedRectangleDimensions = () => {
 	const element = selectedElements.values().next().value;
 	if (!element) return;
 
-	if (isRectangle(element)) {
-		flipRectangleDimensions(element);
-	}
+	if (isRectangle(element)) flipRectangleDimensions(element);
 };
 
 export const rotateSelectedRectangleDegrees = (delta: number) => {
@@ -116,9 +114,7 @@ export const rotateSelectedRectangleDegrees = (delta: number) => {
 	const element = selectedElements.values().next().value;
 	if (!element) return;
 
-	if (isRectangle(element)) {
-		rotateRectangleDegrees(element, delta);
-	}
+	if (isRectangle(element)) rotateRectangleDegrees(element, delta);
 };
 
 export const resetSelectedRectangleRotation = () => {
@@ -127,7 +123,5 @@ export const resetSelectedRectangleRotation = () => {
 	const element = selectedElements.values().next().value;
 	if (!element) return;
 
-	if (isRectangle(element)) {
-		resetRectangleRotation(element);
-	}
+	if (isRectangle(element)) resetRectangleRotation(element);
 };

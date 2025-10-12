@@ -8,6 +8,8 @@ PCB THT Holder is a web-based 3D STL file generator for THT (Through Hole Techno
 
 **Live deployment**: https://segmentcontroller.github.io/pcb-tht-holder/
 
+**Purpose**: This tool solves the challenge of neat THT component installation for DIY PCB assembly. Users who order SMD-assembled PCBs but install THT components at home can create custom 3D-printed holders that keep components (relays, capacitors, resistors, terminals, pin-headers) perfectly straight during soldering. The tool works entirely client-side - no registration required, PCB images never leave the browser.
+
 ## Development Commands
 
 ### Core Development
@@ -120,6 +122,7 @@ src/
 
 - **Global Variables**: `__PKG_VERSION__` and `__BASE_URL__` are injected at build time via Vite's define config
 - **Service Worker**: PWA support with offline caching, version auto-updated during build
+- **SEO Metadata**: `index.html` includes meta description, keywords, and Open Graph tags for search engines and social media
 - **Environment Detection**: Production base path is `/pcb-tht-holder`, dev is empty string
 - **Strict ESLint**: Uses unicorn/all config with custom overrides, enforces import sorting, no console/alert/debugger
 - **Node Version**: Requires Node >=22.0.0, npm >=10.0.0

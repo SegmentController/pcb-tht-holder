@@ -127,12 +127,10 @@
 		// Apply boundary limits (center + offset must stay within bounds)
 		if (target.x() + minX < 0) target.x(-minX);
 		if (target.y() + minY < 0) target.y(-minY);
-		if (target.x() + maxX > $projectStore.panelSettings.width) {
+		if (target.x() + maxX > $projectStore.panelSettings.width)
 			target.x($projectStore.panelSettings.width - maxX);
-		}
-		if (target.y() + maxY > $projectStore.panelSettings.height) {
+		if (target.y() + maxY > $projectStore.panelSettings.height)
 			target.y($projectStore.panelSettings.height - maxY);
-		}
 	};
 	const limitCircle = (event: KonvaDragTransformEvent, circle: CircleData) => {
 		const target = event.target;

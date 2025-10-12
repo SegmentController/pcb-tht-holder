@@ -205,9 +205,7 @@ const generateMesh = (project: RenderableProject, font: Font): MeshInfoTuple => 
 		box.position.z += BOTTOM_THICKNESS + (componentHeight - (depthOverride ?? rectangle.depth));
 
 		// Apply rotation around center
-		if (rectangle.rotation) {
-			box.rotateZ((-rectangle.rotation * Math.PI) / 180);
-		}
+		if (rectangle.rotation) box.rotateZ((-rectangle.rotation * Math.PI) / 180);
 
 		box.updateMatrixWorld();
 		return box;
@@ -293,9 +291,7 @@ const generateMesh = (project: RenderableProject, font: Font): MeshInfoTuple => 
 		box.position.z += POSITIVE_BASE_THICKNESS;
 
 		// Apply rotation around center
-		if (rectangle.rotation) {
-			box.rotateZ((-rectangle.rotation * Math.PI) / 180);
-		}
+		if (rectangle.rotation) box.rotateZ((-rectangle.rotation * Math.PI) / 180);
 
 		box.updateMatrixWorld();
 		meshPositive = evaluator.evaluate(meshPositive, box, ADDITION);

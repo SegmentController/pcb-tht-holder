@@ -67,9 +67,7 @@ export const stageMouseMove = (
 	scaleX: number,
 	scaleY: number
 ) => {
-	if (rafId !== undefined) {
-		cancelAnimationFrame(rafId);
-	}
+	if (rafId !== undefined) cancelAnimationFrame(rafId);
 	rafId = requestAnimationFrame(() => {
 		updateMeasurement(event, isMeasurementMode, info, scaleX, scaleY);
 		rafId = undefined;

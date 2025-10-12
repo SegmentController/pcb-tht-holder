@@ -68,7 +68,7 @@
 	};
 </script>
 
-<EscapeClose on:escape={() => resolve()}>
+<EscapeClose on:escape={resolve}>
 	<Modal dismissable={false} open={true} size="lg">
 		<div class="flex justify-start">
 			<span class="font-semibold mr-4">
@@ -115,7 +115,7 @@
 						Download STL</Button
 					>
 				{/await}
-				<Button class="ml-2" color="alternative" onclick={() => resolve()}>Close</Button>
+				<Button class="ml-2" color="alternative" onclick={resolve}>Close</Button>
 			</div>
 		</div>
 		<div class="canvasContainer">

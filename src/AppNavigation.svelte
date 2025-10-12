@@ -191,20 +191,20 @@
 				callback: () => addNewRectangle(),
 				preventDefault: true
 			},
-			{ key: 'l', modifier: ['ctrl', 'meta'], callback: () => addNewLeg(), preventDefault: true },
+			{ key: 'l', modifier: ['ctrl', 'meta'], callback: addNewLeg, preventDefault: true },
 			{
 				key: 'z',
 				modifier: ['ctrl', 'meta'],
-				callback: () => executeLastUndo(),
+				callback: executeLastUndo,
 				preventDefault: true
 			},
 			{
 				key: 'p',
 				modifier: ['ctrl', 'meta'],
-				callback: () => openProjectSettings(),
+				callback: openProjectSettings,
 				preventDefault: true
 			},
-			{ key: 'd', callback: () => openDisplay(), preventDefault: true },
+			{ key: 'd', callback: openDisplay, preventDefault: true },
 			{
 				key: 'ArrowLeft',
 				callback: () => finemoveSelectedElement('left'),
@@ -251,12 +251,12 @@
 			},
 			{
 				key: 'f',
-				callback: () => flipSelectedRectangleDimensions(),
+				callback: flipSelectedRectangleDimensions,
 				preventDefault: true
 			},
 			{
 				key: 'F',
-				callback: () => flipSelectedRectangleDimensions(),
+				callback: flipSelectedRectangleDimensions,
 				preventDefault: true
 			},
 			{
@@ -267,7 +267,7 @@
 			{
 				key: 'R',
 				modifier: ['shift'],
-				callback: () => resetSelectedRectangleRotation(),
+				callback: resetSelectedRectangleRotation,
 				preventDefault: true
 			}
 		]
@@ -308,8 +308,8 @@
 					<Icon class="inline-flex" icon="mdi:chevron-down" />
 				</NavLi>
 				<Dropdown class="w-60 z-20 -mt-2" simple trigger="hover">
-					<DropdownItem href="#" onclick={() => reset()}>New</DropdownItem>
-					<DropdownItem href="#" onclick={() => downloadProjectFile()}>Save project</DropdownItem>
+					<DropdownItem href="#" onclick={reset}>New</DropdownItem>
+					<DropdownItem href="#" onclick={downloadProjectFile}>Save project</DropdownItem>
 				</Dropdown>
 
 				<NavLi class="cursor-pointer">
@@ -318,7 +318,7 @@
 				</NavLi>
 				<Dropdown class="w-72 z-20 -mt-2" simple trigger="hover">
 					{#if $undoStoreLastItem}
-						<DropdownItem href="#" onclick={() => executeLastUndo()}
+						<DropdownItem href="#" onclick={executeLastUndo}
 							>Undo: {$undoStoreLastItem}
 							<Kbd class="float-right px-2 py-0">ctrl + Z</Kbd>
 						</DropdownItem>
@@ -332,15 +332,13 @@
 						Add rectangle...
 						<Kbd class="float-right px-2 py-0">ctrl + R</Kbd>
 					</DropdownItem>
-					<DropdownItem href="#" onclick={() => addNewLeg()}>
+					<DropdownItem href="#" onclick={addNewLeg}>
 						Add leg
 						<Kbd class="float-right px-2 py-0">ctrl + L</Kbd>
 					</DropdownItem>
-					<DropdownItem href="#" onclick={() => addCornerLegs()}>Auto legs at corner</DropdownItem>
+					<DropdownItem href="#" onclick={addCornerLegs}>Auto legs at corner</DropdownItem>
 					{#if getProjectStoreLegCount()}
-						<DropdownItem href="#" onclick={() => deleteAllLegsWithConfirm()}>
-							Delete all legs
-						</DropdownItem>
+						<DropdownItem href="#" onclick={deleteAllLegsWithConfirm}>Delete all legs</DropdownItem>
 					{/if}
 					{#if getLibraryStoreValue().length}
 						<DropdownItem class="flex items-center justify-between">
@@ -356,15 +354,15 @@
 						</Dropdown>
 					{/if}
 					<DropdownDivider />
-					<DropdownItem href="#" onclick={() => openProjectSettings()}>
+					<DropdownItem href="#" onclick={openProjectSettings}>
 						Project settings...
 						<Kbd class="float-right px-2 py-0">ctrl + P</Kbd>
 					</DropdownItem>
 				</Dropdown>
-				<NavLi class="cursor-pointer" onclick={() => showModalLibrary()}>Library</NavLi>
+				<NavLi class="cursor-pointer" onclick={showModalLibrary}>Library</NavLi>
 			</NavUl>
 			<div class="flex">
-				<Button disabled={!projectLoaded} onclick={() => openDisplay()}>
+				<Button disabled={!projectLoaded} onclick={openDisplay}>
 					<Icon class="inline-flex mr-2" icon="mdi:rotate-3d" width={24} />
 					Display
 					<Kbd class="ml-4 px-2 py-1">D</Kbd>

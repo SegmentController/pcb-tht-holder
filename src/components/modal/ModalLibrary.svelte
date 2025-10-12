@@ -35,13 +35,12 @@
 	};
 </script>
 
-<EscapeClose on:escape={() => resolve()}>
+<EscapeClose on:escape={resolve}>
 	<Modal dismissable={false} open={true} size="lg" title="Library">
 		<div class="grid">
 			<ButtonGroup class="justify-self-end">
-				<Button onclick={() => importLibrary()}>Import</Button>
-				<Button disabled={$libraryStore.length === 0} onclick={() => exportLibrary()}>Export</Button
-				>
+				<Button onclick={importLibrary}>Import</Button>
+				<Button disabled={$libraryStore.length === 0} onclick={exportLibrary}>Export</Button>
 			</ButtonGroup>
 		</div>
 		<div class="grid grid-cols-3 gap-2 pt-4">
@@ -74,7 +73,7 @@
 			{/each}
 		</div>
 		<div class="text-right pt-4">
-			<Button class="ml-2" color="alternative" onclick={() => resolve()}>Close</Button>
+			<Button class="ml-2" color="alternative" onclick={resolve}>Close</Button>
 		</div>
 	</Modal>
 </EscapeClose>

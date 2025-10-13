@@ -1,4 +1,89 @@
+<!--
+	2D PCB Component Placement Designer - Konva.js Canvas Interface
+
+	This is the core interactive component where users place and manipulate THT components
+	on a PCB image. It provides a Konva.js-based 2D canvas with two operational modes:
+
+	**Modes:**
+	1. **Pointer Mode** (default):
+	   - Drag components to position them
+	   - Double-click to edit properties
+	   - Right-click for context menu
+	   - Arrow keys for fine movement (0.1mm, 0.5mm with shift)
+	   - Rectangle rotation (R key) and dimension flip (F key)
+	   - Hover to see element info and shortcuts
+
+	2. **Measure Mode**:
+	   - Click two points to measure distance
+	   - Shows grid overlay for reference
+	   - Displays measurement line and distance (1/10th mm precision)
+	   - All element dragging disabled
+
+	**Coordinate Systems (Critical Implementation Detail):**
+
+	Three coordinate spaces exist simultaneously:
+
+	1. **Screen/Canvas Space** (pixels):
+	   - Konva Stage dimensions (imageSize.width * zoom)
+	   - What the user sees on screen
+
+	2. **Image Space** (pixels):
+	   - Original PCB image dimensions (imageSize.width x imageSize.height)
+	   - Unscaled, before zoom applied
+
+	3. **PCB/World Space** (millimeters):
+	   - Real-world PCB dimensions (panelSettings.width x panelSettings.height)
+	   - All element positions stored in this space
+	   - Used for 3D mesh generation and STL export
+
+	**Coordinate Transformations:**
+	```
+	Scale Factors:
+	- scaleX = (imageSize.width / panelSettings.width) * (zoom / 100)
+	- scaleY = (imageSize.height / panelSettings.height) * (zoom / 100)
+
+	Image → World Space:
+	- worldX = imageX / (imageSize.width / panelSettings.width)
+	- worldY = imageY / (imageSize.height / panelSettings.height)
+
+	World → Image Space:
+	- imageX = worldX * (imageSize.width / panelSettings.width)
+	- imageY = worldY * (imageSize.height / panelSettings.height)
+	```
+
+	**Image Rendering:**
+	- Image is flipped on Y-axis (scaleY negative) for correct PCB top-view
+	- Opacity set to 0.25 for visibility of overlaid components
+	- offsetY applied to account for Y-flip transformation
+
+	**Boundary Limiting Algorithm:**
+
+	Prevents elements from being dragged outside panel bounds. Two algorithms:
+
+	1. **Circles** (simple):
+	   - Center + radius must stay within [0, panelWidth] x [0, panelHeight]
+
+	2. **Rectangles/Legs** (complex - AABB for rotation):
+	   - For rotated rectangles: calculate Axis-Aligned Bounding Box (AABB)
+	   - Rotate all 4 corners around center
+	   - Find min/max X/Y offsets from center
+	   - Ensure center + offsets stay within bounds
+	   - See limitBox() function for implementation
+
+	**Performance Optimizations:**
+	- Elements bound directly to store for real-time reactivity
+	- Drag updates batched (ondragend instead of ondragmove)
+	- Context menu and hover info positioned absolutely outside canvas
+
+	**Event Flow:**
+	1. User interacts with canvas (mouse/keyboard)
+	2. Konva events captured (onclick, ondragmove, etc.)
+	3. Element data updated in projectStore
+	4. Svelte reactivity triggers re-render
+	5. Konva updates canvas display
+-->
 <script lang="ts" module>
+	/** Designer interaction mode - pointer for manipulation, measure for distance tool */
 	export type DesignerMode = 'pointer' | 'measure';
 </script>
 
@@ -70,6 +155,35 @@
 		mode = $bindable()
 	}: Properties = $props();
 
+	/**
+	 * Boundary limiting for rectangular elements during drag operations
+	 *
+	 * Prevents rectangles and legs from being dragged outside panel bounds using
+	 * Axis-Aligned Bounding Box (AABB) calculation for rotated rectangles.
+	 *
+	 * **Algorithm:**
+	 * 1. Calculate element's bounding box offsets from its anchor point
+	 * 2. For rotated rectangles:
+	 *    - Transform all 4 corners using rotation matrix
+	 *    - Find min/max X/Y to get AABB
+	 * 3. For non-rotated elements:
+	 *    - Rectangles: center-based offsets (±width/2, ±height/2)
+	 *    - Legs: top-left based offsets (0 to width, 0 to height)
+	 * 4. Clamp position so anchor + offsets stay within [0, panelWidth] x [0, panelHeight]
+	 *
+	 * **Coordinate Systems:**
+	 * - Rectangles: position is CENTER, rotation around center
+	 * - Legs: position is TOP-LEFT corner, no rotation
+	 *
+	 * **Rotation Matrix (2D):**
+	 * ```
+	 * x' = x * cos(θ) - y * sin(θ)
+	 * y' = x * sin(θ) + y * cos(θ)
+	 * ```
+	 *
+	 * @param event - Konva drag event with target element
+	 * @param box - Rectangle or leg data with dimensions and optional rotation
+	 */
 	const limitBox = (event: KonvaDragTransformEvent, box: RectangleData | LegData) => {
 		const target = event.target;
 
@@ -94,20 +208,19 @@
 				{ dx: -halfWidth, dy: halfHeight } // bottom-left
 			];
 
-			// Rotate each corner around center
+			// Rotate each corner around center using 2D rotation matrix
 			const rotatedCorners = corners.map((c) => ({
 				x: c.dx * cos - c.dy * sin,
 				y: c.dx * sin + c.dy * cos
 			}));
 
-			// Find bounding box offsets from center
+			// Find axis-aligned bounding box (AABB) offsets from center
 			minX = Math.min(...rotatedCorners.map((c) => c.x));
 			maxX = Math.max(...rotatedCorners.map((c) => c.x));
 			minY = Math.min(...rotatedCorners.map((c) => c.y));
 			maxY = Math.max(...rotatedCorners.map((c) => c.y));
 		} else {
 			// No rotation (leg or 0° rectangle)
-			// For legs: still top-left based, for rectangles: center-based
 			const isRectangle = 'rotation' in box;
 			if (isRectangle) {
 				// Rectangle at 0° rotation - offsets from center
@@ -116,7 +229,7 @@
 				minY = -box.height / 2;
 				maxY = box.height / 2;
 			} else {
-				// Leg - top-left based (no change needed for legs)
+				// Leg - top-left based (no offset adjustment needed)
 				minX = 0;
 				maxX = box.width;
 				minY = 0;
@@ -124,7 +237,7 @@
 			}
 		}
 
-		// Apply boundary limits (center + offset must stay within bounds)
+		// Apply boundary limits: clamp position so (position + offset) stays within bounds
 		if (target.x() + minX < 0) target.x(-minX);
 		if (target.y() + minY < 0) target.y(-minY);
 		if (target.x() + maxX > $projectStore.panelSettings.width)
@@ -132,6 +245,19 @@
 		if (target.y() + maxY > $projectStore.panelSettings.height)
 			target.y($projectStore.panelSettings.height - maxY);
 	};
+	/**
+	 * Boundary limiting for circular elements during drag operations
+	 *
+	 * Prevents circles from being dragged outside panel bounds using simple
+	 * radius-based boundary checking (circles are always axis-aligned).
+	 *
+	 * **Algorithm:**
+	 * - Circle center must stay within [radius, panelWidth-radius] x [radius, panelHeight-radius]
+	 * - Ensures entire circle (center + radius) stays within panel bounds
+	 *
+	 * @param event - Konva drag event with target element
+	 * @param circle - Circle data with position and radius
+	 */
 	const limitCircle = (event: KonvaDragTransformEvent, circle: CircleData) => {
 		const target = event.target;
 		const minX = circle.radius;
@@ -145,9 +271,23 @@
 		if (target.y() > maxY) target.y(maxY);
 	};
 
+	/** Context menu instance for right-click element operations */
 	let contextMenu: ContextMenu | undefined = $state();
+
+	/** Hover info tooltip showing element details and keyboard shortcuts */
 	let hoverInfo: HoverInfo | undefined = $state();
 
+	/**
+	 * Mouse enter event handler - shows hover info and enables fine movement
+	 *
+	 * Triggers when cursor enters an element. In pointer mode, displays:
+	 * - Element information (type, dimensions, position)
+	 * - Available keyboard shortcuts for manipulation
+	 * - Positioned to the right of the element to avoid obstruction
+	 *
+	 * @param event - Konva mouse event with target element and stage
+	 * @param element - Circle, rectangle, or leg data
+	 */
 	const handleMouseEnter = (
 		event: KonvaMouseEvent,
 		element: CircleData | RectangleData | LegData
@@ -183,6 +323,16 @@
 		}
 	};
 
+	/**
+	 * Mouse leave event handler - hides hover info and disables fine movement
+	 *
+	 * Triggers when cursor exits an element. Cleans up UI state:
+	 * - Hides hover info tooltip
+	 * - Deselects element for fine movement
+	 *
+	 * @param event - Konva mouse event with target element
+	 * @param element - Circle, rectangle, or leg data
+	 */
 	const handleMouseLeave = (
 		event: KonvaMouseEvent,
 		element: CircleData | RectangleData | LegData
@@ -191,6 +341,20 @@
 		hoverInfo?.hide();
 	};
 
+	/**
+	 * Stage click event handler - displays context menu on right-click
+	 *
+	 * Handles right-click (button === 2) events on elements. Searches through
+	 * element types (circles, rectangles, legs) to find matching ID and
+	 * displays type-specific context menu with available operations.
+	 *
+	 * **Context Menu Operations:**
+	 * - Circles: Edit properties, delete
+	 * - Rectangles: Edit properties, rotate, flip, delete
+	 * - Legs: Delete with confirmation
+	 *
+	 * @param event - Konva mouse event with button type and target element
+	 */
 	const stageClick = (event: KonvaMouseEvent) => {
 		if (event.evt.button === 2 && mode === 'pointer') {
 			const id = event.target.id();
@@ -210,13 +374,23 @@
 		}
 	};
 
+	/** Measurement tool state - tracks start/end points and distance calculation */
 	const measurementInfo: Writable<MeasurementInfo> = writable(emptyMeasurementInfo);
 
+	/**
+	 * X-axis scale factor: converts PCB/world space (mm) to canvas space (pixels)
+	 * Formula: (imagePixels / panelMillimeters) * (zoom / 100)
+	 */
 	const getStageScaleX = $derived(
 		imageSize
 			? (imageSize.width / $projectStore.panelSettings.width) * ($projectStore.zoom / 100)
 			: 1
 	);
+
+	/**
+	 * Y-axis scale factor: converts PCB/world space (mm) to canvas space (pixels)
+	 * Formula: (imagePixels / panelMillimeters) * (zoom / 100)
+	 */
 	const getStageScaleY = $derived(
 		imageSize
 			? (imageSize.height / $projectStore.panelSettings.height) * ($projectStore.zoom / 100)

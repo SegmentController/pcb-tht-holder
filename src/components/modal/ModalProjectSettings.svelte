@@ -56,6 +56,16 @@
 				<NumberInputBound id="smdHeight" max={10} min={0.1} bind:value={panelSettings.smdHeight} />
 			</div>
 			<div class="col-span-2">
+				<Label class="mb-2" for="printTolerance">Print tolerance (mm)</Label>
+				<NumberInputBound
+					id="printTolerance"
+					max={2}
+					min={0}
+					step={0.1}
+					bind:value={panelSettings.printTolerance}
+				/>
+			</div>
+			<div class="col-span-2">
 				<Label class="mb-2" for="label">Print label</Label>
 				<Input id="label" bind:value={label} />
 			</div>

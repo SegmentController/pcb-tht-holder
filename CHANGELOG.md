@@ -1,5 +1,28 @@
 # Change log
 
+## [1.11.2] - 2025-10-13
+
+### Added
+
+- **Print Tolerance feature** for 3D printer calibration compensation
+  - Adjustable tolerance setting (0-2mm with 0.1mm precision)
+  - Compensates for 3D printer dimensional inaccuracies by:
+    - Enlarging component holes (adds tolerance to circle radius and rectangle dimensions)
+    - Shrinking holder panel (subtracts tolerance from panel width/height)
+  - Ensures THT components fit easily while holder grips PCB snugly
+  - Configuration available in Project Settings modal
+  - Not applied to positive mesh (PCB visualization uses exact dimensions)
+- **SEO improvements**
+  - Added sitemap.xml for better search engine indexing
+  - Added Google Search Console verification file
+
+### Changed
+
+- **Code documentation**
+  - Added comprehensive JSDoc comments throughout the codebase
+  - Improved code comments for type definitions, stores, and components
+  - Enhanced inline documentation for better maintainability
+
 ## [1.11.1] - 2025-10-12
 
 ### Added

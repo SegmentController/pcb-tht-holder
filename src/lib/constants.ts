@@ -11,6 +11,9 @@ export const CIRCLE_COLOR = 'orange';
 export const RECTANGLE_COLOR = 'green';
 export const LEG_COLOR = 'gray';
 
+// 3D mesh colors
+export const POSITIVE_MESH_COLOR = '#ff8811'; // Orange color for PCB visualization mesh
+
 // Fine movement
 export const FINE_MOVEMENT_DELTA = 0.1; // mm per arrow key press
 export const FINE_MOVEMENT_SHIFT_MULTIPLIER = 5; // 5x faster with shift key (0.5mm)

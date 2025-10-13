@@ -110,10 +110,14 @@ src/
      - **Hollow mesh**: Shallow version with reduced material usage
      - **Positive mesh**: Inverted design showing components as pillars (for PCB visualization)
    - Creates base structure, subtracts component holes, adds support legs
-   - **Print tolerance** application:
+   - **Print tolerance** application (v1.11.2+):
+     - Configurable tolerance setting (0-2mm with 0.1mm precision, default 0mm)
+     - Compensates for 3D printer dimensional inaccuracies
      - Enlarges component holes: adds tolerance to circle radius and rectangle dimensions
      - Shrinks holder panel: subtracts tolerance from panel width/height
+     - Ensures THT components fit easily while holder grips PCB snugly
      - Not applied to positive mesh (visualization only)
+     - Configured via Project Settings modal (`printTolerance` field in PanelSettings)
    - Optional text label engraving using Three.js TextGeometry
    - Loads Roboto font from `/roboto_regular.json`
 
@@ -126,10 +130,14 @@ src/
 
 - **Global Variables**: `__PKG_VERSION__` and `__BASE_URL__` are injected at build time via Vite's define config
 - **Service Worker**: PWA support with offline caching, version auto-updated during build
-- **SEO Metadata**: `index.html` includes meta description, keywords, and Open Graph tags for search engines and social media
+- **SEO Infrastructure**:
+  - `index.html` includes meta description, keywords, and Open Graph tags for search engines and social media
+  - `sitemap.xml` in public/ directory for search engine indexing
+  - Google Search Console verification file for site ownership verification
 - **Environment Detection**: Production base path is `/pcb-tht-holder`, dev is empty string
 - **Strict ESLint**: Uses unicorn/all config with custom overrides, enforces import sorting, no console/alert/debugger
 - **Node Version**: Requires Node >=22.0.0, npm >=10.0.0
+- **Code Documentation**: Codebase includes comprehensive JSDoc comments for functions, types, and complex logic
 
 ### Coordinate Systems and Rotation
 

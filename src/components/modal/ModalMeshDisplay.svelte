@@ -11,6 +11,7 @@
 		generateStlFromVertices,
 		getBinaryStlSizeKbFromVertices
 	} from '$lib/3d/stl';
+	import { POSITIVE_MESH_COLOR } from '$lib/constants';
 	import { virtualDownload } from '$lib/download';
 	import { MathMax } from '$lib/Math';
 	import type { MeshInfoTuple } from '$types/MeshInfo';
@@ -134,10 +135,10 @@
 						/>
 						{#if showPositive && meshInfoTuple.positive}
 							<Mesh3DScene
-								color="#ff8811"
+								color={POSITIVE_MESH_COLOR}
 								flipZ={true}
 								opacity={0.75}
-								positionOffset={baseOffset + meshDistance}
+								positionOffset={baseOffset + meshDistance + 1}
 								vertices={meshInfoTuple.positive.vertexArray}
 								{volume}
 								wireframe={isWireframe}

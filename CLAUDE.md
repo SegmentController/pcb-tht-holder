@@ -92,7 +92,7 @@ src/
 
 1. **Project State**: Central `projectStore` (persisted to localStorage) holds:
    - PCB image (base64)
-   - Panel settings (width, height, PCB thickness, SMD height)
+   - Panel settings (width, height, PCB thickness, SMD height, print tolerance)
    - Component arrays: `circles[]`, `rectangles[]`, `legs[]`
    - Validated with Zod schemas at runtime
 
@@ -110,6 +110,10 @@ src/
      - **Hollow mesh**: Shallow version with reduced material usage
      - **Positive mesh**: Inverted design showing components as pillars (for PCB visualization)
    - Creates base structure, subtracts component holes, adds support legs
+   - **Print tolerance** application:
+     - Enlarges component holes: adds tolerance to circle radius and rectangle dimensions
+     - Shrinks holder panel: subtracts tolerance from panel width/height
+     - Not applied to positive mesh (visualization only)
    - Optional text label engraving using Three.js TextGeometry
    - Loads Roboto font from `/roboto_regular.json`
 
@@ -180,6 +184,9 @@ ELEMENT_DRAGGABLE = true;
 CIRCLE_COLOR = 'orange';
 RECTANGLE_COLOR = 'green';
 LEG_COLOR = 'gray';
+
+// 3D mesh colors
+POSITIVE_MESH_COLOR = '#ff8811'; // Orange color for PCB visualization mesh
 
 // Fine movement
 FINE_MOVEMENT_DELTA = 0.1; // mm per arrow key press

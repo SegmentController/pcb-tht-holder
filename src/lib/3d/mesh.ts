@@ -127,8 +127,8 @@ const generateMesh = (project: RenderableProject, font: Font): MeshInfoTuple => 
 	const hollowHeight = panel.pcbThickness + panel.smdHeight;
 
 	// Apply print tolerance to panel dimensions (shrink the holder)
-	const adjustedPanelWidth = panel.width - panel.printTolerance * 2;
-	const adjustedPanelHeight = panel.height - panel.printTolerance * 2;
+	const adjustedPanelWidth = panel.width + panel.printTolerance * 2;
+	const adjustedPanelHeight = panel.height + panel.printTolerance * 2;
 
 	// Create base meshes: full-depth main holder and shallow hollow version
 	let mesh = MESH(

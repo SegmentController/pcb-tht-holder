@@ -24,6 +24,9 @@ In its current state, it facilitates the installation of circular and oblong com
 - **Component Shapes**: Support for circular and rectangular components
   - Rectangles support full 360° rotation (0-359 degrees)
   - Flip dimensions to swap width/height instantly
+- **Print Tolerance**: Adjustable tolerance setting (0-2mm with 0.1mm precision)
+  - Compensates for 3D printer dimensional inaccuracies
+  - Enlarges component holes and shrinks holder panel for perfect fit
 - **Measurement Tool**: Press `M` to measure distances in 1/10th millimeter precision
 - **Undo/Redo**: Press `Ctrl+Z` to undo component deletions and modifications
 - **Component Library**: Save and reuse your favorite component configurations

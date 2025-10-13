@@ -244,8 +244,8 @@ const generateMesh = (project: RenderableProject, font: Font): MeshInfoTuple => 
 	const hollowHeight = panel.pcbThickness + panel.smdHeight;
 
 	// Apply print tolerance to panel dimensions (shrink the holder)
-	const adjustedPanelWidth = panel.width + panel.printTolerance * 2;
-	const adjustedPanelHeight = panel.height + panel.printTolerance * 2;
+	const adjustedPanelWidth = panel.width - panel.printTolerance * 2;
+	const adjustedPanelHeight = panel.height - panel.printTolerance * 2;
 
 	// Create base meshes: full-depth main holder and shallow hollow version
 	let mesh = MESH(
@@ -323,8 +323,8 @@ const generateMesh = (project: RenderableProject, font: Font): MeshInfoTuple => 
 		const box = MESH(geometry);
 
 		// Position at center in world space
-		box.position.x += rectangle.x - adjustedPanelWidth * PANEL_CENTER_FACTOR;
-		box.position.y -= rectangle.y - adjustedPanelHeight * PANEL_CENTER_FACTOR;
+		box.position.x += rectangle.x - panel.width * PANEL_CENTER_FACTOR;
+		box.position.y -= rectangle.y - panel.height * PANEL_CENTER_FACTOR;
 		box.position.z += BOTTOM_THICKNESS + (componentHeight - (depthOverride ?? rectangle.depth));
 
 		// Apply rotation around center
@@ -350,8 +350,8 @@ const generateMesh = (project: RenderableProject, font: Font): MeshInfoTuple => 
 				depthOverride ?? circle.depth + ROUND_CORRECTION
 			)
 		);
-		cylinder.position.x += circle.x - adjustedPanelWidth * PANEL_CENTER_FACTOR;
-		cylinder.position.y -= circle.y - adjustedPanelHeight * PANEL_CENTER_FACTOR;
+		cylinder.position.x += circle.x - panel.width * PANEL_CENTER_FACTOR;
+		cylinder.position.y -= circle.y - panel.height * PANEL_CENTER_FACTOR;
 		cylinder.position.z += BOTTOM_THICKNESS + (componentHeight - (depthOverride ?? circle.depth));
 		cylinder.updateMatrixWorld();
 		return cylinder;
@@ -382,10 +382,8 @@ const generateMesh = (project: RenderableProject, font: Font): MeshInfoTuple => 
 	// Add support legs to main mesh with full component height
 	for (const leg of filteredLegs) {
 		const box = MESH(BOX(leg.width, leg.height, componentHeight));
-		box.position.x +=
-			leg.x + leg.width * PANEL_CENTER_FACTOR - adjustedPanelWidth * PANEL_CENTER_FACTOR;
-		box.position.y -=
-			leg.y + leg.height * PANEL_CENTER_FACTOR - adjustedPanelHeight * PANEL_CENTER_FACTOR;
+		box.position.x += leg.x + leg.width * PANEL_CENTER_FACTOR - panel.width * PANEL_CENTER_FACTOR;
+		box.position.y -= leg.y + leg.height * PANEL_CENTER_FACTOR - panel.height * PANEL_CENTER_FACTOR;
 		box.position.z += BOTTOM_THICKNESS;
 		box.updateMatrixWorld();
 		mesh = evaluator.evaluate(mesh, box, ADDITION);
@@ -394,10 +392,8 @@ const generateMesh = (project: RenderableProject, font: Font): MeshInfoTuple => 
 	// Add support legs to hollow mesh with SMD height
 	for (const leg of filteredLegs) {
 		const box = MESH(BOX(leg.width, leg.height, panel.smdHeight));
-		box.position.x +=
-			leg.x + leg.width * PANEL_CENTER_FACTOR - adjustedPanelWidth * PANEL_CENTER_FACTOR;
-		box.position.y -=
-			leg.y + leg.height * PANEL_CENTER_FACTOR - adjustedPanelHeight * PANEL_CENTER_FACTOR;
+		box.position.x += leg.x + leg.width * PANEL_CENTER_FACTOR - panel.width * PANEL_CENTER_FACTOR;
+		box.position.y -= leg.y + leg.height * PANEL_CENTER_FACTOR - panel.height * PANEL_CENTER_FACTOR;
 		box.position.z += BOTTOM_THICKNESS + (componentHeight - panel.smdHeight);
 		box.updateMatrixWorld();
 		meshHollow = evaluator.evaluate(meshHollow, box, ADDITION);

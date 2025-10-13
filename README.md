@@ -24,6 +24,10 @@ In its current state, it facilitates the installation of circular and oblong com
 - **Component Shapes**: Support for circular and rectangular components
   - Rectangles support full 360° rotation (0-359 degrees)
   - Flip dimensions to swap width/height instantly
+- **Smart Leg Placement**: Automatic collision detection for support legs
+  - Legs overlapping with components are automatically filtered during mesh generation
+  - Warning notification shows count of hidden legs
+  - Prevents mesh generation errors and ensures clean STL output
 - **Print Tolerance**: Adjustable tolerance setting (0-2mm with 0.1mm precision)
   - Compensates for 3D printer dimensional inaccuracies
   - Enlarges component holes and shrinks holder panel for perfect fit

@@ -5,6 +5,7 @@ import { ADDITION, Brush, Evaluator, SUBTRACTION } from 'three-bvh-csg';
 
 import { MathMinMax } from '$lib/Math';
 import type { CircleData } from '$types/CircleData';
+import type { LegData } from '$types/LegData';
 import type { MeshInfoTuple } from '$types/MeshInfo';
 import type { RenderableProject } from '$types/Project';
 import type { RectangleData } from '$types/RectangleData';
@@ -96,6 +97,122 @@ const MESH = (geometry: BoxGeometry | CylinderGeometry | TextGeometry) => {
 	result.updateMatrixWorld();
 
 	return result;
+};
+
+/**
+ * Checks if a leg overlaps with a circle component
+ *
+ * Uses closest-point-on-rectangle algorithm to detect intersection.
+ * Leg is treated as an axis-aligned bounding box (top-left corner positioning).
+ *
+ * @param leg - Support leg with top-left corner coordinates
+ * @param circle - Circle component with center coordinates
+ * @returns true if the leg overlaps with the circle
+ */
+const isLegOverlappingCircle = (leg: LegData, circle: CircleData): boolean => {
+	// Find closest point on leg rectangle to circle center
+	const closestX = MathMinMax(circle.x, leg.x, leg.x + leg.width);
+	const closestY = MathMinMax(circle.y, leg.y, leg.y + leg.height);
+
+	// Calculate distance from closest point to circle center
+	const distanceX = circle.x - closestX;
+	const distanceY = circle.y - closestY;
+	const distanceSquared = distanceX * distanceX + distanceY * distanceY;
+
+	// Check if distance is less than radius (using squared values to avoid sqrt)
+	return distanceSquared < circle.radius * circle.radius;
+};
+
+/**
+ * Checks if a leg overlaps with a rectangle component
+ *
+ * Handles both non-rotated and rotated rectangles:
+ * - Non-rotated: Simple AABB overlap test
+ * - Rotated: Checks if any corner of the rotated rectangle is inside the leg,
+ *   or if any corner of the leg is inside the rotated rectangle
+ *
+ * @param leg - Support leg with top-left corner coordinates
+ * @param rectangle - Rectangle component with center coordinates and optional rotation
+ * @returns true if the leg overlaps with the rectangle
+ */
+const isLegOverlappingRectangle = (leg: LegData, rectangle: RectangleData): boolean => {
+	if (!rectangle.rotation) {
+		// Simple AABB overlap test for non-rotated rectangles
+		// Rectangle uses center coordinates, leg uses top-left
+		const rectLeft = rectangle.x - rectangle.width / 2;
+		const rectRight = rectangle.x + rectangle.width / 2;
+		const rectTop = rectangle.y - rectangle.height / 2;
+		const rectBottom = rectangle.y + rectangle.height / 2;
+
+		const legLeft = leg.x;
+		const legRight = leg.x + leg.width;
+		const legTop = leg.y;
+		const legBottom = leg.y + leg.height;
+
+		return !(
+			rectRight < legLeft ||
+			rectLeft > legRight ||
+			rectBottom < legTop ||
+			rectTop > legBottom
+		);
+	}
+
+	// Handle rotated rectangle - check if any corner is inside the other shape
+	const angle = (rectangle.rotation * Math.PI) / 180;
+	const cos = Math.cos(angle);
+	const sin = Math.sin(angle);
+
+	// Get the 4 corners of the rotated rectangle (relative to center)
+	const halfWidth = rectangle.width / 2;
+	const halfHeight = rectangle.height / 2;
+	const corners = [
+		{ x: -halfWidth, y: -halfHeight },
+		{ x: halfWidth, y: -halfHeight },
+		{ x: halfWidth, y: halfHeight },
+		{ x: -halfWidth, y: halfHeight }
+	];
+
+	// Rotate corners and translate to world coordinates
+	const rotatedCorners = corners.map((corner) => ({
+		x: rectangle.x + corner.x * cos - corner.y * sin,
+		y: rectangle.y + corner.x * sin + corner.y * cos
+	}));
+
+	// Check if any rotated rectangle corner is inside the leg
+	for (const corner of rotatedCorners) {
+		if (
+			corner.x >= leg.x &&
+			corner.x <= leg.x + leg.width &&
+			corner.y >= leg.y &&
+			corner.y <= leg.y + leg.height
+		) {
+			return true;
+		}
+	}
+
+	// Check if any leg corner is inside the rotated rectangle
+	// Use inverse rotation to check if leg corners are inside rectangle's local space
+	const legCorners = [
+		{ x: leg.x, y: leg.y },
+		{ x: leg.x + leg.width, y: leg.y },
+		{ x: leg.x + leg.width, y: leg.y + leg.height },
+		{ x: leg.x, y: leg.y + leg.height }
+	];
+
+	for (const corner of legCorners) {
+		// Transform leg corner to rectangle's local coordinate system
+		const dx = corner.x - rectangle.x;
+		const dy = corner.y - rectangle.y;
+		const localX = dx * cos + dy * sin;
+		const localY = -dx * sin + dy * cos;
+
+		// Check if point is inside rectangle bounds
+		if (Math.abs(localX) <= halfWidth && Math.abs(localY) <= halfHeight) {
+			return true;
+		}
+	}
+
+	return false;
 };
 
 /**
@@ -248,8 +365,34 @@ const generateMesh = (project: RenderableProject, font: Font): MeshInfoTuple => 
 		meshHollow = evaluator.evaluate(meshHollow, cylinder, SUBTRACTION);
 	}
 
-	// Add support legs to both meshes
-	for (const leg of project.legs) {
+	// Filter legs that overlap with components to prevent CSG conflicts
+	const filteredLegs = project.legs.filter((leg) => {
+		// Check if leg overlaps with any circle
+		for (const circle of project.circles) {
+			if (isLegOverlappingCircle(leg, circle)) return false;
+		}
+		// Check if leg overlaps with any rectangle
+		for (const rectangle of project.rectangles) {
+			if (isLegOverlappingRectangle(leg, rectangle)) return false;
+		}
+		return true;
+	});
+	const hiddenLegsCount = project.legs.length - filteredLegs.length;
+
+	// Add support legs to main mesh with full component height
+	for (const leg of filteredLegs) {
+		const box = MESH(BOX(leg.width, leg.height, componentHeight));
+		box.position.x +=
+			leg.x + leg.width * PANEL_CENTER_FACTOR - adjustedPanelWidth * PANEL_CENTER_FACTOR;
+		box.position.y -=
+			leg.y + leg.height * PANEL_CENTER_FACTOR - adjustedPanelHeight * PANEL_CENTER_FACTOR;
+		box.position.z += BOTTOM_THICKNESS;
+		box.updateMatrixWorld();
+		mesh = evaluator.evaluate(mesh, box, ADDITION);
+	}
+
+	// Add support legs to hollow mesh with SMD height
+	for (const leg of filteredLegs) {
 		const box = MESH(BOX(leg.width, leg.height, panel.smdHeight));
 		box.position.x +=
 			leg.x + leg.width * PANEL_CENTER_FACTOR - adjustedPanelWidth * PANEL_CENTER_FACTOR;
@@ -257,7 +400,6 @@ const generateMesh = (project: RenderableProject, font: Font): MeshInfoTuple => 
 			leg.y + leg.height * PANEL_CENTER_FACTOR - adjustedPanelHeight * PANEL_CENTER_FACTOR;
 		box.position.z += BOTTOM_THICKNESS + (componentHeight - panel.smdHeight);
 		box.updateMatrixWorld();
-		mesh = evaluator.evaluate(mesh, box, ADDITION);
 		meshHollow = evaluator.evaluate(meshHollow, box, ADDITION);
 	}
 
@@ -284,6 +426,7 @@ const generateMesh = (project: RenderableProject, font: Font): MeshInfoTuple => 
 	}
 
 	// Generate positive mesh (thin base plate with components as pillars)
+	// Note: Uses original panel dimensions (not adjusted) for visualization purposes
 	let meshPositive = MESH(BOX(panel.width, panel.height, POSITIVE_BASE_THICKNESS));
 	meshPositive.updateMatrixWorld();
 
@@ -342,7 +485,8 @@ const generateMesh = (project: RenderableProject, font: Font): MeshInfoTuple => 
 				height: panel.height,
 				depth: POSITIVE_BASE_THICKNESS + componentHeight
 			}
-		}
+		},
+		hiddenLegsCount
 	};
 };
 

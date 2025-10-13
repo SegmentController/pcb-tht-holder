@@ -1,5 +1,23 @@
 # Change log
 
+## [1.11.3] - 2025-10-13
+
+### Added
+
+- **Automatic leg collision detection** during 3D mesh generation
+  - Legs that overlap with component holes are automatically filtered out
+  - Prevents CSG (Constructive Solid Geometry) conflicts in mesh generation
+  - Warning message displays count of hidden legs in mesh display modal
+  - Collision detection handles both circular and rectangular components (including rotated rectangles)
+  - No workflow changes required - users can place legs anywhere during design phase
+
+### Changed
+
+- **Improved mesh generation reliability**
+  - `MeshInfoTuple` type now includes `hiddenLegsCount` field for tracking filtered legs
+  - Added `isLegOverlappingCircle()` and `isLegOverlappingRectangle()` collision detection functions
+  - Both main and hollow meshes now use filtered leg lists to prevent geometry errors
+
 ## [1.11.2] - 2025-10-13
 
 ### Added

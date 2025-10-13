@@ -77,5 +77,14 @@ export type MeshInfo = {
  *    - Useful for visualizing component placement
  *    - Can be printed separately as a PCB mockup
  *    - Optional field (may be undefined)
+ *
+ * **Hidden Legs:**
+ * - Legs that overlap with component holes are automatically filtered during generation
+ * - `hiddenLegsCount` tracks how many legs were excluded to prevent CSG conflicts
  */
-export type MeshInfoTuple = { main: MeshInfo; hollow: MeshInfo; positive?: MeshInfo };
+export type MeshInfoTuple = {
+	main: MeshInfo;
+	hollow: MeshInfo;
+	positive?: MeshInfo;
+	hiddenLegsCount: number;
+};

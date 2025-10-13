@@ -110,6 +110,13 @@ src/
      - **Hollow mesh**: Shallow version with reduced material usage
      - **Positive mesh**: Inverted design showing components as pillars (for PCB visualization)
    - Creates base structure, subtracts component holes, adds support legs
+   - **Automatic leg collision detection** (v1.11.3+):
+     - Legs overlapping with components are automatically filtered before mesh generation
+     - Prevents CSG conflicts where geometry is both subtracted (component holes) and added (legs)
+     - `isLegOverlappingCircle()`: Closest-point-on-rectangle algorithm for circle collision
+     - `isLegOverlappingRectangle()`: AABB test for non-rotated, corner-in-shape test for rotated rectangles
+     - Returns `hiddenLegsCount` in `MeshInfoTuple` for user notification
+     - Warning displayed in mesh modal when legs are filtered
    - **Print tolerance** application (v1.11.2+):
      - Configurable tolerance setting (0-2mm with 0.1mm precision, default 0mm)
      - Compensates for 3D printer dimensional inaccuracies
@@ -165,6 +172,17 @@ src/
 
 - Center-based positioning (x, y is the circle center)
 - Boundaries account for radius on all sides
+
+**Legs:**
+
+- Top-left corner positioning (x, y is the top-left corner, unlike circles/rectangles)
+- Always axis-aligned (no rotation support)
+- **Collision Detection** (v1.11.3+):
+  - Automatically filtered if overlapping with any component (circle or rectangle)
+  - Leg-to-circle: Uses closest-point-on-rectangle algorithm (distance check)
+  - Leg-to-rectangle: AABB test for non-rotated, corner-in-shape test for rotated rectangles
+  - Filtered legs are not added to mesh, preventing CSG conflicts
+  - Count of hidden legs tracked and displayed to user
 
 ### State Management Patterns
 

@@ -89,6 +89,18 @@
 				<span class="text-red-500 text-xl">Error '{message}' occured while rendering mesh</span>
 			{/await}
 		</div>
+		{#await meshInfoTuple then meshInfoTuple}
+			{#if meshInfoTuple.hiddenLegsCount > 0}
+				<div
+					class="mt-2 p-2 bg-yellow-100 border border-yellow-400 rounded text-sm text-yellow-800"
+				>
+					<Icon class="inline-flex mr-1" icon="mdi:alert" width={16} />
+					Note: {meshInfoTuple.hiddenLegsCount} leg{meshInfoTuple.hiddenLegsCount > 1
+						? 's were'
+						: ' was'} hidden because they overlap with components.
+				</div>
+			{/if}
+		{/await}
 		<div class="grid grid-cols-2">
 			<div class="flex flex-col gap-2">
 				<div class="flex justify-start items-center gap-4">

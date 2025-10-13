@@ -14,7 +14,8 @@ const emptyProject: Project = {
 		width: 100,
 		height: 100,
 		pcbThickness: 1.6,
-		smdHeight: 3
+		smdHeight: 3,
+		printTolerance: 0
 	},
 
 	circles: [],

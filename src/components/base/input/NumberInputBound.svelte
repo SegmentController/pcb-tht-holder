@@ -1,13 +1,17 @@
 <script lang="ts">
 	import { Input, Tooltip } from 'flowbite-svelte';
 
-	export let id: string;
+	interface Properties {
+		id: string;
+		value: number;
+		min?: number;
+		max?: number;
+		step?: number;
+	}
 
-	export let value: number;
-	export let min: number | undefined;
-	export let max: number | undefined;
+	let { id, value = $bindable(), min, max, step }: Properties = $props();
 
-	$: isError = (min && value < min) || (max && value > max) || false;
+	const isError = $derived((min && value < min) || (max && value > max) || false);
 </script>
 
 <Input
@@ -17,6 +21,7 @@
 		if (min && value < min) value = min;
 		if (max && value > max) value = max;
 	}}
+	{step}
 	type="number"
 	bind:value
 />

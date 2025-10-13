@@ -126,19 +126,23 @@ const generateMesh = (project: RenderableProject, font: Font): MeshInfoTuple => 
 
 	const hollowHeight = panel.pcbThickness + panel.smdHeight;
 
+	// Apply print tolerance to panel dimensions (shrink the holder)
+	const adjustedPanelWidth = panel.width - panel.printTolerance * 2;
+	const adjustedPanelHeight = panel.height - panel.printTolerance * 2;
+
 	// Create base meshes: full-depth main holder and shallow hollow version
 	let mesh = MESH(
 		BOX(
-			panel.width + 2 * EDGE_THICKNESS,
-			panel.height + 2 * EDGE_THICKNESS,
+			adjustedPanelWidth + 2 * EDGE_THICKNESS,
+			adjustedPanelHeight + 2 * EDGE_THICKNESS,
 			needHeight + BOTTOM_THICKNESS
 		)
 	);
 	mesh.updateMatrixWorld();
 	let meshHollow = MESH(
 		BOX(
-			panel.width + 2 * EDGE_THICKNESS,
-			panel.height + 2 * EDGE_THICKNESS,
+			adjustedPanelWidth + 2 * EDGE_THICKNESS,
+			adjustedPanelHeight + 2 * EDGE_THICKNESS,
 			hollowHeight + BOTTOM_THICKNESS
 		)
 	);
@@ -148,7 +152,9 @@ const generateMesh = (project: RenderableProject, font: Font): MeshInfoTuple => 
 	// Apply CSG operations to create internal structure
 	const evaluator = new Evaluator();
 	// Subtract main cavity for PCB and SMD components
-	const emptySpace = MESH(BOX(panel.width, panel.height, emptyHeight + ROUND_CORRECTION));
+	const emptySpace = MESH(
+		BOX(adjustedPanelWidth, adjustedPanelHeight, emptyHeight + ROUND_CORRECTION)
+	);
 	{
 		emptySpace.position.z += BOTTOM_THICKNESS + needHeight - emptyHeight;
 		emptySpace.updateMatrixWorld();
@@ -159,8 +165,8 @@ const generateMesh = (project: RenderableProject, font: Font): MeshInfoTuple => 
 	// Cut material from edges to reduce weight (4 cutouts at midpoints)
 	const remover = MESH(
 		BOX(
-			panel.width * PANEL_EDGE_FACTOR,
-			panel.height * PANEL_EDGE_FACTOR,
+			adjustedPanelWidth * PANEL_EDGE_FACTOR,
+			adjustedPanelHeight * PANEL_EDGE_FACTOR,
 			emptyHeight + ROUND_CORRECTION
 		)
 	);
@@ -169,10 +175,10 @@ const generateMesh = (project: RenderableProject, font: Font): MeshInfoTuple => 
 		remover.updateMatrixWorld();
 
 		const deltas = [
-			{ dx: panel.width * PANEL_CENTER_FACTOR, dy: 0 },
-			{ dx: -panel.width * PANEL_CENTER_FACTOR, dy: 0 },
-			{ dx: 0, dy: panel.height * PANEL_CENTER_FACTOR },
-			{ dx: 0, dy: -panel.height * PANEL_CENTER_FACTOR }
+			{ dx: adjustedPanelWidth * PANEL_CENTER_FACTOR, dy: 0 },
+			{ dx: -adjustedPanelWidth * PANEL_CENTER_FACTOR, dy: 0 },
+			{ dx: 0, dy: adjustedPanelHeight * PANEL_CENTER_FACTOR },
+			{ dx: 0, dy: -adjustedPanelHeight * PANEL_CENTER_FACTOR }
 		];
 		for (const delta of deltas) {
 			remover.position.x += delta.dx;
@@ -190,8 +196,8 @@ const generateMesh = (project: RenderableProject, font: Font): MeshInfoTuple => 
 
 	// Factory function for creating positioned and rotated rectangle holes
 	const boxFactory = (rectangle: RectangleData, depthOverride?: number | undefined) => {
-		const width = rectangle.width;
-		const height = rectangle.height;
+		const width = rectangle.width + panel.printTolerance * 2;
+		const height = rectangle.height + panel.printTolerance * 2;
 		const depth = depthOverride ?? rectangle.depth + ROUND_CORRECTION;
 
 		// Create geometry (no translation needed - pivot is already at center)
@@ -200,8 +206,8 @@ const generateMesh = (project: RenderableProject, font: Font): MeshInfoTuple => 
 		const box = MESH(geometry);
 
 		// Position at center in world space
-		box.position.x += rectangle.x - panel.width * PANEL_CENTER_FACTOR;
-		box.position.y -= rectangle.y - panel.height * PANEL_CENTER_FACTOR;
+		box.position.x += rectangle.x - adjustedPanelWidth * PANEL_CENTER_FACTOR;
+		box.position.y -= rectangle.y - adjustedPanelHeight * PANEL_CENTER_FACTOR;
 		box.position.z += BOTTOM_THICKNESS + (componentHeight - (depthOverride ?? rectangle.depth));
 
 		// Apply rotation around center
@@ -222,10 +228,13 @@ const generateMesh = (project: RenderableProject, font: Font): MeshInfoTuple => 
 	// Factory function for creating positioned circle holes
 	const circleFactory = (circle: CircleData, depthOverride?: number | undefined) => {
 		const cylinder = MESH(
-			CYLINDER(circle.radius, depthOverride ?? circle.depth + ROUND_CORRECTION)
+			CYLINDER(
+				circle.radius + panel.printTolerance,
+				depthOverride ?? circle.depth + ROUND_CORRECTION
+			)
 		);
-		cylinder.position.x += circle.x - panel.width * PANEL_CENTER_FACTOR;
-		cylinder.position.y -= circle.y - panel.height * PANEL_CENTER_FACTOR;
+		cylinder.position.x += circle.x - adjustedPanelWidth * PANEL_CENTER_FACTOR;
+		cylinder.position.y -= circle.y - adjustedPanelHeight * PANEL_CENTER_FACTOR;
 		cylinder.position.z += BOTTOM_THICKNESS + (componentHeight - (depthOverride ?? circle.depth));
 		cylinder.updateMatrixWorld();
 		return cylinder;
@@ -242,8 +251,10 @@ const generateMesh = (project: RenderableProject, font: Font): MeshInfoTuple => 
 	// Add support legs to both meshes
 	for (const leg of project.legs) {
 		const box = MESH(BOX(leg.width, leg.height, panel.smdHeight));
-		box.position.x += leg.x + leg.width * PANEL_CENTER_FACTOR - panel.width * PANEL_CENTER_FACTOR;
-		box.position.y -= leg.y + leg.height * PANEL_CENTER_FACTOR - panel.height * PANEL_CENTER_FACTOR;
+		box.position.x +=
+			leg.x + leg.width * PANEL_CENTER_FACTOR - adjustedPanelWidth * PANEL_CENTER_FACTOR;
+		box.position.y -=
+			leg.y + leg.height * PANEL_CENTER_FACTOR - adjustedPanelHeight * PANEL_CENTER_FACTOR;
 		box.position.z += BOTTOM_THICKNESS + (componentHeight - panel.smdHeight);
 		box.updateMatrixWorld();
 		mesh = evaluator.evaluate(mesh, box, ADDITION);
@@ -253,7 +264,7 @@ const generateMesh = (project: RenderableProject, font: Font): MeshInfoTuple => 
 	// Optionally engrave text label on front edge
 	if (project.label) {
 		const textGeometryInfo = TEXT(font, project.label, {
-			x: (panel.width + 2 * EDGE_THICKNESS) * 0.75,
+			x: (adjustedPanelWidth + 2 * EDGE_THICKNESS) * 0.75,
 			y: (needHeight + BOTTOM_THICKNESS - emptyHeight) * 0.75
 		});
 		if (textGeometryInfo) {
@@ -261,7 +272,7 @@ const generateMesh = (project: RenderableProject, font: Font): MeshInfoTuple => 
 			{
 				text.position.x -= textGeometryInfo.size.w * PANEL_CENTER_FACTOR;
 				text.position.y -=
-					panel.height * PANEL_CENTER_FACTOR +
+					adjustedPanelHeight * PANEL_CENTER_FACTOR +
 					EDGE_THICKNESS -
 					TEXT_THICKNESS * PANEL_CENTER_FACTOR;
 				text.position.z +=
@@ -311,16 +322,16 @@ const generateMesh = (project: RenderableProject, font: Font): MeshInfoTuple => 
 		main: {
 			vertexArray: new Float32Array(mesh.geometry.attributes['position'].array),
 			dimensions: {
-				width: panel.width + 2 * EDGE_THICKNESS,
-				height: panel.height + 2 * EDGE_THICKNESS,
+				width: adjustedPanelWidth + 2 * EDGE_THICKNESS,
+				height: adjustedPanelHeight + 2 * EDGE_THICKNESS,
 				depth: needHeight + BOTTOM_THICKNESS
 			}
 		},
 		hollow: {
 			vertexArray: new Float32Array(meshHollow.geometry.attributes['position'].array),
 			dimensions: {
-				width: panel.width + 2 * EDGE_THICKNESS,
-				height: panel.height + 2 * EDGE_THICKNESS,
+				width: adjustedPanelWidth + 2 * EDGE_THICKNESS,
+				height: adjustedPanelHeight + 2 * EDGE_THICKNESS,
 				depth: hollowHeight + BOTTOM_THICKNESS
 			}
 		},

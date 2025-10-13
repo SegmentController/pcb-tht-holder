@@ -104,6 +104,12 @@ src/
    - Fine movement controls with keyboard shortcuts
 
 3. **3D Mesh Generation** (`src/lib/3d/mesh.ts`):
+   - **Async architecture** (v1.12.0+):
+     - `generateMesh()` is async and yields control to event loop after every CSG operation
+     - Prevents UI freezing with 100+ components
+     - Accepts optional `onProgress(current, total)` callback for real-time progress tracking
+     - `YIELD_DELAY_MS` constant controls yield delay (0 for production, 10+ for testing)
+     - Total operations calculated upfront for accurate progress percentage
    - Uses CSG boolean operations (ADDITION/SUBTRACTION) via three-bvh-csg
    - Generates three meshes:
      - **Main mesh**: Full-depth holder with component holes
@@ -117,11 +123,13 @@ src/
      - `isLegOverlappingRectangle()`: AABB test for non-rotated, corner-in-shape test for rotated rectangles
      - Returns `hiddenLegsCount` in `MeshInfoTuple` for user notification
      - Warning displayed in mesh modal when legs are filtered
-   - **Print tolerance** application (v1.11.2+):
+     - Leg filtering done early to ensure accurate operation count for progress tracking
+   - **Print tolerance** application (v1.11.2+, fixed in v1.12.0):
      - Configurable tolerance setting (0-2mm with 0.1mm precision, default 0mm)
      - Compensates for 3D printer dimensional inaccuracies
      - Enlarges component holes: adds tolerance to circle radius and rectangle dimensions
-     - Shrinks holder panel: subtracts tolerance from panel width/height
+     - Shrinks holder panel: subtracts tolerance from panel width/height (fixed direction in v1.12.0)
+     - Component centers stay in original positions (fixed in v1.12.0)
      - Ensures THT components fit easily while holder grips PCB snugly
      - Not applied to positive mesh (visualization only)
      - Configured via Project Settings modal (`printTolerance` field in PanelSettings)
@@ -132,6 +140,60 @@ src/
    - Converts Three.js mesh vertices to STL format
    - Supports both text and binary STL output
    - Binary format uses custom buffer writing utilities
+
+### Async Mesh Generation & Progress Tracking
+
+**Architecture** (v1.12.0+):
+
+The mesh generation uses an async generator pattern to provide progress feedback and prevent UI blocking:
+
+1. **AppNavigation.svelte** (`openDisplay()` function):
+   - Creates a `meshGenerator` function that accepts a progress callback
+   - Passes generator to `showModalMesh()` instead of a Promise
+
+2. **modalStore.ts** (`showModalMesh()`):
+   - Accepts `meshGenerator: (onProgress) => Promise<MeshInfoTuple>`
+   - Passes generator function to modal component
+
+3. **ModalMeshDisplay.svelte**:
+   - Creates local `progressCallback` that updates reactive `progress` state
+   - Calls `meshGenerator(progressCallback)` to start generation with progress tracking
+   - Displays progress bar UI with percentage and visual indicator
+   - Shows "Initializing..." before first progress update
+
+4. **mesh.ts** (`generateMesh()` and `generateMeshLazy()`):
+   - Async functions that accept optional `onProgress(current, total)` callback
+   - Calculates total operations upfront (base meshes, cutouts, components, legs)
+   - After each CSG operation: calls `onProgress()` then `await yieldToEventLoop()`
+   - `yieldToEventLoop()` uses `setTimeout(resolve, YIELD_DELAY_MS)` to yield control
+
+**Operation Counting:**
+
+Total operations =
+
+- 2 (base meshes: main + hollow)
+- 2 (empty space subtraction: main + hollow)
+- 8 (edge cutouts: 4 positions × 2 meshes)
+- `rectangles.length * 2` (holes in main + hollow per rectangle)
+- `circles.length * 2` (holes in main + hollow per circle)
+- `filteredLegs.length * 2` (additions to main + hollow per leg)
+- `rectangles.length + circles.length` (positive mesh components)
+- 1 (optional text label)
+
+**Performance:**
+
+With 100 rectangles:
+
+- ~207 total operations
+- With `YIELD_DELAY_MS = 0`: Instant yielding, UI stays responsive, generation takes <1 second
+- With `YIELD_DELAY_MS = 10`: Visible progress animation, generation takes ~2 seconds
+
+**Configuration:**
+
+Set `YIELD_DELAY_MS` in `src/lib/3d/mesh.ts`:
+
+- `0` for production (recommended - instant yielding, no artificial delay)
+- `10+` for testing progress UI visibility
 
 ### Important Implementation Details
 

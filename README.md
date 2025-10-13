@@ -31,6 +31,10 @@ In its current state, it facilitates the installation of circular and oblong com
 - **Print Tolerance**: Adjustable tolerance setting (0-2mm with 0.1mm precision)
   - Compensates for 3D printer dimensional inaccuracies
   - Enlarges component holes and shrinks holder panel for perfect fit
+- **Responsive Mesh Generation**: Real-time progress tracking during 3D mesh generation
+  - Async generation prevents UI freezing with 100+ components
+  - Progress bar shows percentage and visual indicator
+  - UI remains responsive throughout the generation process
 - **Measurement Tool**: Press `M` to measure distances in 1/10th millimeter precision
 - **Undo/Redo**: Press `Ctrl+Z` to undo component deletions and modifications
 - **Component Library**: Save and reuse your favorite component configurations

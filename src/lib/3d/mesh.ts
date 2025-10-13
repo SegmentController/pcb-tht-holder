@@ -18,8 +18,22 @@ const ROUND_CORRECTION = 1;
 const POSITIVE_BASE_THICKNESS = 2;
 const PANEL_EDGE_FACTOR = 1 / 3;
 const PANEL_CENTER_FACTOR = 1 / 2;
+const YIELD_DELAY_MS = 0; // Set to 0 for production, 10+ for testing progress UI
 /*global __BASE_URL__*/
 const BASE_URL = __BASE_URL__;
+
+/**
+ * Yields control back to the event loop to prevent UI blocking
+ * Uses configurable delay for testing progress visualization
+ */
+const yieldToEventLoop = () => new Promise<void>((resolve) => setTimeout(resolve, YIELD_DELAY_MS));
+
+/**
+ * Progress callback function type for mesh generation
+ * @param current - Current operation number
+ * @param total - Total number of operations
+ */
+type ProgressCallback = (current: number, total: number) => void;
 
 let cachedFont: Font | undefined;
 const loadFont = (): Promise<Font> => {
@@ -223,9 +237,14 @@ const isLegOverlappingRectangle = (leg: LegData, rectangle: RectangleData): bool
  *
  * @param project - The PCB project containing panel settings and component data
  * @param font - Font for optional text label engraving
+ * @param onProgress - Optional callback to report progress (current, total operations)
  * @returns Object containing vertex arrays and dimensions for all three mesh types
  */
-const generateMesh = (project: RenderableProject, font: Font): MeshInfoTuple => {
+const generateMesh = async (
+	project: RenderableProject,
+	font: Font,
+	onProgress?: ProgressCallback
+): Promise<MeshInfoTuple> => {
 	// Constant helper values
 	const panel = project.panelSettings;
 	const emptyHeight = panel.pcbThickness + panel.smdHeight;
@@ -243,6 +262,40 @@ const generateMesh = (project: RenderableProject, font: Font): MeshInfoTuple => 
 
 	const hollowHeight = panel.pcbThickness + panel.smdHeight;
 
+	// Filter legs early to calculate accurate operation count
+	const filteredLegs = project.legs.filter((leg) => {
+		// Check if leg overlaps with any circle
+		for (const circle of project.circles) {
+			if (isLegOverlappingCircle(leg, circle)) return false;
+		}
+		// Check if leg overlaps with any rectangle
+		for (const rectangle of project.rectangles) {
+			if (isLegOverlappingRectangle(leg, rectangle)) return false;
+		}
+		return true;
+	});
+	const hiddenLegsCount = project.legs.length - filteredLegs.length;
+
+	// Calculate total CSG operations for progress tracking
+	const totalOperations =
+		2 + // Base mesh creation (main + hollow)
+		2 + // Empty space subtraction (main + hollow)
+		4 * 2 + // Edge cutouts (4 positions × 2 meshes)
+		project.rectangles.length * 2 + // Rectangle holes (main + hollow per rectangle)
+		project.circles.length * 2 + // Circle holes (main + hollow per circle)
+		filteredLegs.length * 2 + // Legs (main + hollow per leg)
+		project.rectangles.length + // Positive mesh rectangles
+		project.circles.length + // Positive mesh circles
+		(project.label ? 1 : 0); // Optional text label
+	let currentOperation = 0;
+
+	// Helper to report progress and yield to event loop
+	const reportProgress = async () => {
+		currentOperation++;
+		onProgress?.(currentOperation, totalOperations);
+		await yieldToEventLoop();
+	};
+
 	// Apply print tolerance to panel dimensions (shrink the holder)
 	const adjustedPanelWidth = panel.width - panel.printTolerance * 2;
 	const adjustedPanelHeight = panel.height - panel.printTolerance * 2;
@@ -256,6 +309,8 @@ const generateMesh = (project: RenderableProject, font: Font): MeshInfoTuple => 
 		)
 	);
 	mesh.updateMatrixWorld();
+	await reportProgress(); // Base mesh created
+
 	let meshHollow = MESH(
 		BOX(
 			adjustedPanelWidth + 2 * EDGE_THICKNESS,
@@ -265,6 +320,7 @@ const generateMesh = (project: RenderableProject, font: Font): MeshInfoTuple => 
 	);
 	meshHollow.position.z += needHeight - hollowHeight;
 	meshHollow.updateMatrixWorld();
+	await reportProgress(); // Hollow mesh created
 
 	// Apply CSG operations to create internal structure
 	const evaluator = new Evaluator();
@@ -276,7 +332,9 @@ const generateMesh = (project: RenderableProject, font: Font): MeshInfoTuple => 
 		emptySpace.position.z += BOTTOM_THICKNESS + needHeight - emptyHeight;
 		emptySpace.updateMatrixWorld();
 		mesh = evaluator.evaluate(mesh, emptySpace, SUBTRACTION);
+		await reportProgress(); // Empty space subtracted from main
 		meshHollow = evaluator.evaluate(meshHollow, emptySpace, SUBTRACTION);
+		await reportProgress(); // Empty space subtracted from hollow
 	}
 
 	// Cut material from edges to reduce weight (4 cutouts at midpoints)
@@ -303,7 +361,9 @@ const generateMesh = (project: RenderableProject, font: Font): MeshInfoTuple => 
 			try {
 				remover.updateMatrixWorld();
 				mesh = evaluator.evaluate(mesh, remover, SUBTRACTION);
+				await reportProgress(); // Edge cutout from main
 				meshHollow = evaluator.evaluate(meshHollow, remover, SUBTRACTION);
+				await reportProgress(); // Edge cutout from hollow
 			} finally {
 				remover.position.x -= delta.dx;
 				remover.position.y -= delta.dy;
@@ -338,8 +398,10 @@ const generateMesh = (project: RenderableProject, font: Font): MeshInfoTuple => 
 	for (const rectangle of project.rectangles) {
 		let box = boxFactory(rectangle);
 		mesh = evaluator.evaluate(mesh, box, SUBTRACTION);
+		await reportProgress(); // Rectangle hole from main
 		if (rectangle.depth < hollowHeight) box = boxFactory(rectangle, hollowHeight * 2);
 		meshHollow = evaluator.evaluate(meshHollow, box, SUBTRACTION);
+		await reportProgress(); // Rectangle hole from hollow
 	}
 
 	// Factory function for creating positioned circle holes
@@ -361,23 +423,11 @@ const generateMesh = (project: RenderableProject, font: Font): MeshInfoTuple => 
 	for (const circle of project.circles) {
 		let cylinder = circleFactory(circle);
 		mesh = evaluator.evaluate(mesh, cylinder, SUBTRACTION);
+		await reportProgress(); // Circle hole from main
 		if (circle.depth < hollowHeight) cylinder = circleFactory(circle, hollowHeight * 2);
 		meshHollow = evaluator.evaluate(meshHollow, cylinder, SUBTRACTION);
+		await reportProgress(); // Circle hole from hollow
 	}
-
-	// Filter legs that overlap with components to prevent CSG conflicts
-	const filteredLegs = project.legs.filter((leg) => {
-		// Check if leg overlaps with any circle
-		for (const circle of project.circles) {
-			if (isLegOverlappingCircle(leg, circle)) return false;
-		}
-		// Check if leg overlaps with any rectangle
-		for (const rectangle of project.rectangles) {
-			if (isLegOverlappingRectangle(leg, rectangle)) return false;
-		}
-		return true;
-	});
-	const hiddenLegsCount = project.legs.length - filteredLegs.length;
 
 	// Add support legs to main mesh with full component height
 	for (const leg of filteredLegs) {
@@ -387,6 +437,7 @@ const generateMesh = (project: RenderableProject, font: Font): MeshInfoTuple => 
 		box.position.z += BOTTOM_THICKNESS;
 		box.updateMatrixWorld();
 		mesh = evaluator.evaluate(mesh, box, ADDITION);
+		await reportProgress(); // Leg added to main
 	}
 
 	// Add support legs to hollow mesh with SMD height
@@ -397,6 +448,7 @@ const generateMesh = (project: RenderableProject, font: Font): MeshInfoTuple => 
 		box.position.z += BOTTOM_THICKNESS + (componentHeight - panel.smdHeight);
 		box.updateMatrixWorld();
 		meshHollow = evaluator.evaluate(meshHollow, box, ADDITION);
+		await reportProgress(); // Leg added to hollow
 	}
 
 	// Optionally engrave text label on front edge
@@ -418,6 +470,7 @@ const generateMesh = (project: RenderableProject, font: Font): MeshInfoTuple => 
 				text.updateMatrixWorld();
 			}
 			mesh = evaluator.evaluate(mesh, text, ADDITION);
+			await reportProgress(); // Text label added
 		}
 	}
 
@@ -445,6 +498,7 @@ const generateMesh = (project: RenderableProject, font: Font): MeshInfoTuple => 
 
 		box.updateMatrixWorld();
 		meshPositive = evaluator.evaluate(meshPositive, box, ADDITION);
+		await reportProgress(); // Rectangle added to positive mesh
 	}
 
 	// Add circles as cylinders
@@ -455,6 +509,7 @@ const generateMesh = (project: RenderableProject, font: Font): MeshInfoTuple => 
 		cylinder.position.z += POSITIVE_BASE_THICKNESS;
 		cylinder.updateMatrixWorld();
 		meshPositive = evaluator.evaluate(meshPositive, cylinder, ADDITION);
+		await reportProgress(); // Circle added to positive mesh
 	}
 
 	return {
@@ -491,13 +546,17 @@ const generateMesh = (project: RenderableProject, font: Font): MeshInfoTuple => 
  * Loads the required font and delegates to generateMesh().
  *
  * @param project - The PCB project to generate meshes for
+ * @param onProgress - Optional callback to report progress (current, total operations)
  * @returns Promise resolving to mesh info for main, hollow, and positive meshes
  * @throws Error message string if mesh generation fails
  */
-export const generateMeshLazy = async (project: RenderableProject): Promise<MeshInfoTuple> => {
+export const generateMeshLazy = async (
+	project: RenderableProject,
+	onProgress?: ProgressCallback
+): Promise<MeshInfoTuple> => {
 	try {
 		const font = await loadFont();
-		return generateMesh(project, font);
+		return await generateMesh(project, font, onProgress);
 	} catch (error) {
 		throw error instanceof Error ? error.message : error;
 	}

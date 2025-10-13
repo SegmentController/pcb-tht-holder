@@ -293,15 +293,20 @@
 	const openDisplay = () => {
 		if (!projectLoaded) return;
 
-		const meshInfo = generateMeshLazy({
-			panelSettings: $projectStore.panelSettings,
-			zoom: $projectStore.zoom,
-			label: $projectStore.label,
-			rectangles: $projectStore.rectangles,
-			circles: $projectStore.circles,
-			legs: $projectStore.legs
-		});
-		showModalMesh($projectStore.name, meshInfo);
+		const meshGenerator = (onProgress: (current: number, total: number) => void) =>
+			generateMeshLazy(
+				{
+					panelSettings: $projectStore.panelSettings,
+					zoom: $projectStore.zoom,
+					label: $projectStore.label,
+					rectangles: $projectStore.rectangles,
+					circles: $projectStore.circles,
+					legs: $projectStore.legs
+				},
+				onProgress
+			);
+
+		showModalMesh($projectStore.name, meshGenerator);
 	};
 
 	/**

@@ -1,5 +1,34 @@
 # Change log
 
+## [1.12.0] - 2025-10-13
+
+### Added
+
+- **Async mesh generation with progress tracking**
+  - Mesh generation now yields control to the event loop after every CSG operation
+  - Prevents UI freezing when generating meshes with 100+ components
+  - Real-time progress bar in mesh display modal showing percentage and visual indicator
+  - Smooth UI updates throughout the generation process
+  - Configurable `YIELD_DELAY_MS` constant for testing (set to 0 for production, 10+ for testing)
+
+### Changed
+
+- **Improved 3D mesh generation architecture**
+  - `generateMesh()` function is now async and accepts optional `onProgress` callback
+  - `generateMeshLazy()` updated to accept and pass through progress callback
+  - Modal component now receives mesh generator function instead of Promise
+  - Progress tracking integrated into modal for real-time feedback
+  - Total operation count calculated before generation starts for accurate progress
+  - Leg filtering moved earlier to ensure accurate operation count
+
+### Fixed
+
+- **Print tolerance positioning bug**
+  - Fixed element centers shifting when print tolerance was applied
+  - Component holes now stay in their original positions
+  - Only hole sizes and panel cavity dimensions are affected by tolerance
+  - Changed tolerance direction: panel cavity now correctly shrinks (was incorrectly growing)
+
 ## [1.11.3] - 2025-10-13
 
 ### Added

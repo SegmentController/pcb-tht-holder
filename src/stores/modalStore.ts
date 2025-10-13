@@ -229,19 +229,19 @@ export const showModalLibrary = async (): Promise<object> =>
  * - STL export buttons (text and binary formats)
  *
  * @param filename - Project name used for STL download filename
- * @param meshInfoTuple - Promise resolving to tuple of [mainMesh, hollowMesh, positiveMesh]
+ * @param meshGenerator - Function that accepts progress callback and returns Promise of mesh tuple
  * @returns Promise resolving to empty object when modal closes
  */
 export const showModalMesh = async (
 	filename: string,
-	meshInfoTuple: Promise<MeshInfoTuple>
+	meshGenerator: (onProgress: (current: number, total: number) => void) => Promise<MeshInfoTuple>
 ): Promise<object> =>
 	await modalStore
 		.push({
 			component: ModalMeshDisplay,
 			props: {
 				name: filename,
-				meshInfoTuple
+				meshGenerator
 			}
 		})
 		.resolve();

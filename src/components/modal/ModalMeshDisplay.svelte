@@ -24,12 +24,22 @@
 
 	interface Properties {
 		name: string;
-		meshInfoTuple: Promise<MeshInfoTuple>;
+		meshGenerator: (onProgress: (current: number, total: number) => void) => Promise<MeshInfoTuple>;
 	}
 
-	let { name, meshInfoTuple }: Properties = $props();
+	let { name, meshGenerator }: Properties = $props();
 
 	let volume = $state(1);
+	let progress = $state<{ current: number; total: number } | undefined>();
+
+	// Create progress callback that updates local state
+	const progressCallback = (current: number, total: number) => {
+		progress = { current, total };
+	};
+
+	// Start mesh generation with progress tracking
+	const meshInfoTuple = meshGenerator(progressCallback);
+
 	onMount(async () => {
 		await meshInfoTuple
 			.then((m) => (volume = MathMax([...m.main.vertexArray.values()])))
@@ -77,7 +87,22 @@
 			</span>
 
 			{#await meshInfoTuple}
-				<p>Generating mesh...</p>
+				{#if progress}
+					<div class="flex items-center gap-2">
+						<span class="text-sm">Generating mesh...</span>
+						<span class="text-sm text-gray-500"
+							>{Math.round((progress.current / progress.total) * 100)}%</span
+						>
+						<div class="flex-1 bg-gray-200 rounded h-2 min-w-48">
+							<div
+								style="width: {(progress.current / progress.total) * 100}%"
+								class="bg-blue-600 h-2 rounded"
+							></div>
+						</div>
+					</div>
+				{:else}
+					<p>Initializing...</p>
+				{/if}
 			{:then meshInfoTuple}
 				{@const activeMesh = getActiveMesh(meshInfoTuple)}
 				{activeMesh.dimensions.width} x

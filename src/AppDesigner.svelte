@@ -107,7 +107,13 @@
 	import ZoomRange from '$components/base/input/ZoomRange.svelte';
 	import DesignerCrosshair from '$components/DesignerCrosshair.svelte';
 	import DesignerGrid from '$components/DesignerGrid.svelte';
-	import { FINE_MOVEMENT_DELTA, FINE_MOVEMENT_SHIFT_MULTIPLIER } from '$lib/constants';
+	import { type AlignmentLine, detectAlignments } from '$lib/alignment';
+	import {
+		ALIGNMENT_LINE_COLOR,
+		ALIGNMENT_LINE_WIDTH,
+		FINE_MOVEMENT_DELTA,
+		FINE_MOVEMENT_SHIFT_MULTIPLIER
+	} from '$lib/constants';
 	import {
 		getContextMenuItemForCircle,
 		modifyCircle,
@@ -277,6 +283,54 @@
 	/** Hover info tooltip showing element details and keyboard shortcuts */
 	let hoverInfo: HoverInfo | undefined = $state();
 
+	/** Alignment lines to display during element dragging */
+	let alignmentLines: AlignmentLine[] = $state([]);
+
+	/**
+	 * Detects and updates alignment lines for the currently dragged element
+	 *
+	 * Called during ondragmove events to show visual alignment guides.
+	 * Uses the live position from the drag event (not the stored position)
+	 * to provide real-time alignment feedback.
+	 *
+	 * @param event - Konva drag event with current position
+	 * @param draggedElement - The element being dragged (for ID and properties)
+	 */
+	const updateAlignmentLines = (
+		event: KonvaDragTransformEvent,
+		draggedElement: CircleData | RectangleData | LegData
+	) => {
+		// Create a copy of the element with the current drag position
+		const liveElement = {
+			...draggedElement,
+			x: event.target.x(),
+			y: event.target.y()
+		};
+
+		// Combine all elements except the dragged one
+		const allOtherElements = [
+			...$projectStore.circles.filter((c) => c.id !== draggedElement.id),
+			...$projectStore.rectangles.filter((r) => r.id !== draggedElement.id),
+			...$projectStore.legs.filter((l) => l.id !== draggedElement.id)
+		];
+
+		alignmentLines = detectAlignments(
+			liveElement,
+			allOtherElements,
+			$projectStore.panelSettings.width,
+			$projectStore.panelSettings.height
+		);
+	};
+
+	/**
+	 * Clears all alignment lines
+	 *
+	 * Called on dragend events to remove visual guides after dragging completes.
+	 */
+	const clearAlignmentLines = () => {
+		alignmentLines = [];
+	};
+
 	/**
 	 * Mouse enter event handler - shows hover info and enables fine movement
 	 *
@@ -439,8 +493,14 @@
 						ondblclick={() => {
 							if (mode === 'pointer') modifyCircle(circle);
 						}}
-						ondragend={() => updateCircleChanges()}
-						ondragmove={(event) => limitCircle(event, circle)}
+						ondragend={() => {
+							updateCircleChanges();
+							clearAlignmentLines();
+						}}
+						ondragmove={(event) => {
+							limitCircle(event, circle);
+							updateAlignmentLines(event, circle);
+						}}
 						onmouseenter={(event) => handleMouseEnter(event, circle)}
 						onmouseleave={(event) => handleMouseLeave(event, circle)}
 						opacity={0.75}
@@ -460,8 +520,14 @@
 						ondblclick={() => {
 							if (mode === 'pointer') modifyRectangle(rectangle);
 						}}
-						ondragend={() => updateRectangleChanges()}
-						ondragmove={(event) => limitBox(event, rectangle)}
+						ondragend={() => {
+							updateRectangleChanges();
+							clearAlignmentLines();
+						}}
+						ondragmove={(event) => {
+							limitBox(event, rectangle);
+							updateAlignmentLines(event, rectangle);
+						}}
 						onmouseenter={(event) => handleMouseEnter(event, rectangle)}
 						onmouseleave={(event) => handleMouseLeave(event, rectangle)}
 						opacity={0.75}
@@ -480,8 +546,14 @@
 						ondblclick={() => {
 							if (mode === 'pointer') deleteLegWithConfirm(leg);
 						}}
-						ondragend={() => updateLegChanges()}
-						ondragmove={(event) => limitBox(event, leg)}
+						ondragend={() => {
+							updateLegChanges();
+							clearAlignmentLines();
+						}}
+						ondragmove={(event) => {
+							limitBox(event, leg);
+							updateAlignmentLines(event, leg);
+						}}
 						onmouseenter={(event) => handleMouseEnter(event, leg)}
 						onmouseleave={(event) => handleMouseLeave(event, leg)}
 						opacity={0.75}
@@ -490,6 +562,17 @@
 						bind:y={leg.y}
 					/>
 				{/each}
+				{#if mode === 'pointer'}
+					{#each alignmentLines as line}
+						<Line
+							listening={false}
+							opacity={0.9}
+							points={[line.x1, line.y1, line.x2, line.y2]}
+							stroke={ALIGNMENT_LINE_COLOR}
+							strokeWidth={ALIGNMENT_LINE_WIDTH}
+						/>
+					{/each}
+				{/if}
 				{#if mode === 'measure'}
 					<DesignerGrid
 						height={$projectStore.panelSettings.height}

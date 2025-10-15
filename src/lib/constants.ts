@@ -20,6 +20,7 @@ export const FINE_MOVEMENT_SHIFT_MULTIPLIER = 5; // 5x faster with shift key (0.
 
 // Alignment guides
 export const ALIGNMENT_SNAP_THRESHOLD = 0.1; // mm tolerance for alignment detection
+export const ALIGNMENT_SNAP_DISTANCE = 0.2; // mm distance for magnetic snapping effect
 export const ALIGNMENT_LINE_COLOR = '#0088ff'; // bright blue for visibility
 export const ALIGNMENT_LINE_WIDTH = 0.1; // mm stroke width
 

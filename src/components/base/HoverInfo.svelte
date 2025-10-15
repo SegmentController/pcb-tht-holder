@@ -4,16 +4,45 @@
 	let posY = $state(0);
 	let header = $state('');
 	let content = $state('');
+	let showTimeout: ReturnType<typeof setTimeout> | undefined;
 
+	/**
+	 * Shows hover info after 500ms delay (standard tooltip behavior)
+	 * Stays visible until manually hidden (no auto-hide)
+	 * @param x - X position in pixels
+	 * @param y - Y position in pixels
+	 * @param headerText - Header text
+	 * @param contentText - Content text
+	 */
 	export const show = (x: number, y: number, headerText: string, contentText: string) => {
+		// Clear any existing timeout
+		if (showTimeout !== undefined) {
+			clearTimeout(showTimeout);
+			showTimeout = undefined;
+		}
+
+		// Store data for delayed show
 		posX = x;
 		posY = y;
 		header = headerText;
 		content = contentText;
-		visible = true;
+
+		// Delay showing by 500ms (standard tooltip delay)
+		showTimeout = setTimeout(() => {
+			visible = true;
+			showTimeout = undefined;
+		}, 500);
 	};
 
+	/**
+	 * Hides hover info immediately and cancels show timer
+	 */
 	export const hide = () => {
+		// Clear show timeout if pending
+		if (showTimeout !== undefined) {
+			clearTimeout(showTimeout);
+			showTimeout = undefined;
+		}
 		visible = false;
 	};
 </script>

@@ -27,7 +27,7 @@
  * - Minimal overhead with O(n²) element comparison (acceptable for typical PCB counts)
  */
 
-import { ALIGNMENT_SNAP_THRESHOLD } from '$lib/constants';
+import { ALIGNMENT_SNAP_DISTANCE, ALIGNMENT_SNAP_THRESHOLD } from '$lib/constants';
 import type { CircleData } from '$types/CircleData';
 import type { LegData } from '$types/LegData';
 import type { RectangleData } from '$types/RectangleData';
@@ -391,4 +391,93 @@ export const detectAlignments = (
 	}
 
 	return lines;
+};
+
+/**
+ * Calculates snapped position for a dragged element based on nearby alignment points
+ *
+ * Provides magnetic snapping effect by adjusting element position when within snap distance
+ * of alignment points (centers, edges) of other elements.
+ *
+ * **Algorithm:**
+ * 1. Get categorized alignment points for dragged element
+ * 2. For each other element:
+ *    - Compare vertical edges → find closest X snap within threshold
+ *    - Compare horizontal edges → find closest Y snap within threshold
+ *    - Compare centers → find closest X and Y snaps within threshold
+ * 3. Return position with X and/or Y adjusted if snap points found
+ *
+ * **Snapping Priority:**
+ * - When multiple snap candidates exist, chooses the closest one
+ * - X and Y axes snap independently
+ * - Only snaps if distance is within ALIGNMENT_SNAP_DISTANCE
+ *
+ * @param draggedElement - The element currently being dragged
+ * @param otherElements - All other elements to check alignment against
+ * @returns Position with snapped coordinates { x, y }
+ */
+export const calculateSnapPosition = (
+	draggedElement: GenericElement,
+	otherElements: GenericElement[]
+): { x: number; y: number } => {
+	const draggedPoints = getAlignmentPoints(draggedElement);
+
+	let snapX: number | undefined = undefined;
+	let snapY: number | undefined = undefined;
+	let closestXDistance = Number.POSITIVE_INFINITY;
+	let closestYDistance = Number.POSITIVE_INFINITY;
+
+	for (const other of otherElements) {
+		// Skip if it's the same element (by ID)
+		if (other.id === draggedElement.id) continue;
+
+		const otherPoints = getAlignmentPoints(other);
+
+		// Check vertical edge alignments (left/right with left/right)
+		for (const draggedX of draggedPoints.verticalEdges) {
+			for (const otherX of otherPoints.verticalEdges) {
+				const deltaX = Math.abs(draggedX - otherX);
+				if (deltaX < ALIGNMENT_SNAP_DISTANCE && deltaX < closestXDistance) {
+					closestXDistance = deltaX;
+					// Calculate how much to adjust the element's X position
+					const offset = otherX - draggedX;
+					snapX = draggedElement.x + offset;
+				}
+			}
+		}
+
+		// Check horizontal edge alignments (top/bottom with top/bottom)
+		for (const draggedY of draggedPoints.horizontalEdges) {
+			for (const otherY of otherPoints.horizontalEdges) {
+				const deltaY = Math.abs(draggedY - otherY);
+				if (deltaY < ALIGNMENT_SNAP_DISTANCE && deltaY < closestYDistance) {
+					closestYDistance = deltaY;
+					// Calculate how much to adjust the element's Y position
+					const offset = otherY - draggedY;
+					snapY = draggedElement.y + offset;
+				}
+			}
+		}
+
+		// Check center-to-center alignments (both vertical and horizontal)
+		const deltaX = Math.abs(draggedPoints.center.x - otherPoints.center.x);
+		if (deltaX < ALIGNMENT_SNAP_DISTANCE && deltaX < closestXDistance) {
+			closestXDistance = deltaX;
+			const offset = otherPoints.center.x - draggedPoints.center.x;
+			snapX = draggedElement.x + offset;
+		}
+
+		const deltaY = Math.abs(draggedPoints.center.y - otherPoints.center.y);
+		if (deltaY < ALIGNMENT_SNAP_DISTANCE && deltaY < closestYDistance) {
+			closestYDistance = deltaY;
+			const offset = otherPoints.center.y - draggedPoints.center.y;
+			snapY = draggedElement.y + offset;
+		}
+	}
+
+	// Return position with snapped coordinates (use original if no snap found)
+	return {
+		x: snapX ?? draggedElement.x,
+		y: snapY ?? draggedElement.y
+	};
 };

@@ -24,6 +24,11 @@ In its current state, it facilitates the installation of circular and oblong com
 - **Component Shapes**: Support for circular and rectangular components
   - Rectangles support full 360° rotation (0-359 degrees)
   - Flip dimensions to swap width/height instantly
+- **Alignment Guides with Magnetic Snapping**: Visual guides and automatic snapping for precise component placement
+  - Blue lines appear when elements align with centers or edges of other components
+  - Elements automatically snap within 0.2mm of alignment points during drag
+  - Toggle on/off via Align switch in navigation bar
+  - Works on both X and Y axes independently for accurate positioning
 - **Smart Leg Placement**: Automatic collision detection for support legs
   - Legs overlapping with components are automatically filtered during mesh generation
   - Warning notification shows count of hidden legs

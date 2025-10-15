@@ -67,6 +67,14 @@
 	triggered both from keyboard shortcut and programmatically.
 -->
 <script lang="ts" module>
+	import { persisted } from 'svelte-persisted-store';
+
+	/**
+	 * Persisted alignment toggle state
+	 * Stored in localStorage to remember user preference across sessions
+	 */
+	export const alignmentEnabled = persisted('alignmentEnabled', true);
+
 	/**
 	 * Opens project settings modal and updates project store if confirmed
 	 *
@@ -114,6 +122,7 @@
 		NavBrand,
 		NavLi,
 		NavUl,
+		Toggle,
 		Tooltip
 	} from 'flowbite-svelte';
 	import NavContainer from 'flowbite-svelte/NavContainer.svelte';
@@ -455,7 +464,7 @@
 			</span>
 		</NavBrand>
 		{#if projectLoaded}
-			<div class="flex">
+			<div class="flex items-center gap-3">
 				<ButtonGroup>
 					{#each ModeButtons as { title, shortcut, recentMode, icon }}
 						<Button
@@ -472,6 +481,7 @@
 						</Button>
 					{/each}
 				</ButtonGroup>
+				<Toggle id="alignment" size="small" bind:checked={$alignmentEnabled}>Align</Toggle>
 			</div>
 			<NavUl class="flex">
 				<NavLi class="cursor-pointer">
@@ -532,13 +542,11 @@
 				</Dropdown>
 				<NavLi class="cursor-pointer" onclick={showModalLibrary}>Library</NavLi>
 			</NavUl>
-			<div class="flex">
-				<Button disabled={!projectLoaded} onclick={openDisplay}>
-					<Icon class="inline-flex mr-2" icon="mdi:rotate-3d" width={24} />
-					Display
-					<Kbd class="ml-4 px-2 py-1">D</Kbd>
-				</Button>
-			</div>
+			<Button disabled={!projectLoaded} onclick={openDisplay}>
+				<Icon class="inline-flex mr-2" icon="mdi:rotate-3d" width={24} />
+				Display
+				<Kbd class="ml-4 px-2 py-1">D</Kbd>
+			</Button>
 		{/if}
 	</NavContainer>
 </Navbar>

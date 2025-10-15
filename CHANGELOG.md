@@ -1,5 +1,23 @@
 # Change log
 
+## [1.13.0] - 2025-10-15
+
+### Added
+
+- **Magnetic snapping for alignment guides**
+  - Elements now snap to alignment positions when within 0.2mm of other elements
+  - Snaps to centers, edges, and alignment points automatically during drag
+  - Works independently on X and Y axes for precise positioning
+  - Configurable snap distance via `ALIGNMENT_SNAP_DISTANCE` constant
+  - Only active when Align toggle is enabled
+  - Reduces manual fine-tuning and improves alignment accuracy
+
+### Changed
+
+- **UI improvements**
+  - Moved Align toggle next to Pointer/Measure mode buttons for better discoverability
+  - Improved visual grouping of related controls in navigation bar
+
 ## [1.12.0] - 2025-10-13
 
 ### Added

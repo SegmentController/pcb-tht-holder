@@ -107,7 +107,13 @@
 	import ZoomRange from '$components/base/input/ZoomRange.svelte';
 	import DesignerCrosshair from '$components/DesignerCrosshair.svelte';
 	import DesignerGrid from '$components/DesignerGrid.svelte';
-	import { FINE_MOVEMENT_DELTA, FINE_MOVEMENT_SHIFT_MULTIPLIER } from '$lib/constants';
+	import { type AlignmentLine, calculateSnapPosition, detectAlignments } from '$lib/alignment';
+	import {
+		ALIGNMENT_LINE_COLOR,
+		ALIGNMENT_LINE_WIDTH,
+		FINE_MOVEMENT_DELTA,
+		FINE_MOVEMENT_SHIFT_MULTIPLIER
+	} from '$lib/constants';
 	import {
 		getContextMenuItemForCircle,
 		modifyCircle,
@@ -142,6 +148,8 @@
 	import { type LegData } from '$types/LegData';
 	import type { RectangleData } from '$types/RectangleData';
 	import { isRectangle } from '$types/typeGuards';
+
+	import { alignmentEnabled } from './AppNavigation.svelte';
 
 	interface Properties {
 		pcbImage: HTMLImageElement | undefined;
@@ -277,6 +285,146 @@
 	/** Hover info tooltip showing element details and keyboard shortcuts */
 	let hoverInfo: HoverInfo | undefined = $state();
 
+	/** Alignment lines to display during element dragging */
+	let alignmentLines: AlignmentLine[] = $state([]);
+
+	/**
+	 * Applies magnetic snapping to a dragged element
+	 *
+	 * Adjusts element position to snap to nearby alignment points when within snap distance.
+	 * Uses the live position from the drag event to provide real-time snapping feedback.
+	 *
+	 * Only applies snapping if the alignment toggle is enabled.
+	 *
+	 * @param event - Konva drag event with current position
+	 * @param draggedElement - The element being dragged (for ID and properties)
+	 */
+	const applySnapping = (
+		event: KonvaDragTransformEvent,
+		draggedElement: CircleData | RectangleData | LegData
+	) => {
+		// Skip snapping if toggle is disabled
+		if (!$alignmentEnabled) {
+			return;
+		}
+
+		// Create a copy of the element with the current drag position
+		const liveElement = {
+			...draggedElement,
+			x: event.target.x(),
+			y: event.target.y()
+		};
+
+		// Combine all elements except the dragged one
+		const allOtherElements = [
+			...$projectStore.circles.filter((c) => c.id !== draggedElement.id),
+			...$projectStore.rectangles.filter((r) => r.id !== draggedElement.id),
+			...$projectStore.legs.filter((l) => l.id !== draggedElement.id)
+		];
+
+		// Calculate snapped position
+		const snappedPosition = calculateSnapPosition(liveElement, allOtherElements);
+
+		// Apply snapped position to the drag target
+		event.target.x(snappedPosition.x);
+		event.target.y(snappedPosition.y);
+	};
+
+	/**
+	 * Detects and updates alignment lines for the currently dragged element
+	 *
+	 * Called during ondragmove events to show visual alignment guides.
+	 * Uses the live position from the drag event (not the stored position)
+	 * to provide real-time alignment feedback.
+	 *
+	 * Only shows alignment lines if the alignment toggle is enabled.
+	 *
+	 * @param event - Konva drag event with current position
+	 * @param draggedElement - The element being dragged (for ID and properties)
+	 */
+	const updateAlignmentLines = (
+		event: KonvaDragTransformEvent,
+		draggedElement: CircleData | RectangleData | LegData
+	) => {
+		// Skip alignment detection if toggle is disabled
+		if (!$alignmentEnabled) {
+			alignmentLines = [];
+			return;
+		}
+
+		// Create a copy of the element with the current drag position
+		const liveElement = {
+			...draggedElement,
+			x: event.target.x(),
+			y: event.target.y()
+		};
+
+		// Combine all elements except the dragged one
+		const allOtherElements = [
+			...$projectStore.circles.filter((c) => c.id !== draggedElement.id),
+			...$projectStore.rectangles.filter((r) => r.id !== draggedElement.id),
+			...$projectStore.legs.filter((l) => l.id !== draggedElement.id)
+		];
+
+		alignmentLines = detectAlignments(
+			liveElement,
+			allOtherElements,
+			$projectStore.panelSettings.width,
+			$projectStore.panelSettings.height
+		);
+	};
+
+	/**
+	 * Clears all alignment lines
+	 *
+	 * Called on dragend events to remove visual guides after dragging completes.
+	 */
+	const clearAlignmentLines = () => {
+		alignmentLines = [];
+	};
+
+	/**
+	 * Shows hover info for an element with delayed display
+	 *
+	 * Calculates position and content for hover info tooltip.
+	 * Called by both mouseenter and mousemove handlers.
+	 *
+	 * @param event - Konva mouse event with target element and stage
+	 * @param element - Circle, rectangle, or leg data
+	 */
+	const showHoverInfoForElement = (
+		event: KonvaMouseEvent,
+		element: CircleData | RectangleData | LegData
+	) => {
+		if (mode !== 'pointer') return;
+
+		const elementInfo = getSelectedElementInfo();
+		if (!elementInfo) return;
+
+		const instructions = [
+			'Mouse: free move',
+			`Arrow keys: finemove (${FINE_MOVEMENT_DELTA}mm)`,
+			`SHIFT+arrows: move (${FINE_MOVEMENT_DELTA * FINE_MOVEMENT_SHIFT_MULTIPLIER}mm)`
+		];
+		if (isRectangle(element)) {
+			instructions.push('F: flip dimensions', 'R: rotate +5°', 'SHIFT+R: reset rotation');
+		}
+		instructions.push('Right click: context menu');
+
+		// Calculate position to the right of the element
+		const stage = event.target.getStage();
+		if (stage) {
+			const elementBounds = event.target.getClientRect();
+			const stageContainer = stage.container().getBoundingClientRect();
+
+			// Position to the right of the element with some padding
+			const infoX = stageContainer.left + elementBounds.x + elementBounds.width + 20;
+			const infoY = stageContainer.top + elementBounds.y;
+
+			hoverInfo?.show(infoX, infoY, elementInfo, instructions.join('\n'));
+		}
+	};
+
 	/**
 	 * Mouse enter event handler - shows hover info and enables fine movement
 	 *
@@ -293,34 +441,23 @@
 		element: CircleData | RectangleData | LegData
 	) => {
 		selectElementByMouseEnter(event, element, mode === 'measure');
+		showHoverInfoForElement(event, element);
+	};
 
-		if (mode === 'pointer') {
-			const elementInfo = getSelectedElementInfo();
-			if (elementInfo) {
-				const instructions = [
-					'Mouse: free move',
-					`Arrow keys: finemove (${FINE_MOVEMENT_DELTA}mm)`,
-					`SHIFT+arrows: move (${FINE_MOVEMENT_DELTA * FINE_MOVEMENT_SHIFT_MULTIPLIER}mm)`
-				];
-				if (isRectangle(element)) {
-					instructions.push('F: flip dimensions', 'R: rotate +5°', 'SHIFT+R: reset rotation');
-				}
-				instructions.push('Right click: context menu');
-
-				// Calculate position to the right of the element
-				const stage = event.target.getStage();
-				if (stage) {
-					const elementBounds = event.target.getClientRect();
-					const stageContainer = stage.container().getBoundingClientRect();
-
-					// Position to the right of the element with some padding
-					const infoX = stageContainer.left + elementBounds.x + elementBounds.width + 20;
-					const infoY = stageContainer.top + elementBounds.y;
-
-					hoverInfo?.show(infoX, infoY, elementInfo, instructions.join('\n'));
-				}
-			}
-		}
+	/**
+	 * Mouse move event handler - restarts hover info timer after movement
+	 *
+	 * When mouse moves while hovering over an element, hides the info
+	 * and restarts the 1-second timer to show it again if mouse stops moving.
+	 *
+	 * @param event - Konva mouse event with target element and stage
+	 * @param element - Circle, rectangle, or leg data
+	 */
+	const handleMouseMove = (
+		event: KonvaMouseEvent,
+		element: CircleData | RectangleData | LegData
+	) => {
+		showHoverInfoForElement(event, element);
 	};
 
 	/**
@@ -439,10 +576,21 @@
 						ondblclick={() => {
 							if (mode === 'pointer') modifyCircle(circle);
 						}}
-						ondragend={() => updateCircleChanges()}
-						ondragmove={(event) => limitCircle(event, circle)}
+						ondragend={() => {
+							updateCircleChanges();
+							clearAlignmentLines();
+						}}
+						ondragmove={(event) => {
+							limitCircle(event, circle);
+							applySnapping(event, circle);
+							updateAlignmentLines(event, circle);
+						}}
+						ondragstart={() => {
+							hoverInfo?.hide();
+						}}
 						onmouseenter={(event) => handleMouseEnter(event, circle)}
 						onmouseleave={(event) => handleMouseLeave(event, circle)}
+						onmousemove={(event) => handleMouseMove(event, circle)}
 						opacity={0.75}
 						radius={circle.radius}
 						bind:x={circle.x}
@@ -460,10 +608,21 @@
 						ondblclick={() => {
 							if (mode === 'pointer') modifyRectangle(rectangle);
 						}}
-						ondragend={() => updateRectangleChanges()}
-						ondragmove={(event) => limitBox(event, rectangle)}
+						ondragend={() => {
+							updateRectangleChanges();
+							clearAlignmentLines();
+						}}
+						ondragmove={(event) => {
+							limitBox(event, rectangle);
+							applySnapping(event, rectangle);
+							updateAlignmentLines(event, rectangle);
+						}}
+						ondragstart={() => {
+							hoverInfo?.hide();
+						}}
 						onmouseenter={(event) => handleMouseEnter(event, rectangle)}
 						onmouseleave={(event) => handleMouseLeave(event, rectangle)}
+						onmousemove={(event) => handleMouseMove(event, rectangle)}
 						opacity={0.75}
 						rotation={rectangle.rotation}
 						width={rectangle.width}
@@ -480,16 +639,38 @@
 						ondblclick={() => {
 							if (mode === 'pointer') deleteLegWithConfirm(leg);
 						}}
-						ondragend={() => updateLegChanges()}
-						ondragmove={(event) => limitBox(event, leg)}
+						ondragend={() => {
+							updateLegChanges();
+							clearAlignmentLines();
+						}}
+						ondragmove={(event) => {
+							limitBox(event, leg);
+							applySnapping(event, leg);
+							updateAlignmentLines(event, leg);
+						}}
+						ondragstart={() => {
+							hoverInfo?.hide();
+						}}
 						onmouseenter={(event) => handleMouseEnter(event, leg)}
 						onmouseleave={(event) => handleMouseLeave(event, leg)}
+						onmousemove={(event) => handleMouseMove(event, leg)}
 						opacity={0.75}
 						width={leg.width}
 						bind:x={leg.x}
 						bind:y={leg.y}
 					/>
 				{/each}
+				{#if mode === 'pointer'}
+					{#each alignmentLines as line}
+						<Line
+							listening={false}
+							opacity={0.9}
+							points={[line.x1, line.y1, line.x2, line.y2]}
+							stroke={ALIGNMENT_LINE_COLOR}
+							strokeWidth={ALIGNMENT_LINE_WIDTH}
+						/>
+					{/each}
+				{/if}
 				{#if mode === 'measure'}
 					<DesignerGrid
 						height={$projectStore.panelSettings.height}

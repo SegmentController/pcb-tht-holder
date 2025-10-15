@@ -75,7 +75,8 @@ src/
 │   ├── typeGuards.ts # Type guard functions (isCircle, isRectangle, isLeg)
 │   └── panels/       # Panel-specific type definitions
 ├── lib/
-│   ├── constants.ts  # Centralized constants (colors, opacity, movement deltas)
+│   ├── constants.ts  # Centralized constants (colors, opacity, movement deltas, alignment)
+│   ├── alignment.ts  # Alignment guide detection and magnetic snapping calculations
 │   ├── 3d/           # STL generation (stl.ts) and mesh operations (mesh.ts)
 │   ├── elements/     # Circle, rectangle, and leg element operations
 │   └── svelteModal/  # Modal management utilities
@@ -102,6 +103,16 @@ src/
    - Supports pointer and measure modes
    - Context menus for element operations
    - Fine movement controls with keyboard shortcuts
+   - **Alignment guides with magnetic snapping** (v1.13.0+):
+     - Visual blue lines display when elements align with other elements (centers/edges)
+     - Automatic magnetic snapping within 0.2mm of alignment points during drag
+     - Toggle controlled via Align switch in navigation bar (persisted to localStorage)
+     - Snapping works independently on X and Y axes
+     - Implementation in `src/lib/alignment.ts`:
+       - `detectAlignments()`: Calculates and returns visual alignment lines
+       - `calculateSnapPosition()`: Calculates snapped position for magnetic effect
+       - Uses `ALIGNMENT_SNAP_THRESHOLD` (0.1mm) for visual detection
+       - Uses `ALIGNMENT_SNAP_DISTANCE` (0.2mm) for magnetic snapping range
 
 3. **3D Mesh Generation** (`src/lib/3d/mesh.ts`):
    - **Async architecture** (v1.12.0+):
@@ -279,6 +290,12 @@ POSITIVE_MESH_COLOR = '#ff8811'; // Orange color for PCB visualization mesh
 // Fine movement
 FINE_MOVEMENT_DELTA = 0.1; // mm per arrow key press
 FINE_MOVEMENT_SHIFT_MULTIPLIER = 5; // 5x faster with shift (0.5mm)
+
+// Alignment guides
+ALIGNMENT_SNAP_THRESHOLD = 0.1; // mm tolerance for visual alignment detection
+ALIGNMENT_SNAP_DISTANCE = 0.2; // mm distance for magnetic snapping effect
+ALIGNMENT_LINE_COLOR = '#0088ff'; // bright blue for visibility
+ALIGNMENT_LINE_WIDTH = 0.1; // mm stroke width
 
 // JSON serialization
 ELEMENT_SKIP_JSON_PROPERTIES = ['fill', 'draggable', 'opacity'];

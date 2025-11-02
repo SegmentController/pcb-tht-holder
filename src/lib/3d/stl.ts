@@ -3,9 +3,8 @@ import { writeFloatLE, writeInt16LE, writeInt32LE } from '$lib/buffer';
 const SOLID_NAME = 'THT-holder';
 
 export const generateStlFromVertices = (vertices: Float32Array): string[] => {
-	const lines: string[] = [];
+	const lines: string[] = [`solid ${SOLID_NAME}`];
 
-	lines.push(`solid ${SOLID_NAME}`);
 	if (vertices.length % 9 === 0) {
 		let index = 0;
 		while (index < vertices.length) {

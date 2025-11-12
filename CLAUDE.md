@@ -216,7 +216,7 @@ Set `YIELD_DELAY_MS` in `src/lib/3d/mesh.ts`:
   - Google Search Console verification file for site ownership verification
 - **Environment Detection**: Production base path is `/pcb-tht-holder`, dev is empty string
 - **Strict ESLint**: Uses unicorn/all config with custom overrides, enforces import sorting, no console/alert/debugger
-- **Node Version**: Requires Node >=22.0.0, npm >=10.0.0
+- **Node Version**: Requires Node >=24.0.0, npm >=11.0.0
 - **Code Documentation**: Codebase includes comprehensive JSDoc comments for functions, types, and complex logic
 
 ### Coordinate Systems and Rotation
@@ -322,7 +322,7 @@ GitHub Actions workflow (`.github/workflows/ci-dev.yaml`) runs on all non-main b
 
 - Installs dependencies with `npm ci`
 - Runs `format:check`, `lint:check`, and `ts:check`
-- Uses Node 22.15.0
+- Uses Node 24.x (configured in workflow file)
 
 ## Keyboard Shortcuts
 

@@ -1,5 +1,21 @@
 # Change log
 
+## [1.13.1] - 2025-11-12
+
+### Changed
+
+- Updated dependencies to latest versions
+  - Svelte 5.43.6
+  - Vite 7.2.2
+  - Three.js 0.181.1
+  - Tailwind CSS 4.1.17
+  - Zod 4.1.12
+  - TypeScript 5.9.3
+  - ESLint 9.39.1
+  - And other supporting packages
+- **Node.js requirement increased to >=24.0.0** (previously >=22.0.0)
+- **npm requirement increased to >=11.0.0** (previously >=10.0.0)
+
 ## [1.13.0] - 2025-10-15
 
 ### Added

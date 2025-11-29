@@ -489,8 +489,10 @@
 					<Icon class="inline-flex" icon="mdi:chevron-down" />
 				</NavLi>
 				<Dropdown class="w-60 z-20 -mt-2" simple trigger="hover">
-					<DropdownItem href="#" onclick={reset}>New</DropdownItem>
-					<DropdownItem href="#" onclick={downloadProjectFile}>Save project</DropdownItem>
+					<DropdownItem class="w-full text-left" onclick={reset}>New</DropdownItem>
+					<DropdownItem class="w-full text-left" onclick={downloadProjectFile}
+						>Save project</DropdownItem
+					>
 				</Dropdown>
 
 				<NavLi class="cursor-pointer">
@@ -499,27 +501,31 @@
 				</NavLi>
 				<Dropdown class="w-72 z-20 -mt-2" simple trigger="hover">
 					{#if $undoStoreLastItem}
-						<DropdownItem href="#" onclick={executeLastUndo}
+						<DropdownItem class="w-full text-left" onclick={executeLastUndo}
 							>Undo: {$undoStoreLastItem}
 							<Kbd class="float-right px-2 py-0">ctrl + Z</Kbd>
 						</DropdownItem>
 						<DropdownDivider />
 					{/if}
-					<DropdownItem href="#" onclick={() => addNewCircle()}>
+					<DropdownItem class="w-full text-left" onclick={() => addNewCircle()}>
 						Add circle...
 						<Kbd class="float-right px-2 py-0">ctrl + C</Kbd>
 					</DropdownItem>
-					<DropdownItem href="#" onclick={() => addNewRectangle()}>
+					<DropdownItem class="w-full text-left" onclick={() => addNewRectangle()}>
 						Add rectangle...
 						<Kbd class="float-right px-2 py-0">ctrl + R</Kbd>
 					</DropdownItem>
-					<DropdownItem href="#" onclick={addNewLeg}>
+					<DropdownItem class="w-full text-left" onclick={addNewLeg}>
 						Add leg
 						<Kbd class="float-right px-2 py-0">ctrl + L</Kbd>
 					</DropdownItem>
-					<DropdownItem href="#" onclick={addCornerLegs}>Auto legs at corner</DropdownItem>
+					<DropdownItem class="w-full text-left" onclick={addCornerLegs}
+						>Auto legs at corner</DropdownItem
+					>
 					{#if getProjectStoreLegCount()}
-						<DropdownItem href="#" onclick={deleteAllLegsWithConfirm}>Delete all legs</DropdownItem>
+						<DropdownItem class="w-full text-left" onclick={deleteAllLegsWithConfirm}
+							>Delete all legs</DropdownItem
+						>
 					{/if}
 					{#if getLibraryStoreValue().length}
 						<DropdownItem class="flex items-center justify-between">
@@ -535,7 +541,7 @@
 						</Dropdown>
 					{/if}
 					<DropdownDivider />
-					<DropdownItem href="#" onclick={openProjectSettings}>
+					<DropdownItem class="w-full text-left" onclick={openProjectSettings}>
 						Project settings...
 						<Kbd class="float-right px-2 py-0">ctrl + P</Kbd>
 					</DropdownItem>

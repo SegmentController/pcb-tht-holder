@@ -51,7 +51,7 @@
 		"@threlte/extras": "^9.7.1",
 		"canvas": "^3.2.0",
 		"dayjs": "^1.11.19",
-		"flowbite-svelte": "^1.28.3",
+		"flowbite-svelte": "^1.29.1",
 		"konva": "^10.0.12",
 		"nanoid": "^5.1.6",
 		"svelte": "^5.45.2",

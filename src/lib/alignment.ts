@@ -95,7 +95,7 @@ const getCircleAlignmentPoints = (circle: CircleData): AlignmentPoints => {
  * @returns Categorized alignment points
  */
 const getRectangleAlignmentPoints = (rectangle: RectangleData): AlignmentPoints => {
-	if (rectangle.rotation === 0) {
+	if (rectangle.rotation === 0)
 		// No rotation - simple edge calculation
 		return {
 			center: { x: rectangle.x, y: rectangle.y },
@@ -108,7 +108,6 @@ const getRectangleAlignmentPoints = (rectangle: RectangleData): AlignmentPoints 
 				rectangle.y + rectangle.height / 2 // Bottom
 			]
 		};
-	}
 
 	// Calculate AABB for rotated rectangle
 	const angleRad = (rectangle.rotation * Math.PI) / 180;
@@ -192,14 +191,13 @@ const getAlignmentPoints = (element: GenericElement): AlignmentPoints => {
 const getElementBounds = (
 	element: GenericElement
 ): { minX: number; maxX: number; minY: number; maxY: number } => {
-	if (isCircle(element)) {
+	if (isCircle(element))
 		return {
 			minX: element.x - element.radius,
 			maxX: element.x + element.radius,
 			minY: element.y - element.radius,
 			maxY: element.y + element.radius
 		};
-	}
 
 	if (isRectangle(element)) {
 		if (element.rotation !== 0) {
@@ -237,14 +235,13 @@ const getElementBounds = (
 		};
 	}
 
-	if (isLeg(element)) {
+	if (isLeg(element))
 		return {
 			minX: element.x,
 			maxX: element.x + element.width,
 			minY: element.y,
 			maxY: element.y + element.height
 		};
-	}
 
 	// Fallback (should never reach here with proper type guards)
 	return { minX: 0, maxX: 0, minY: 0, maxY: 0 };
@@ -297,7 +294,7 @@ export const detectAlignments = (
 		const otherBounds = getElementBounds(other);
 
 		// Check vertical edge alignments (left/right with left/right)
-		for (const draggedX of draggedPoints.verticalEdges) {
+		for (const draggedX of draggedPoints.verticalEdges)
 			for (const otherX of otherPoints.verticalEdges) {
 				const deltaX = Math.abs(draggedX - otherX);
 				if (deltaX < ALIGNMENT_SNAP_THRESHOLD) {
@@ -320,10 +317,9 @@ export const detectAlignments = (
 					}
 				}
 			}
-		}
 
 		// Check horizontal edge alignments (top/bottom with top/bottom)
-		for (const draggedY of draggedPoints.horizontalEdges) {
+		for (const draggedY of draggedPoints.horizontalEdges)
 			for (const otherY of otherPoints.horizontalEdges) {
 				const deltaY = Math.abs(draggedY - otherY);
 				if (deltaY < ALIGNMENT_SNAP_THRESHOLD) {
@@ -346,7 +342,6 @@ export const detectAlignments = (
 					}
 				}
 			}
-		}
 
 		// Check center-to-center alignments (both vertical and horizontal)
 		const deltaX = Math.abs(draggedPoints.center.x - otherPoints.center.x);
@@ -434,7 +429,7 @@ export const calculateSnapPosition = (
 		const otherPoints = getAlignmentPoints(other);
 
 		// Check vertical edge alignments (left/right with left/right)
-		for (const draggedX of draggedPoints.verticalEdges) {
+		for (const draggedX of draggedPoints.verticalEdges)
 			for (const otherX of otherPoints.verticalEdges) {
 				const deltaX = Math.abs(draggedX - otherX);
 				if (deltaX < ALIGNMENT_SNAP_DISTANCE && deltaX < closestXDistance) {
@@ -444,10 +439,9 @@ export const calculateSnapPosition = (
 					snapX = draggedElement.x + offset;
 				}
 			}
-		}
 
 		// Check horizontal edge alignments (top/bottom with top/bottom)
-		for (const draggedY of draggedPoints.horizontalEdges) {
+		for (const draggedY of draggedPoints.horizontalEdges)
 			for (const otherY of otherPoints.horizontalEdges) {
 				const deltaY = Math.abs(draggedY - otherY);
 				if (deltaY < ALIGNMENT_SNAP_DISTANCE && deltaY < closestYDistance) {
@@ -457,7 +451,6 @@ export const calculateSnapPosition = (
 					snapY = draggedElement.y + offset;
 				}
 			}
-		}
 
 		// Check center-to-center alignments (both vertical and horizontal)
 		const deltaX = Math.abs(draggedPoints.center.x - otherPoints.center.x);

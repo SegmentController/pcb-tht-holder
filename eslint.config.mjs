@@ -58,6 +58,7 @@ export default [
 		},
 
 		rules: {
+			curly: ['error', 'multi'],
 			'simple-import-sort/imports': 'error',
 			'simple-import-sort/exports': 'error',
 			'svelte/require-each-key': 'off',

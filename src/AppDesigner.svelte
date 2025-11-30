@@ -304,9 +304,7 @@
 		draggedElement: CircleData | RectangleData | LegData
 	) => {
 		// Skip snapping if toggle is disabled
-		if (!$alignmentEnabled) {
-			return;
-		}
+		if (!$alignmentEnabled) return;
 
 		// Create a copy of the element with the current drag position
 		const liveElement = {
@@ -406,9 +404,9 @@
 			`Arrow keys: finemove (${FINE_MOVEMENT_DELTA}mm)`,
 			`SHIFT+arrows: move (${FINE_MOVEMENT_DELTA * FINE_MOVEMENT_SHIFT_MULTIPLIER}mm)`
 		];
-		if (isRectangle(element)) {
+		if (isRectangle(element))
 			instructions.push('F: flip dimensions', 'R: rotate +5°', 'SHIFT+R: reset rotation');
-		}
+
 		instructions.push('Right click: context menu');
 
 		// Calculate position to the right of the element

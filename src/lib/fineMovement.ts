@@ -50,14 +50,12 @@ export const getSelectedElementInfo = (): string | undefined => {
 	const element = selectedElements.values().next().value;
 	if (!element) return undefined;
 
-	if (isCircle(element)) {
-		return `Circle ${element.radius}x${element.depth}mm`;
-	} else if (isRectangle(element)) {
+	if (isCircle(element)) return `Circle ${element.radius}x${element.depth}mm`;
+	else if (isRectangle(element))
 		return `Rectangle ${element.width}x${element.height}x${element.depth}mm ${element.rotation}°`;
-	} else {
+	else
 		// Leg
 		return 'Leg';
-	}
 };
 
 export const finemoveSelectedElement = (direction: FinemoveDirection, multiplier = 1) => {
@@ -88,13 +86,10 @@ export const finemoveSelectedElement = (direction: FinemoveDirection, multiplier
 
 	// Trigger reactivity by reassigning only the specific array
 	projectStore.update((v) => {
-		if (isCircle(element)) {
-			v.circles = [...v.circles];
-		} else if (isRectangle(element)) {
-			v.rectangles = [...v.rectangles];
-		} else {
-			v.legs = [...v.legs];
-		}
+		if (isCircle(element)) v.circles = [...v.circles];
+		else if (isRectangle(element)) v.rectangles = [...v.rectangles];
+		else v.legs = [...v.legs];
+
 		return v;
 	});
 };

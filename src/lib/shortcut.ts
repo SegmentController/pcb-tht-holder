@@ -98,11 +98,9 @@ export function shortcut(node: HTMLElement, parameter: ShortcutParameter) {
 		update: (update: ShortcutParameter) => {
 			const { enabled: currentEnabled = true, type: currentType = 'keydown' } = update;
 
-			if (enabled && (!currentEnabled || type !== currentType)) {
+			if (enabled && (!currentEnabled || type !== currentType))
 				node.removeEventListener(type, handler);
-			} else if (!enabled && currentEnabled) {
-				node.addEventListener(currentType, handler);
-			}
+			else if (!enabled && currentEnabled) node.addEventListener(currentType, handler);
 
 			enabled = currentEnabled;
 			type = currentType;

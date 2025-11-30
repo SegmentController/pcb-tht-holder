@@ -148,13 +148,12 @@
 			}
 
 			// Save to localStorage when needed
-			if (isManualUpload || forceSaveToStore) {
+			if (isManualUpload || forceSaveToStore)
 				projectStore.update((value) => {
 					value.image = _fileData;
 					value.name = _name;
 					return value;
 				});
-			}
 
 			// Offer to resize large images (only for manual uploads)
 			if (isManualUpload && pcbImage && (pcbImage.width > 1280 || pcbImage.height > 1024)) {

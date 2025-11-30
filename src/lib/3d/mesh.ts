@@ -193,16 +193,14 @@ const isLegOverlappingRectangle = (leg: LegData, rectangle: RectangleData): bool
 	}));
 
 	// Check if any rotated rectangle corner is inside the leg
-	for (const corner of rotatedCorners) {
+	for (const corner of rotatedCorners)
 		if (
 			corner.x >= leg.x &&
 			corner.x <= leg.x + leg.width &&
 			corner.y >= leg.y &&
 			corner.y <= leg.y + leg.height
-		) {
+		)
 			return true;
-		}
-	}
 
 	// Check if any leg corner is inside the rotated rectangle
 	// Use inverse rotation to check if leg corners are inside rectangle's local space
@@ -221,9 +219,7 @@ const isLegOverlappingRectangle = (leg: LegData, rectangle: RectangleData): bool
 		const localY = -dx * sin + dy * cos;
 
 		// Check if point is inside rectangle bounds
-		if (Math.abs(localX) <= halfWidth && Math.abs(localY) <= halfHeight) {
-			return true;
-		}
+		if (Math.abs(localX) <= halfWidth && Math.abs(localY) <= halfHeight) return true;
 	}
 
 	return false;
@@ -251,12 +247,11 @@ const generateMesh = async (
 
 	// Calculate max component height in single pass (avoid intermediate arrays)
 	let componentHeight = panel.smdHeight;
-	for (const rectangle of project.rectangles) {
+	for (const rectangle of project.rectangles)
 		if (rectangle.depth > componentHeight) componentHeight = rectangle.depth;
-	}
-	for (const circle of project.circles) {
+
+	for (const circle of project.circles)
 		if (circle.depth > componentHeight) componentHeight = circle.depth;
-	}
 
 	const needHeight = panel.pcbThickness + componentHeight;
 
@@ -265,13 +260,12 @@ const generateMesh = async (
 	// Filter legs early to calculate accurate operation count
 	const filteredLegs = project.legs.filter((leg) => {
 		// Check if leg overlaps with any circle
-		for (const circle of project.circles) {
-			if (isLegOverlappingCircle(leg, circle)) return false;
-		}
+		for (const circle of project.circles) if (isLegOverlappingCircle(leg, circle)) return false;
+
 		// Check if leg overlaps with any rectangle
-		for (const rectangle of project.rectangles) {
+		for (const rectangle of project.rectangles)
 			if (isLegOverlappingRectangle(leg, rectangle)) return false;
-		}
+
 		return true;
 	});
 	const hiddenLegsCount = project.legs.length - filteredLegs.length;

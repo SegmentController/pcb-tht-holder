@@ -43,9 +43,7 @@ self.addEventListener('activate', function (event_) {
 			cacheWhitelist.push(CACHE_NAME);
 			return Promise.all(
 				keyList.map(function (key, index) {
-					if (!cacheWhitelist.includes(key)) {
-						return caches.delete(keyList[index]);
-					}
+					if (!cacheWhitelist.includes(key)) return caches.delete(keyList[index]);
 				})
 			);
 		})

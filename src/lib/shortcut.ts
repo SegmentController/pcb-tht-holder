@@ -1,4 +1,7 @@
 import type { Action, ActionReturn } from 'svelte/action';
+import { get } from 'svelte/store';
+
+import { modalStore } from '$stores/modalStore';
 
 export interface ShortcutAttributes {
 	'on:shortcut'?: (event: CustomEvent<ShortcutEventDetail>) => void;
@@ -55,6 +58,18 @@ export function shortcut(node: HTMLElement, parameter: ShortcutParameter) {
 	);
 
 	function handler(event: KeyboardEvent) {
+		/**
+		 * Modal-Aware Shortcut Handling
+		 *
+		 * All keyboard shortcuts are disabled when any modal dialog is open.
+		 * This prevents letter shortcuts from interfering with text input in modal forms.
+		 *
+		 * Implementation: Check modalStore array length on every keypress.
+		 * If modals are open (array.length > 0), exit early without processing shortcuts.
+		 */
+		const openModals = get(modalStore);
+		if (openModals.length > 0) return; // Shortcuts disabled while modal is open
+
 		/** @type {Record<import('./public').ShortcutModifier, boolean>} */
 		const modifiedMap = {
 			alt: event.altKey,

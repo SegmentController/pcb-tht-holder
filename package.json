@@ -1,6 +1,6 @@
 {
 	"name": "pcb-tht-holder",
-	"version": "1.13.3",
+	"version": "1.13.4",
 	"type": "module",
 	"main": "build/index.js",
 	"engines": {
@@ -43,7 +43,7 @@
 		"tailwindcss": "^4.1.17",
 		"tslib": "^2.8.1",
 		"typescript": "^5.9.3",
-		"vite": "^7.2.4"
+		"vite": "^7.2.6"
 	},
 	"dependencies": {
 		"@iconify/svelte": "^5.1.0",
@@ -54,7 +54,7 @@
 		"flowbite-svelte": "^1.29.1",
 		"konva": "^10.0.12",
 		"nanoid": "^5.1.6",
-		"svelte": "^5.45.2",
+		"svelte": "^5.45.3",
 		"svelte-konva": "^1.0.1",
 		"svelte-persisted-store": "^0.12.0",
 		"three": "^0.181.2",

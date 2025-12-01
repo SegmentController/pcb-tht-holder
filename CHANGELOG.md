@@ -1,5 +1,25 @@
 # Change log
 
+## [1.13.4] - 2025-12-01
+
+### Changed
+
+- **Keyboard shortcuts modified to avoid browser conflicts**
+  - `Ctrl+C` → `Shift+C` (Add circle)
+  - `Ctrl+R` → `Shift+R` (Add rectangle)
+  - `Ctrl+L` → `Shift+L` (Add leg)
+  - `Ctrl+P` → `Shift+P` (Project settings)
+  - `Ctrl+Z` remains unchanged (standard undo)
+  - All UI hints updated to reflect new shortcuts
+
+### Fixed
+
+- **Modal text input interference resolved**
+  - All keyboard shortcuts now automatically disabled when any modal dialog is open
+  - Prevents letter shortcuts (D, P, M, R, F) from triggering while typing in text fields
+  - No more accidental operations during form input
+  - Implementation: Shortcut action checks `modalStore` state before processing any shortcuts
+
 ## [1.13.1] - 2025-11-12
 
 ### Changed

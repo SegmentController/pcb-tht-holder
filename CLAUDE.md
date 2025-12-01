@@ -334,7 +334,7 @@ The application has extensive keyboard shortcuts that are critical to the user e
 
 ### Creating Elements
 
-- `Ctrl/Cmd+C` - Add circle, `Ctrl/Cmd+R` - Add rectangle, `Ctrl/Cmd+L` - Add leg
+- `Shift+C` - Add circle, `Shift+R` - Add rectangle, `Shift+L` - Add leg
 
 ### Element Editing (when hovering over element)
 
@@ -345,7 +345,27 @@ The application has extensive keyboard shortcuts that are critical to the user e
 
 ### Other
 
-- `Ctrl/Cmd+Z` - Undo, `Ctrl/Cmd+P` - Project settings, `D` - Display 3D mesh
+- `Ctrl/Cmd+Z` - Undo, `Shift+P` - Project settings, `D` - Display 3D mesh
+
+### Shortcut Behavior
+
+**Modal Awareness:**
+All keyboard shortcuts are automatically disabled when any modal dialog is open. This prevents:
+
+- Letter shortcuts (D, P, M, R, F) from interfering with text input
+- Accidental operations while filling out modal forms
+
+Implementation: The `shortcut` action in `src/lib/shortcut.ts` checks `modalStore` state before processing any shortcuts. When the modal stack is non-empty, all shortcuts are suppressed.
+
+**Browser Conflict Avoidance:**
+Element creation and settings shortcuts use Shift+letter combinations to avoid conflicts with browser shortcuts:
+
+- Shift+C instead of Ctrl+C (browser copy)
+- Shift+R instead of Ctrl+R (browser reload)
+- Shift+P instead of Ctrl+P (browser print)
+- Shift+L instead of Ctrl+L (browser address bar)
+
+Ctrl+Z (Undo) is preserved as it's a universal standard.
 
 **Implementation**: All shortcuts are defined in `AppNavigation.svelte` using the `shortcut` action from `$lib/shortcut`.
 

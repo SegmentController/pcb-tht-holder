@@ -343,6 +343,18 @@
 
 <svelte:window
 	use:shortcut={{
+		/**
+		 * Global Keyboard Shortcuts
+		 *
+		 * Browser Conflict Avoidance:
+		 * - Shift+C/R/L/P used instead of Ctrl+C/R/L/P to avoid browser shortcuts
+		 * - Ctrl+Z preserved as standard undo shortcut
+		 *
+		 * Modal-Aware Behavior:
+		 * - All shortcuts automatically disabled when modals are open
+		 * - Implemented in shortcut action (src/lib/shortcut.ts)
+		 * - Prevents interference with text input in modal forms
+		 */
 		trigger: [
 			{
 				key: 'p',
@@ -360,18 +372,18 @@
 			},
 
 			{
-				key: 'c',
-				modifier: ['ctrl', 'meta'],
+				key: 'C',
+				modifier: ['shift'],
 				callback: () => addNewCircle(),
 				preventDefault: true
 			},
 			{
-				key: 'r',
-				modifier: ['ctrl', 'meta'],
+				key: 'R',
+				modifier: ['shift'],
 				callback: () => addNewRectangle(),
 				preventDefault: true
 			},
-			{ key: 'l', modifier: ['ctrl', 'meta'], callback: addNewLeg, preventDefault: true },
+			{ key: 'L', modifier: ['shift'], callback: addNewLeg, preventDefault: true },
 			{
 				key: 'z',
 				modifier: ['ctrl', 'meta'],
@@ -379,8 +391,8 @@
 				preventDefault: true
 			},
 			{
-				key: 'p',
-				modifier: ['ctrl', 'meta'],
+				key: 'P',
+				modifier: ['shift'],
 				callback: openProjectSettings,
 				preventDefault: true
 			},
@@ -507,15 +519,15 @@
 					{/if}
 					<DropdownItem onclick={() => addNewCircle()}>
 						Add circle...
-						<Kbd class="float-right px-2 py-0">ctrl + C</Kbd>
+						<Kbd class="float-right px-2 py-0">shift + C</Kbd>
 					</DropdownItem>
 					<DropdownItem onclick={() => addNewRectangle()}>
 						Add rectangle...
-						<Kbd class="float-right px-2 py-0">ctrl + R</Kbd>
+						<Kbd class="float-right px-2 py-0">shift + R</Kbd>
 					</DropdownItem>
 					<DropdownItem onclick={addNewLeg}>
 						Add leg
-						<Kbd class="float-right px-2 py-0">ctrl + L</Kbd>
+						<Kbd class="float-right px-2 py-0">shift + L</Kbd>
 					</DropdownItem>
 					<DropdownItem onclick={addCornerLegs}>Auto legs at corner</DropdownItem>
 					{#if getProjectStoreLegCount()}
@@ -537,7 +549,7 @@
 					<DropdownDivider />
 					<DropdownItem onclick={openProjectSettings}>
 						Project settings...
-						<Kbd class="float-right px-2 py-0">ctrl + P</Kbd>
+						<Kbd class="float-right px-2 py-0">shift + P</Kbd>
 					</DropdownItem>
 				</Dropdown>
 				<NavLi class="cursor-pointer" onclick={showModalLibrary}>Library</NavLi>

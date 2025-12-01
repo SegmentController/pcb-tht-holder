@@ -38,7 +38,7 @@
 	};
 
 	// Start mesh generation with progress tracking
-	const meshInfoTuple = meshGenerator(progressCallback);
+	const meshInfoTuple = $derived(meshGenerator(progressCallback));
 
 	onMount(async () => {
 		await meshInfoTuple

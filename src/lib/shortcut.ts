@@ -68,7 +68,7 @@ export function shortcut(node: HTMLElement, parameter: ShortcutParameter) {
 		 * If modals are open (array.length > 0), exit early without processing shortcuts.
 		 */
 		const openModals = get(modalStore);
-		if (openModals.length > 0) return; // Shortcuts disabled while modal is open
+		if (openModals.length > 0 && event.key !== 'Escape') return; // Shortcuts disabled while modal is open, except ESC
 
 		/** @type {Record<import('./public').ShortcutModifier, boolean>} */
 		const modifiedMap = {

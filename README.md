@@ -60,9 +60,9 @@ In its current state, it facilitates the installation of circular and oblong com
 
 ### Creating Elements
 
-- `Ctrl+C` / `Cmd+C` - Add new circle
-- `Ctrl+R` / `Cmd+R` - Add new rectangle
-- `Ctrl+L` / `Cmd+L` - Add new support leg
+- `Shift+C` - Add new circle
+- `Shift+R` - Add new rectangle
+- `Shift+L` - Add new support leg
 
 ### Editing Elements (when element is selected)
 
@@ -78,8 +78,9 @@ In its current state, it facilitates the installation of circular and oblong com
 ### Other
 
 - `Ctrl+Z` / `Cmd+Z` - Undo last action
-- `Ctrl+P` / `Cmd+P` - Project settings
+- `Shift+P` - Project settings
 - `D` - Display 3D mesh
+- `ESC` - Close modal dialogs
 - `Double-click` - Edit element properties
 
 ## Try your first PCB to STL

@@ -1,6 +1,6 @@
 {
 	"name": "pcb-tht-holder",
-	"version": "1.13.4",
+	"version": "1.13.5",
 	"type": "module",
 	"main": "build/index.js",
 	"engines": {

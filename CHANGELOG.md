@@ -1,6 +1,6 @@
 # Change log
 
-## [1.13.4] - 2025-12-01
+## [1.13.5] - 2025-12-01
 
 ### Changed
 
@@ -14,6 +14,12 @@
 
 ### Fixed
 
+- **ESC key modal closing bug**
+  - Fixed critical bug where pressing ESC to close modals didn't decrement the modal counter
+  - Modal counter now correctly decrements when ESC is pressed
+  - Keyboard shortcuts properly re-enabled after closing modals with ESC
+  - Solution: Modified shortcut handler to allow ESC key through even when modals are open
+  - All modals now have consistent ESC behavior (equivalent to clicking Cancel button)
 - **Modal text input interference resolved**
   - All keyboard shortcuts now automatically disabled when any modal dialog is open
   - Prevents letter shortcuts (D, P, M, R, F) from triggering while typing in text fields

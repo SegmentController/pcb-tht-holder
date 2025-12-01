@@ -345,17 +345,17 @@ The application has extensive keyboard shortcuts that are critical to the user e
 
 ### Other
 
-- `Ctrl/Cmd+Z` - Undo, `Shift+P` - Project settings, `D` - Display 3D mesh
+- `Ctrl/Cmd+Z` - Undo, `Shift+P` - Project settings, `D` - Display 3D mesh, `ESC` - Close modals
 
 ### Shortcut Behavior
 
 **Modal Awareness:**
-All keyboard shortcuts are automatically disabled when any modal dialog is open. This prevents:
+All keyboard shortcuts are automatically disabled when any modal dialog is open (except ESC). This prevents:
 
 - Letter shortcuts (D, P, M, R, F) from interfering with text input
 - Accidental operations while filling out modal forms
 
-Implementation: The `shortcut` action in `src/lib/shortcut.ts` checks `modalStore` state before processing any shortcuts. When the modal stack is non-empty, all shortcuts are suppressed.
+Implementation: The `shortcut` action in `src/lib/shortcut.ts` checks `modalStore` state before processing any shortcuts. When the modal stack is non-empty, all shortcuts except ESC are suppressed. ESC is always allowed through to enable modal closing, and all modals use the `EscapeClose` wrapper component to handle ESC key presses consistently.
 
 **Browser Conflict Avoidance:**
 Element creation and settings shortcuts use Shift+letter combinations to avoid conflicts with browser shortcuts:

@@ -41,7 +41,12 @@ In its current state, it facilitates the installation of circular and oblong com
   - Progress bar shows percentage and visual indicator
   - UI remains responsive throughout the generation process
 - **Measurement Tool**: Press `M` to measure distances in 1/10th millimeter precision
-- **Undo/Redo**: Press `Ctrl+Z` to undo component deletions and modifications
+- **Comprehensive Undo System**: Press `Ctrl+Z` to undo operations (max 50 actions)
+  - Component deletions (circles, rectangles, legs)
+  - Property modifications (radius, depth, width, height, rotation)
+  - Rectangle rotation (`R` key) and dimension flip (`F` key)
+  - Visual error notifications for failed undo operations
+  - Automatic stack clearing on project reset
 - **Component Library**: Save and reuse your favorite component configurations
 - **Keyboard Shortcuts**: Extensive keyboard shortcuts for efficient workflow
 - **Hover Info**: Real-time element information and available shortcuts when hovering
@@ -77,7 +82,7 @@ In its current state, it facilitates the installation of circular and oblong com
 
 ### Other
 
-- `Ctrl+Z` / `Cmd+Z` - Undo last action
+- `Ctrl+Z` / `Cmd+Z` - Undo last operation (deletions, property edits, rotations, flips)
 - `Shift+P` - Project settings
 - `D` - Display 3D mesh
 - `ESC` - Close modal dialogs
@@ -129,8 +134,8 @@ Use a PLA printer to save time and money. Practice shows that it is enough to pr
 
 ### Requirements
 
-- Node.js >= 22.0.0
-- npm >= 10.0.0
+- Node.js >= 24.0.0
+- npm >= 11.0.0
 
 ### Local Development
 

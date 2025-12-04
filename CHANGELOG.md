@@ -1,5 +1,40 @@
 # Change log
 
+## [1.13.6] - 2025-12-04
+
+### Added
+
+- **Toast notification system**
+  - Visual error notifications for failed undo operations
+  - Toast appears in bottom-right corner with red error styling
+  - Auto-dismisses after 5 seconds
+  - Detailed error logging to console for debugging
+  - Implemented using Flowbite Svelte Toast component with Iconify icons
+
+### Changed
+
+- **Comprehensive undo system improvements**
+  - Added undo support for property modifications:
+    - Circle property edits (radius, depth)
+    - Rectangle property edits (width, height, depth, rotation)
+    - Rectangle rotation via keyboard (R key)
+    - Rectangle dimension flip via keyboard (F key)
+  - Implemented stack size limit (50 operations) to prevent memory issues
+  - Added automatic undo stack clearing on project reset
+  - Only creates undo entries when values actually change (optimization)
+  - Each rotation/flip creates individual undo entry for granular control
+- **Improved error handling**
+  - Failed undo operations now show toast notification to user
+  - Detailed console logging with operation name, error details, and stack trace
+  - Failed operations re-added to stack for retry
+
+### Fixed
+
+- **Cross-project undo contamination**
+  - Undo stack now clears when resetting project (File > New)
+  - Prevents accidentally restoring elements from previous project
+  - No more "ghost undos" after project reset
+
 ## [1.13.5] - 2025-12-01
 
 ### Changed

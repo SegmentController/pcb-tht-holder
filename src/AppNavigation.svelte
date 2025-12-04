@@ -154,7 +154,7 @@
 		projectStore,
 		updateProjectStoreValue
 	} from '$stores/projectStore';
-	import { executeLastUndo, undoStoreLastItem } from '$stores/undoStore';
+	import { clearUndoStack, executeLastUndo, undoStoreLastItem } from '$stores/undoStore';
 	import type { LibraryItem } from '$types/Library';
 	import type { Project } from '$types/Project';
 
@@ -187,6 +187,9 @@
 	const reset = async () => {
 		const { confirmed } = await showModalConfirm('Are you sure to reset PCB panel?');
 		if (confirmed) {
+			// Clear undo history to prevent undoing operations from previous project
+			clearUndoStack();
+
 			dispatch('reset');
 			updateProjectStoreValue((value) => {
 				value.image = '';

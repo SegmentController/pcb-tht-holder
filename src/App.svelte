@@ -36,6 +36,7 @@
 
 	import { onMount } from 'svelte';
 
+	import ToastContainer from '$components/base/ToastContainer.svelte';
 	import ModalPortal from '$lib/svelteModal/ModalPortal.svelte';
 	import { modalStore } from '$stores/modalStore';
 	import { getProjectStoreValue } from '$stores/projectStore';
@@ -86,6 +87,7 @@
 </div>
 
 <ModalPortal store={modalStore} />
+<ToastContainer />
 
 <style>
 	:global(body) {

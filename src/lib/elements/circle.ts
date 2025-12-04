@@ -50,11 +50,29 @@ export const addCircleToLibrary = async (source: CircleData) => {
 	}
 };
 export const modifyCircle = async (circle: CircleData) => {
+	// Capture current state BEFORE showing modal
+	const previousRadius = circle.radius;
+	const previousDepth = circle.depth;
+
 	const { confirmed, settings } = await showModalCircleSettings(circle);
+
 	if (confirmed) {
-		circle.radius = settings.radius;
-		circle.depth = settings.depth;
-		updateCircleChanges();
+		// Check if anything actually changed
+		const hasChanges = settings.radius !== previousRadius || settings.depth !== previousDepth;
+
+		if (hasChanges) {
+			// Apply changes
+			circle.radius = settings.radius;
+			circle.depth = settings.depth;
+			updateCircleChanges();
+
+			// Add undo entry with closure capturing previous values
+			addUndo('Modify circle', () => {
+				circle.radius = previousRadius;
+				circle.depth = previousDepth;
+				updateCircleChanges();
+			});
+		}
 	}
 };
 export const deleteCircle = (circle: CircleData) => {

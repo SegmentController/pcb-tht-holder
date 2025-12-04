@@ -45,10 +45,19 @@ export const addNewRectangle = async (source?: RectangleSettings) => {
 };
 export const duplicateRectangle = (source: RectangleData) => addNewRectangle(source);
 export const flipRectangleDimensions = (rectangle: RectangleData) => {
-	const oldWidth = rectangle.width;
-	rectangle.width = rectangle.height;
-	rectangle.height = oldWidth;
+	const previousWidth = rectangle.width;
+	const previousHeight = rectangle.height;
+
+	rectangle.width = previousHeight;
+	rectangle.height = previousWidth;
 	updateRectangleChanges();
+
+	// Add undo entry
+	addUndo('Flip rectangle', () => {
+		rectangle.width = previousWidth;
+		rectangle.height = previousHeight;
+		updateRectangleChanges();
+	});
 };
 export const addRectangleToLibrary = async (source: RectangleData) => {
 	const { confirmed, name } = await showModalNameEdit('rectangle');
@@ -66,18 +75,53 @@ export const addRectangleToLibrary = async (source: RectangleData) => {
 	}
 };
 export const modifyRectangle = async (rectangle: RectangleData) => {
+	// Capture current state BEFORE showing modal
+	const previousWidth = rectangle.width;
+	const previousHeight = rectangle.height;
+	const previousDepth = rectangle.depth;
+	const previousRotation = rectangle.rotation;
+
 	const { confirmed, settings } = await showModalRectangleSettings(rectangle);
+
 	if (confirmed) {
-		rectangle.width = settings.width;
-		rectangle.height = settings.height;
-		rectangle.depth = settings.depth;
-		rectangle.rotation = settings.rotation;
-		updateRectangleChanges();
+		// Check if anything actually changed
+		const hasChanges =
+			settings.width !== previousWidth ||
+			settings.height !== previousHeight ||
+			settings.depth !== previousDepth ||
+			settings.rotation !== previousRotation;
+
+		if (hasChanges) {
+			// Apply changes
+			rectangle.width = settings.width;
+			rectangle.height = settings.height;
+			rectangle.depth = settings.depth;
+			rectangle.rotation = settings.rotation;
+			updateRectangleChanges();
+
+			// Add undo entry with closure capturing previous values
+			addUndo('Modify rectangle', () => {
+				rectangle.width = previousWidth;
+				rectangle.height = previousHeight;
+				rectangle.depth = previousDepth;
+				rectangle.rotation = previousRotation;
+				updateRectangleChanges();
+			});
+		}
 	}
 };
 export const rotateRectangleDegrees = (rectangle: RectangleData, delta: number) => {
-	rectangle.rotation = (rectangle.rotation + delta + 360) % 360;
+	const previousRotation = rectangle.rotation;
+	const updatedRotation = (rectangle.rotation + delta + 360) % 360;
+
+	rectangle.rotation = updatedRotation;
 	updateRectangleChanges();
+
+	// Add undo entry
+	addUndo('Rotate rectangle', () => {
+		rectangle.rotation = previousRotation;
+		updateRectangleChanges();
+	});
 };
 export const resetRectangleRotation = (rectangle: RectangleData) => {
 	rectangle.rotation = 0;

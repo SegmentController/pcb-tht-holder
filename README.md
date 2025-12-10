@@ -48,6 +48,10 @@ In its current state, it facilitates the installation of circular and oblong com
   - Visual error notifications for failed undo operations
   - Automatic stack clearing on project reset
 - **Component Library**: Save and reuse your favorite component configurations
+  - Pre-defined library with 14 common THT components (DIP sockets, capacitors, buzzers, terminals, relays)
+  - One-click loading of standard footprints with datasheet-sourced dimensions
+  - Import/export library as JSON for backup or sharing
+  - Clear library with confirmation for fresh start
 - **Keyboard Shortcuts**: Extensive keyboard shortcuts for efficient workflow
 - **Hover Info**: Real-time element information and available shortcuts when hovering
 - **Hollow Option**: Generate top-layer-only coverage for faster printing

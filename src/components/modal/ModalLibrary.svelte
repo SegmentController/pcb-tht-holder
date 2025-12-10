@@ -5,8 +5,8 @@
 
 	import FileInput from '$components/base/input/FileInput.svelte';
 	import { virtualDownload } from '$lib/download';
-	import { libraryStore } from '$stores/libraryStore';
-	import { showModalNameEdit } from '$stores/modalStore';
+	import { libraryStore, loadDefaultsToLibrary } from '$stores/libraryStore';
+	import { showModalConfirm, showModalNameEdit } from '$stores/modalStore';
 	import { Library, LibraryItem } from '$types/Library';
 
 	import EscapeClose from './util/EscapeClose.svelte';
@@ -32,14 +32,25 @@
 				item === libraryItem ? { ...item, name } : item
 			);
 	};
+
+	const clearLibrary = async () => {
+		const { confirmed } = await showModalConfirm(
+			'Are you sure you want to clear the entire library? This action cannot be undone.'
+		);
+		if (confirmed) $libraryStore = [];
+	};
 </script>
 
 <EscapeClose on:escape={resolve}>
 	<Modal dismissable={false} open={true} size="lg" title="Library">
 		<div class="grid">
 			<ButtonGroup class="justify-self-end">
+				<Button onclick={loadDefaultsToLibrary}>Load defaults</Button>
 				<Button onclick={importLibrary}>Import</Button>
 				<Button disabled={$libraryStore.length === 0} onclick={exportLibrary}>Export</Button>
+				<Button color="red" disabled={$libraryStore.length === 0} onclick={clearLibrary}
+					>Clear</Button
+				>
 			</ButtonGroup>
 		</div>
 		<div class="grid grid-cols-3 gap-2 pt-4">

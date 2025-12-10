@@ -1,5 +1,27 @@
 # Change log
 
+## [1.13.7] - 2025-12-10
+
+### Added
+
+- **Default library items** for common THT components
+  - Pre-defined library of 14 standard components with datasheet-sourced dimensions
+  - Includes DIP IC sockets (DIP-8, DIP-14/16, DIP-28, DIP-40)
+  - Electrolytic capacitors (Ø5×11, Ø8×12, Ø10×16)
+  - PCB-mount buzzers (small Ø14×8, large Ø31×14)
+  - Screw terminal blocks (2×5.08, 3×5.08 pitch)
+  - Generic relays (small and large)
+  - "Load defaults" button in Library modal to populate library with standard footprints
+  - Automatic duplicate detection - components with existing names are skipped
+  - Saves time by eliminating need to manually measure and enter common component dimensions
+
+### Changed
+
+- **Library modal improvements**
+  - Reorganized button layout with new "Load defaults" option
+  - Added "Clear" button to remove all library items with confirmation dialog
+  - Improved workflow for managing component templates
+
 ## [1.13.6] - 2025-12-04
 
 ### Added

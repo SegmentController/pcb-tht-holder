@@ -543,7 +543,7 @@
 						</DropdownItem>
 						<Dropdown class="min-w-44 z-20" placement="right-start" simple trigger="hover">
 							{#each getLibraryStoreValue().toSorted( (a, b) => a.name.localeCompare(b.name) ) as libraryItem}
-								<DropdownItem onclick={() => addItemFromLibrary(libraryItem)}>
+								<DropdownItem class="text-xs" onclick={() => addItemFromLibrary(libraryItem)}>
 									{libraryItem.name} ({libraryItem.type})
 								</DropdownItem>
 							{/each}

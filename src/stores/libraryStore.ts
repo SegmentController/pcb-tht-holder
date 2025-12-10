@@ -37,7 +37,11 @@
 import { get, type Updater } from 'svelte/store';
 import { persisted } from 'svelte-persisted-store';
 
-import type { Library } from '$types/Library';
+import {
+	convertDefaultComponentToLibraryItem,
+	DEFAULT_COMPONENTS,
+	type Library
+} from '$types/Library';
 
 /**
  * Persisted store holding array of saved component templates
@@ -64,3 +68,38 @@ export const setLibraryStoreValue = (library: Library) => libraryStore.set(libra
  * @param updater - Function that receives current library and returns updated library
  */
 export const updateLibraryStoreValue = (updater: Updater<Library>) => libraryStore.update(updater);
+
+/**
+ * Loads default THT components into the library
+ *
+ * Appends predefined common components (DIP sockets, capacitors, buzzers, etc.)
+ * to the existing library. Performs duplicate detection by name - components whose
+ * names already exist in the library are automatically skipped.
+ *
+ * **Behavior:**
+ * - Preserves all existing library items
+ * - Only adds defaults with names not already present
+ * - Uses O(1) Set lookup for efficient duplicate checking
+ * - Safe to call multiple times (won't create duplicates)
+ *
+ * **Use Case:**
+ * Called when user clicks "Load defaults" button in Library modal to quickly
+ * populate their library with standard component footprints.
+ *
+ * @see DEFAULT_COMPONENTS in Library.ts for the list of default components
+ * @see convertDefaultComponentToLibraryItem for dimension mapping logic
+ */
+export const loadDefaultsToLibrary = () => {
+	const currentLibrary = getLibraryStoreValue();
+
+	// Build set of existing names for O(1) duplicate checking
+	const existingNames = new Set(currentLibrary.map((item) => item.name));
+
+	// Filter out defaults that already exist, then convert to LibraryItem format
+	const defaultsToAdd = DEFAULT_COMPONENTS.filter(
+		(component) => !existingNames.has(component.name)
+	).map((component) => convertDefaultComponentToLibraryItem(component));
+
+	// Append defaults to existing library
+	if (defaultsToAdd.length > 0) setLibraryStoreValue([...currentLibrary, ...defaultsToAdd]);
+};

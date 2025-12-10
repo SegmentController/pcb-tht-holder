@@ -541,7 +541,7 @@
 							Add from library
 							<Icon class="inline-flex" icon="mdi:chevron-right" />
 						</DropdownItem>
-						<Dropdown class="min-w-44 z-20" placement="right-start" trigger="hover">
+						<Dropdown class="min-w-44 z-20" placement="right-start" simple trigger="hover">
 							{#each getLibraryStoreValue().toSorted( (a, b) => a.name.localeCompare(b.name) ) as libraryItem}
 								<DropdownItem onclick={() => addItemFromLibrary(libraryItem)}>
 									{libraryItem.name} ({libraryItem.type})

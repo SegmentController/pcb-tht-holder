@@ -1,5 +1,22 @@
 # Change log
 
+## [1.13.8] - 2026-01-17
+
+### Changed
+
+- Updated dependencies to address security vulnerabilities
+  - @sveltejs/vite-plugin-svelte 6.2.1 → 6.2.4
+  - @typescript-eslint/eslint-plugin 8.50.1 → 8.53.0
+  - @typescript-eslint/parser 8.50.1 → 8.53.0
+  - eslint-plugin-svelte 3.13.1 → 3.14.0
+  - prettier 3.7.4 → 3.8.0
+  - vite 7.3.0 → 7.3.1
+  - @iconify/svelte 5.1.0 → 5.2.1
+  - canvas 3.2.0 → 3.2.1
+  - konva 10.0.12 → 10.2.0
+  - svelte 5.46.0 → 5.46.4
+  - zod 4.2.1 → 4.3.5
+
 ## [1.13.7] - 2025-12-10
 
 ### Added

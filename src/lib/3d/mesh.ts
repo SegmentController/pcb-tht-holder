@@ -1,6 +1,7 @@
 import { BoxGeometry, CylinderGeometry, Vector3 } from 'three';
 import { TextGeometry } from 'three/addons/geometries/TextGeometry.js';
 import { Font, FontLoader } from 'three/addons/loaders/FontLoader.js';
+import { mergeVertices } from 'three/addons/utils/BufferGeometryUtils.js';
 import { ADDITION, Brush, Evaluator, SUBTRACTION } from 'three-bvh-csg';
 
 import { MathMinMax } from '$lib/Math';
@@ -460,7 +461,8 @@ const generateMesh = async (
 					EDGE_THICKNESS -
 					TEXT_THICKNESS * PANEL_CENTER_FACTOR;
 				text.position.z +=
-					(needHeight + BOTTOM_THICKNESS - textGeometryInfo.size.h) * PANEL_CENTER_FACTOR;
+					(needHeight + BOTTOM_THICKNESS - emptyHeight - textGeometryInfo.size.h) *
+					PANEL_CENTER_FACTOR;
 				text.updateMatrixWorld();
 			}
 			mesh = evaluator.evaluate(mesh, text, ADDITION);
@@ -506,9 +508,16 @@ const generateMesh = async (
 		await reportProgress(); // Circle added to positive mesh
 	}
 
+	// Fix non-manifold edges: snap near-duplicate CSG seam vertices to identical values.
+	// mergeVertices: non-indexed → indexed (deduplicates vertices within epsilon)
+	// toNonIndexed: indexed → non-indexed (expands back, but shared edge vertices are now exact)
+	const gMain = mergeVertices(mesh.geometry).toNonIndexed();
+	const gHollow = mergeVertices(meshHollow.geometry).toNonIndexed();
+	const gPositive = mergeVertices(meshPositive.geometry).toNonIndexed();
+
 	return {
 		main: {
-			vertexArray: new Float32Array(mesh.geometry.attributes['position'].array),
+			vertexArray: new Float32Array(gMain.attributes['position'].array),
 			dimensions: {
 				width: adjustedPanelWidth + 2 * EDGE_THICKNESS,
 				height: adjustedPanelHeight + 2 * EDGE_THICKNESS,
@@ -516,7 +525,7 @@ const generateMesh = async (
 			}
 		},
 		hollow: {
-			vertexArray: new Float32Array(meshHollow.geometry.attributes['position'].array),
+			vertexArray: new Float32Array(gHollow.attributes['position'].array),
 			dimensions: {
 				width: adjustedPanelWidth + 2 * EDGE_THICKNESS,
 				height: adjustedPanelHeight + 2 * EDGE_THICKNESS,
@@ -524,7 +533,7 @@ const generateMesh = async (
 			}
 		},
 		positive: {
-			vertexArray: new Float32Array(meshPositive.geometry.attributes['position'].array),
+			vertexArray: new Float32Array(gPositive.attributes['position'].array),
 			dimensions: {
 				width: panel.width,
 				height: panel.height,

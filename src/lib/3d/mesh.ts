@@ -461,7 +461,8 @@ const generateMesh = async (
 					EDGE_THICKNESS -
 					TEXT_THICKNESS * PANEL_CENTER_FACTOR;
 				text.position.z +=
-					(needHeight + BOTTOM_THICKNESS - textGeometryInfo.size.h) * PANEL_CENTER_FACTOR;
+					(needHeight + BOTTOM_THICKNESS - emptyHeight - textGeometryInfo.size.h) *
+					PANEL_CENTER_FACTOR;
 				text.updateMatrixWorld();
 			}
 			mesh = evaluator.evaluate(mesh, text, ADDITION);

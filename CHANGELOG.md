@@ -1,5 +1,34 @@
 # Change log
 
+## [1.13.9] - 2026-02-17
+
+### Fixed
+
+- **Label vertical centering** now uses the solid wall region only
+  - Previously centered within the full side height, causing the label to appear too low
+  - Now subtracts the PCB cavity recess (`pcbThickness + smdHeight`) so the label is centered in the visible wall portion
+- **STL export: computed face normals** instead of hardcoded zero normals
+  - Text and binary STL files now include correctly calculated per-face normals
+  - Improves slicer compatibility and mesh quality analysis tools
+- **STL export: vertex deduplication** before normal computation
+  - Applied `mergeVertices` + `toNonIndexed` pass on all three meshes (main, hollow, positive)
+  - Fixes non-manifold edges caused by floating-point seam vertices from CSG operations
+  - Results in cleaner, watertight geometry for all exported STL files
+
+### Changed
+
+- Updated dependencies
+  - @tsconfig/svelte 5.0.6 → 5.0.8
+  - @typescript-eslint/eslint-plugin 8.53.0 → 8.56.0
+  - @typescript-eslint/parser 8.53.0 → 8.56.0
+  - eslint-plugin-svelte 3.14.0 → 3.15.0
+  - eslint-plugin-unicorn 62.0.0 → 63.0.0
+  - prettier 3.8.0 → 3.8.1
+  - svelte-check 4.3.5 → 4.4.0
+  - svelte 5.46.4 → 5.51.3
+  - three-bvh-csg 0.0.17 → 0.0.18
+  - zod 4.3.5 → 4.3.6
+
 ## [1.13.8] - 2026-01-17
 
 ### Changed

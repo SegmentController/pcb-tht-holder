@@ -21,7 +21,7 @@
 </script>
 
 <T.PerspectiveCamera
-	makeDefault
+	makeDefault={true as never}
 	position={[CAMERA_FAR * volume, CAMERA_FAR * volume, CAMERA_FAR * volume]}
 >
 	<OrbitControls />

@@ -195,10 +195,7 @@
 	const limitBox = (event: KonvaDragTransformEvent, box: RectangleData | LegData) => {
 		const target = event.target;
 
-		let minX = 0,
-			maxX = 0,
-			minY = 0,
-			maxY = 0;
+		let minX: number, maxX: number, minY: number, maxY: number;
 
 		// Check if it's a rectangle with rotation
 		if ('rotation' in box && box.rotation !== 0) {

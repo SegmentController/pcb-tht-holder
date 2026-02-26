@@ -1,5 +1,30 @@
 # Change log
 
+## [1.13.10] - 2026-02-26
+
+### Changed
+
+- Updated dependencies
+  - eslint 9.39.2 → 10.0.2 (major version upgrade, added @eslint/eslintrc and @eslint/js)
+  - @tailwindcss/postcss 4.1.18 → 4.2.1
+  - @tailwindcss/vite 4.1.18 → 4.2.1
+  - tailwindcss 4.1.18 → 4.2.1
+  - @types/three 0.182.0 → 0.183.1
+  - @typescript-eslint/eslint-plugin 8.56.0 → 8.56.1
+  - @typescript-eslint/parser 8.56.0 → 8.56.1
+  - prettier-plugin-svelte 3.4.1 → 3.5.0
+  - svelte-check 4.4.0 → 4.4.4
+  - svelte-eslint-parser 1.4.1 → 1.5.1
+  - @threlte/core 8.3.1 → 8.4.0
+  - @threlte/extras 9.7.1 → 9.8.1
+  - svelte 5.51.3 → 5.53.5
+  - three 0.182.0 → 0.183.1
+
+### Fixed
+
+- **Type compatibility** in `Mesh3DScene.svelte` after Threlte update (`makeDefault` prop cast)
+- **Code cleanup** in `AppDesigner.svelte`: removed unnecessary zero-initialization of boundary variables
+
 ## [1.13.9] - 2026-02-17
 
 ### Fixed

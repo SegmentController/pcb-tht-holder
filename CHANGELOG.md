@@ -1,5 +1,41 @@
 # Change log
 
+## [1.13.11] - 2026-04-07
+
+### Changed
+
+- Updated dependencies
+  - typescript 5.9.3 → 6.0.2 (major version upgrade)
+  - vite 7.3.1 → 8.0.7 (major version upgrade)
+  - @sveltejs/vite-plugin-svelte 6.2.4 → 7.0.0 (major version upgrade)
+  - eslint-plugin-unicorn 63.0.0 → 64.0.0 (major version upgrade)
+  - eslint-plugin-simple-import-sort 12.1.1 → 13.0.0 (major version upgrade)
+  - eslint 10.0.2 → 10.2.0
+  - eslint-plugin-svelte 3.15.0 → 3.17.0
+  - svelte-eslint-parser 1.5.1 → 1.6.0
+  - @typescript-eslint/eslint-plugin 8.56.1 → 8.58.0
+  - @typescript-eslint/parser 8.56.1 → 8.58.0
+  - @threlte/core 8.4.0 → 8.5.7
+  - @threlte/extras 9.8.1 → 9.14.4
+  - flowbite-svelte 1.31.0 → 1.33.0
+  - svelte 5.53.5 → 5.55.1
+  - @tailwindcss/postcss 4.2.1 → 4.2.2
+  - @tailwindcss/vite 4.2.1 → 4.2.2
+  - tailwindcss 4.2.1 → 4.2.2
+  - svelte-check 4.4.4 → 4.4.6
+  - prettier-plugin-svelte 3.5.0 → 3.5.1
+  - @eslint/eslintrc 3.3.4 → 3.3.5
+  - postcss 8.5.6 → 8.5.8
+  - canvas 3.2.1 → 3.2.3
+  - konva 10.2.0 → 10.2.3
+  - three 0.183.1 → 0.183.2
+  - dayjs 1.11.19 → 1.11.20
+  - nanoid 5.1.6 → 5.1.7
+
+### Removed
+
+- `svelte-preprocess` devDependency (no longer needed)
+
 ## [1.13.10] - 2026-02-26
 
 ### Changed

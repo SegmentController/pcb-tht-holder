@@ -22,7 +22,7 @@ npm run format:check     # Check formatting
 npm run format:fix       # Auto-fix formatting
 npm run lint:check       # ESLint checks
 npm run lint:fix         # Auto-fix linting
-npm run all              # Run format:fix, lint:fix, ts:check, build
+npm run all              # Run format:fix, lint:fix, ts:check, prebuild, build
 
 npm run npm:reinstall    # Clean reinstall dependencies
 ```

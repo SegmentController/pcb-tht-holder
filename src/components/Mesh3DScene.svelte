@@ -1,23 +1,34 @@
 <script lang="ts">
 	import { T } from '@threlte/core';
 	import { OrbitControls } from '@threlte/extras';
-	import { onMount } from 'svelte';
-	import type { BufferGeometry, NormalOrGLBufferAttributes } from 'three';
+	import { BufferAttribute, type BufferGeometry, type NormalOrGLBufferAttributes } from 'three';
 
-	export let vertices: Float32Array;
-	export let volume: number;
-	export let wireframe: boolean;
-	export let color: string = '#118811';
-	export let positionOffset: number = 0;
-	export let opacity: number = 1;
-	export let flipZ: boolean = false;
+	interface Properties {
+		vertices: Float32Array;
+		volume: number;
+		wireframe: boolean;
+		color?: string;
+		positionOffset?: number;
+		opacity?: number;
+		flipZ?: boolean;
+	}
+
+	const {
+		vertices,
+		volume,
+		wireframe,
+		color = '#118811',
+		positionOffset = 0,
+		opacity = 1,
+		flipZ = false
+	}: Properties = $props();
 
 	const CAMERA_FAR = 2;
 
-	let bufferGeometry: BufferGeometry<NormalOrGLBufferAttributes>;
-	onMount(() => {
-		if (bufferGeometry) bufferGeometry.computeVertexNormals();
-	});
+	const setupGeometry = (geo: BufferGeometry<NormalOrGLBufferAttributes>) => {
+		geo.setAttribute('position', new BufferAttribute(vertices, 3));
+		geo.computeVertexNormals();
+	};
 </script>
 
 <T.PerspectiveCamera
@@ -31,8 +42,6 @@
 <T.AmbientLight color="white" intensity={1} />
 
 <T.Mesh position.y={positionOffset} rotation.x={-Math.PI / 2} scale.z={flipZ ? -1 : 1}>
-	<T.BufferGeometry bind:ref={bufferGeometry}>
-		<T.BufferAttribute args={[vertices, 3]} attach="attributes.position" />
-	</T.BufferGeometry>
+	<T.BufferGeometry oncreate={setupGeometry} />
 	<T.MeshPhongMaterial {color} {opacity} transparent={opacity < 1} {wireframe} />
 </T.Mesh>

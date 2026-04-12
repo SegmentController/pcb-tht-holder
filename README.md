@@ -128,7 +128,7 @@ Use a PLA printer to save time and money. Practice shows that it is enough to pr
 
 ### Tech Stack
 
-- **Framework**: Svelte 5 with TypeScript
+- **Framework**: Svelte 5 with TypeScript (rune syntax: `$props()`, `$state()`, `$derived()`)
 - **Build Tool**: Vite
 - **3D Rendering**: Three.js with @threlte/core
 - **3D Operations**: three-bvh-csg for CSG boolean operations

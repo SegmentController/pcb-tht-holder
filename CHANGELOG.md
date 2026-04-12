@@ -1,5 +1,26 @@
 # Change log
 
+## [1.13.12] - 2026-04-12
+
+### Fixed
+
+- `Mesh3DScene.svelte`: production build crash caused by `T.BufferAttribute args` array in Vite 8 — replaced with `T.BufferGeometry oncreate` to set buffer attributes directly
+
+### Changed
+
+- Migrated `Mesh3DScene.svelte` props from Svelte 4 `export let` syntax to Svelte 5 `$props()` rune
+- Updated dependencies
+  - @typescript-eslint/eslint-plugin 8.58.0 → 8.58.1
+  - @typescript-eslint/parser 8.58.0 → 8.58.1
+  - postcss 8.5.8 → 8.5.9
+  - prettier 3.8.1 → 3.8.2
+  - vite 8.0.7 → 8.0.8
+  - @threlte/core 8.5.7 → 8.5.9
+  - @threlte/extras 9.14.4 → 9.14.5
+  - flowbite-svelte 1.33.0 → 1.33.1
+  - konva 10.2.3 → 10.2.5
+  - svelte 5.55.1 → 5.55.3
+
 ## [1.13.11] - 2026-04-07
 
 ### Changed

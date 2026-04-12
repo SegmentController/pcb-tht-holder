@@ -160,6 +160,25 @@ isRectangle(element: GenericElement): element is RectangleData
 isLeg(element: GenericElement): element is LegData
 ```
 
+### Threlte BufferGeometry Pattern
+
+**NEVER use `T.BufferAttribute` with `args` array** — in Vite 8 production builds this causes a `byteLength` crash.
+
+**Use `T.BufferGeometry oncreate` instead** to set buffer attributes and compute normals:
+
+```svelte
+import { BufferAttribute } from 'three';
+
+const setupGeometry = (geo: BufferGeometry) => {
+  geo.setAttribute('position', new BufferAttribute(vertices, 3));
+  geo.computeVertexNormals();
+};
+// ...
+<T.BufferGeometry oncreate={setupGeometry} />
+```
+
+See `Mesh3DScene.svelte` for the canonical example.
+
 ### Implementation Details
 
 - **Globals**: `__PKG_VERSION__`, `__BASE_URL__` injected at build time
@@ -168,6 +187,7 @@ isLeg(element: GenericElement): element is LegData
 - **Environment**: Production base path `/pcb-tht-holder`, dev empty string
 - **ESLint**: unicorn/all config, import sorting, no console/alert/debugger
 - **Requirements**: Node >=24.0.0, npm >=11.0.0
+- **Svelte 5 rune syntax**: all components use `$props()`, `$state()`, `$derived()` — no `export let` props
 
 ## Keyboard Shortcuts
 

@@ -1,5 +1,43 @@
 # Change log
 
+## [1.13.13] - 2026-10-10
+
+### Added
+
+- `PartnerBadge.svelte`: SkipTheCAD partner badge shown in the top-right corner for 7 seconds after load, linking to the partner page
+- SkipTheCAD "Listed on" badge in `README.md`
+
+### Changed
+
+- `vite.config.ts`: ESM-native config (`node:path`, `import.meta.dirname`, JSON import attribute); `chunkSizeWarningLimit` raised to 2000 for the larger Three.js/Threlte bundle
+- `shortcut.ts`: formatting-only change to `ShortcutModifierDefinition` (prettier-plugin-svelte 4)
+- Updated dependencies
+  - three 0.183.2 → 0.186.1
+  - @types/three 0.183.1 → 0.186.0
+  - @threlte/core 8.5.9 → 8.6.1
+  - @threlte/extras 9.14.5 → 9.22.0
+  - konva 10.2.5 → 10.7.1
+  - svelte 5.55.3 → 5.57.2
+  - zod 4.3.6 → 4.6.5
+  - dayjs 1.11.20 → 1.11.23
+  - nanoid 5.1.7 → 5.1.16
+  - @iconify/svelte 5.2.1 → 5.2.2
+  - vite 8.0.8 → 8.3.4
+  - @sveltejs/vite-plugin-svelte 7.0.0 → 7.3.1
+  - tailwindcss, @tailwindcss/postcss, @tailwindcss/vite 4.2.2 → 4.3.3
+  - typescript 6.0.2 → 6.0.3
+  - eslint 10.2.0 → 10.12.0
+  - @eslint/eslintrc 3.3.5 → 3.3.7
+  - eslint-plugin-simple-import-sort 13.0.0 → 14.0.0 (major version upgrade)
+  - eslint-plugin-svelte 3.17.0 → 3.23.1
+  - svelte-eslint-parser 1.6.0 → 1.9.0
+  - @typescript-eslint/eslint-plugin, @typescript-eslint/parser 8.58.1 → 8.71.1
+  - prettier 3.8.2 → 3.9.10
+  - prettier-plugin-svelte 3.5.1 → 4.1.1 (major version upgrade)
+  - replace-in-file 8.4.0 → 9.0.0 (major version upgrade)
+  - svelte-check 4.4.6 → 4.7.6
+  - postcss 8.5.9 → 8.5.29
+
 ## [1.13.12] - 2026-04-12
 
 ### Fixed

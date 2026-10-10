@@ -1,11 +1,10 @@
-/* eslint-disable unicorn/prefer-module */
-/* eslint-disable unicorn/prefer-node-protocol */
+import path from 'node:path';
+
 import { svelte } from '@sveltejs/vite-plugin-svelte';
 import tailwindcss from '@tailwindcss/vite';
-import path from 'path';
 import { defineConfig } from 'vite';
 
-import package_ from './package.json';
+import package_ from './package.json' with { type: 'json' };
 
 export default defineConfig({
 	plugins: [svelte(), tailwindcss()],
@@ -17,16 +16,16 @@ export default defineConfig({
 		copyPublicDir: true,
 		emptyOutDir: true,
 		outDir: 'docs',
-		chunkSizeWarningLimit: 1500,
+		chunkSizeWarningLimit: 2000,
 		assetsInlineLimit: 0
 	},
 	base: process.env.NODE_ENV === 'production' ? '/pcb-tht-holder' : '',
 	resolve: {
 		alias: {
-			$components: path.resolve(__dirname, './src/components'),
-			$lib: path.resolve(__dirname, './src/lib'),
-			$stores: path.resolve(__dirname, './src/stores'),
-			$types: path.resolve(__dirname, './src/types')
+			$components: path.resolve(import.meta.dirname, './src/components'),
+			$lib: path.resolve(import.meta.dirname, './src/lib'),
+			$stores: path.resolve(import.meta.dirname, './src/stores'),
+			$types: path.resolve(import.meta.dirname, './src/types')
 		}
 	},
 	define: {

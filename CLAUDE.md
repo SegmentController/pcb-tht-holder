@@ -1,6 +1,6 @@
 # CLAUDE.md
 
-This file provides guidance to Claude Code when working with this repository.
+This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
 
 ## Project Overview
 
@@ -17,12 +17,16 @@ npm run dev              # Start dev server with --host (network accessible)
 npm run build            # Production build (outputs to docs/)
 npm run preview          # Preview production build
 
+npm run test             # Unit tests (Vitest, Node env)
+npm run test:watch       # Vitest watch mode
+npx vitest run src/lib/alignment.test.ts   # Single test file
+npx vitest run -t "snaps legs"              # Tests matching a name
 npm run ts:check         # TypeScript checking
 npm run format:check     # Check formatting
 npm run format:fix       # Auto-fix formatting
 npm run lint:check       # ESLint checks
 npm run lint:fix         # Auto-fix linting
-npm run all              # Run format:fix, lint:fix, ts:check, build
+npm run all              # Run format:fix, lint:fix, ts:check, test, build
 
 npm run npm:reinstall    # Clean reinstall dependencies
 ```
@@ -50,7 +54,7 @@ Outputs to `docs/` directory for GitHub Pages.
 - **2D Canvas**: Konva.js via svelte-konva
 - **Validation**: Zod for runtime schemas
 - **UI**: Flowbite Svelte + Tailwind CSS 4
-- **State**: svelte-persisted-store (localStorage)
+- **State**: Svelte stores persisted to localStorage (`projectStore` is hand-rolled, `libraryStore` uses svelte-persisted-store)
 
 ### Key Directory Structure
 
@@ -61,25 +65,33 @@ src/
 ├── lib/
 │   ├── constants.ts  # Centralized constants
 │   ├── alignment.ts  # Alignment guide + magnetic snapping
-│   ├── 3d/           # STL generation (stl.ts) + mesh operations (mesh.ts)
+│   ├── 3d/           # STL generation (stl.ts), mesh operations (mesh.ts), leg overlap (legOverlap.ts)
 │   ├── elements/     # Circle, rectangle, leg operations
 │   └── svelteModal/  # Modal utilities
 ├── components/
 │   ├── base/         # Reusable components (ContextMenu, HoverInfo, ToastContainer, PartnerBadge)
 │   ├── modal/        # Modal dialogs
 │   └── (root)        # Main designer components
-└── cards/            # Card components
+└── App*.svelte       # AppDesigner (Konva canvas), AppNavigation (menu, 3D/export), AppDropzone (image/project load)
 ```
+
+Tests are co-located as `*.test.ts` next to the module they cover.
 
 ### Core Data Flow
 
 1. **projectStore** (persisted): PCB image (base64), panel settings, components (`circles[]`, `rectangles[]`, `legs[]`)
+   - Not `svelte-persisted-store`: hand-rolled in `projectStore.ts`. Image lives under its own
+     localStorage key (`project-image`) and is only rewritten when it changed; writes are debounced
+     (250ms) and flushed on `pagehide`/hidden; other tabs are adopted via the `storage` event.
+   - `projectJsonSerializer.parse` and `parseStoredProject` fall back to the empty project when
+     **any** field fails Zod validation (e.g. rectangle `rotation` outside 0–359 wipes the project),
+     so keep schema constraints and the values the UI can produce in sync.
 2. **AppDesigner.svelte**: Konva.js Stage for 2D canvas, pointer/measure modes, context menus, keyboard shortcuts
    - **Alignment guides**: Visual blue lines + magnetic snapping (0.2mm range), toggle via Align switch
 3. **3D Mesh Generation** (`src/lib/3d/mesh.ts`):
    - Async with progress tracking, yields after each CSG operation
    - Generates 3 meshes: Main (full-depth), Hollow (material-saving), Positive (PCB visualization)
-   - **Leg collision detection**: Auto-filters overlapping legs before mesh generation
+   - **Leg collision detection**: Auto-filters overlapping legs before mesh generation (`legOverlap.ts`, pure and unit-tested; `hiddenLegsCount` is reported to the UI)
    - **Print tolerance**: Configurable 0-2mm (enlarges holes, shrinks panel)
    - Optional text label engraving (Three.js TextGeometry, Roboto font)
 4. **STL Export** (`src/lib/3d/stl.ts`): Converts to text/binary STL format
@@ -90,7 +102,7 @@ Flow: `AppNavigation.openDisplay()` → `showModalMesh(meshGenerator)` → `Moda
 
 Progress tracking via `onProgress(current, total)` callback. `YIELD_DELAY_MS` in mesh.ts (0 for prod, 10+ for testing).
 
-Operation count: 2 base + 2 empty space + 8 cutouts + (components × 2) + (legs × 2) + positive components + 1 label
+Operation count (`totalOperations` in `generateMesh`): 2 base + 2 empty space + 8 cutouts + (rectangles + circles) × 2 + (visible legs × 2) + (rectangles + circles) positive + 1 if label. Keep it in sync when adding CSG steps or the progress bar misreports.
 
 ### Coordinate Systems (CRITICAL)
 
@@ -134,7 +146,7 @@ Saves component specs (dimensions, depth, rotation) for reuse. Persisted to loca
 // Rectangle: { type: 'rectangle', name, width, height, depth, rotation }
 ```
 
-**Default Components**: 14 pre-defined THT components (DIP sockets, capacitors, buzzers, terminals, relays)
+**Default Components**: 13 pre-defined THT components (DIP sockets, capacitors, buzzers, terminals, relays)
 
 - Loaded via `loadDefaultsToLibrary()` with duplicate detection (O(1) Set lookup)
 - UI: "Load defaults", Import, Export, Clear buttons in Library modal
@@ -143,14 +155,14 @@ Saves component specs (dimensions, depth, rotation) for reuse. Persisted to loca
 
 ### Constants (`src/lib/constants.ts`)
 
-```typescript
-ELEMENT_OPACITY = 0.75;
-((CIRCLE_COLOR = 'orange'), (RECTANGLE_COLOR = 'green'), (LEG_COLOR = 'gray'));
-POSITIVE_MESH_COLOR = '#ff8811';
-FINE_MOVEMENT_DELTA = 0.1; // mm, SHIFT multiplier = 5
-((ALIGNMENT_SNAP_THRESHOLD = 0.1), (ALIGNMENT_SNAP_DISTANCE = 0.2));
-((ALIGNMENT_LINE_COLOR = '#0088ff'), (ALIGNMENT_LINE_WIDTH = 0.1));
-ELEMENT_SKIP_JSON_PROPERTIES = ['fill', 'draggable', 'opacity'];
+```text
+ELEMENT_OPACITY = 0.75
+CIRCLE_COLOR = 'orange'; RECTANGLE_COLOR = 'green'; LEG_COLOR = 'gray'
+POSITIVE_MESH_COLOR = '#ff8811'
+FINE_MOVEMENT_DELTA = 0.1 // mm, SHIFT multiplier = 5
+ALIGNMENT_SNAP_THRESHOLD = 0.1; ALIGNMENT_SNAP_DISTANCE = 0.2
+ALIGNMENT_LINE_COLOR = '#0088ff'; ALIGNMENT_LINE_WIDTH = 0.1
+ELEMENT_SKIP_JSON_PROPERTIES = ['fill', 'draggable', 'opacity']
 ```
 
 ### Type Guards (`src/types/typeGuards.ts`)
@@ -215,7 +227,15 @@ Implementation: `shortcut` action in `src/lib/shortcut.ts` checks `modalStore` s
 
 ## Testing Workflow
 
-Manual only:
+### Unit tests (Vitest)
+
+`npm run test` runs `src/**/*.test.ts` in a Node environment (no DOM). Tests are co-located with the
+module they cover. Covered: alignment, STL export, leg overlap (`src/lib/3d/legOverlap.ts`), Zod
+schemas/type guards, project serializer, undo/toast/library/modal stores. Keep logic that must be
+tested free of `three-bvh-csg`, Konva and `.svelte` imports (extract it into a plain `.ts` module);
+tests use explicit `import { describe, it, expect } from 'vitest'` (no globals). CI runs the suite.
+
+### Manual checklist (visual / 3D)
 
 1. Upload PCB → verify transparency/flip
 2. Place components → adjust depth/height/rotation

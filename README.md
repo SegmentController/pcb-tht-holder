@@ -50,7 +50,7 @@ In its current state, it facilitates the installation of circular and oblong com
   - Visual error notifications for failed undo operations
   - Automatic stack clearing on project reset
 - **Component Library**: Save and reuse your favorite component configurations
-  - Pre-defined library with 14 common THT components (DIP sockets, capacitors, buzzers, terminals, relays)
+  - Pre-defined library with 13 common THT components (DIP sockets, capacitors, buzzers, terminals, relays)
   - One-click loading of standard footprints with datasheet-sourced dimensions
   - Import/export library as JSON for backup or sharing
   - Clear library with confirmation for fresh start
@@ -136,7 +136,8 @@ Use a PLA printer to save time and money. Practice shows that it is enough to pr
 - **3D Operations**: three-bvh-csg for CSG boolean operations
 - **2D Canvas**: Konva.js for component placement
 - **UI**: Flowbite Svelte with Tailwind CSS 4
-- **State**: svelte-persisted-store for local storage
+- **State**: Svelte stores persisted to local storage
+- **Testing**: Vitest (unit tests run in Node, co-located as `*.test.ts`)
 
 ### Requirements
 
@@ -152,6 +153,12 @@ npm install
 # Start development server (accessible on network)
 npm run dev
 
+# Run unit tests (Vitest)
+npm run test
+
+# Run tests in watch mode
+npm run test:watch
+
 # Run type checking
 npm run ts:check
 
@@ -164,7 +171,7 @@ npm run format:fix
 # Build for production
 npm run build
 
-# Run all checks and build
+# Run all checks (format, lint, types, tests) and build
 npm run all
 ```
 
@@ -174,7 +181,7 @@ npm run all
   - `components/` - Svelte components
   - `lib/` - Utility functions and 3D generation logic
   - `stores/` - Svelte stores for state management
-  - `types/` - TypeScript type definitions
+  - `types/` - TypeScript type definitions and Zod schemas
 - `public/` - Static assets
 - `docs/` - Production build output (GitHub Pages)
 

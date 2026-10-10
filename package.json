@@ -12,12 +12,14 @@
 		"build": "vite build",
 		"preview": "vite preview",
 		"ts:check": "svelte-check --tsconfig ./tsconfig.json",
+		"test": "vitest run",
+		"test:watch": "vitest",
 		"format:check": "prettier --check .",
 		"format:fix": "prettier --write . | grep -v 'unchanged' | sed G",
 		"lint:check": "eslint .",
 		"lint:fix": "eslint --fix .",
 		"npm:reinstall": "rm -rf ./node_modules && rm -f ./package-lock.json && npm i && npm i",
-		"all": "node --run format:fix && node --run lint:fix && node --run ts:check && node --run build"
+		"all": "node --run format:fix && node --run lint:fix && node --run ts:check && node --run test && node --run build"
 	},
 	"devDependencies": {
 		"@eslint/eslintrc": "^3.3.7",
@@ -42,7 +44,8 @@
 		"tailwindcss": "^4.3.3",
 		"tslib": "^2.8.1",
 		"typescript": "^6.0.2",
-		"vite": "^8.3.4"
+		"vite": "^8.3.4",
+		"vitest": "^5.0.3"
 	},
 	"dependencies": {
 		"@iconify/svelte": "^5.2.2",

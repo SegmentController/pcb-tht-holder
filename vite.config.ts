@@ -3,7 +3,8 @@ import path from 'node:path';
 
 import { svelte } from '@sveltejs/vite-plugin-svelte';
 import tailwindcss from '@tailwindcss/vite';
-import { defineConfig, type Plugin } from 'vite';
+import { type Plugin } from 'vite';
+import { defineConfig } from 'vitest/config';
 
 import package_ from './package.json' with { type: 'json' };
 
@@ -83,6 +84,10 @@ export default defineConfig({
 			$stores: path.resolve(import.meta.dirname, './src/stores'),
 			$types: path.resolve(import.meta.dirname, './src/types')
 		}
+	},
+	test: {
+		environment: 'node',
+		include: ['src/**/*.test.ts']
 	},
 	define: {
 		__PKG_VERSION__: `"${package_.version}"`,

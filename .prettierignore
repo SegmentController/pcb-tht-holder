@@ -12,3 +12,6 @@ node_modules
 pnpm-lock.yaml
 package-lock.json
 yarn.lock
+
+# Trimmed, minified font data (Latin + Hungarian + symbols), see ModalProjectSettings label
+/public/roboto_regular.json

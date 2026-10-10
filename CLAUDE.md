@@ -22,17 +22,20 @@ npm run format:check     # Check formatting
 npm run format:fix       # Auto-fix formatting
 npm run lint:check       # ESLint checks
 npm run lint:fix         # Auto-fix linting
-npm run all              # Run format:fix, lint:fix, ts:check, prebuild, build
+npm run all              # Run format:fix, lint:fix, ts:check, build
 
 npm run npm:reinstall    # Clean reinstall dependencies
 ```
 
 ## Build Process
 
-Prebuild script:
+The `service-worker` Vite plugin (`vite.config.ts`) emits `service-worker.js` from
+`src/service-worker.template.js`, filling in `__VERSION__` (package version) and `__PRECACHE__`
+(app shell + hashed entry assets). The 3D stack (three, CSG, threlte) is a lazy chunk loaded when the
+3D view opens; the `drop-unused-threlte-assets` plugin removes unreferenced draco/basis files.
 
-1. Copies `src/service-worker.template.js` to `public/service-worker.js`
-2. Replaces `__VERSION__` placeholder with package version
+Tailwind sources are explicit `@source` directives in `src/app.postcss` — add a flowbite-svelte
+directory there when using a new flowbite component, otherwise its classes are missing.
 
 Outputs to `docs/` directory for GitHub Pages.
 

@@ -49,6 +49,21 @@ const normalizeTrigger = (trigger: ShortcutTrigger): NormalizedTrigger => {
 	return { ...rest, modifierDefs };
 };
 
+const NON_TEXT_INPUT_TYPES = new Set(['button', 'checkbox', 'radio', 'range', 'submit']);
+
+/** True when the focused control consumes this key itself (text entry, select, range arrows) */
+const isHandledByFocusedControl = (event: KeyboardEvent) => {
+	const target = event.target;
+	if (!(target instanceof HTMLElement)) return false;
+	if (target.isContentEditable || target instanceof HTMLTextAreaElement) return true;
+	if (target instanceof HTMLSelectElement) return true;
+	if (target instanceof HTMLInputElement)
+		return target.type === 'range'
+			? event.key.startsWith('Arrow')
+			: !NON_TEXT_INPUT_TYPES.has(target.type);
+	return false;
+};
+
 export function shortcut(node: HTMLElement, parameter: ShortcutParameter) {
 	let { enabled = true, trigger, type = 'keydown' } = parameter;
 	let normalizedTriggers = (Array.isArray(trigger) ? trigger : [trigger]).map((t) =>
@@ -68,7 +83,9 @@ export function shortcut(node: HTMLElement, parameter: ShortcutParameter) {
 		const openModals = get(modalStore);
 		if (openModals.length > 0 && event.key !== 'Escape') return; // Shortcuts disabled while modal is open, except ESC
 
-		/** @type {Record<import('./public').ShortcutModifier, boolean>} */
+		// Do not hijack typing / native keys of focused form controls (keep ESC working everywhere)
+		if (event.key !== 'Escape' && isHandledByFocusedControl(event)) return;
+
 		const modifiedMap = {
 			alt: event.altKey,
 			ctrl: event.ctrlKey,
@@ -89,7 +106,11 @@ export function shortcut(node: HTMLElement, parameter: ShortcutParameter) {
 						deferred.every((modifier) => modifiedMap[modifier])
 					);
 					if (!modified) continue;
-				}
+				} else if (
+					(event.ctrlKey || event.metaKey || event.altKey) &&
+					!event.getModifierState('AltGraph') // AltGr (Ctrl+Alt on Windows) types characters like '*'
+				)
+					continue; // never swallow browser shortcuts (reload, find, zoom...)
 				if (event.key === key) {
 					if (preventDefault) event.preventDefault();
 					/** @type {import('./public').ShortcutEventDetail} */

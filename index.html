@@ -50,10 +50,13 @@
 		<div id="app"></div>
 		<script type="module" src="/src/main.ts"></script>
 		<script>
-			if ('serviceWorker' in navigator)
-				navigator.serviceWorker.register('/pcb-tht-holder/service-worker.js', {
-					scope: '/pcb-tht-holder/'
-				});
+			// Register after load so the worker's precache downloads do not compete with the app itself
+			if ('serviceWorker' in navigator && location.pathname.startsWith('/pcb-tht-holder/'))
+				addEventListener('load', () =>
+					navigator.serviceWorker.register('/pcb-tht-holder/service-worker.js', {
+						scope: '/pcb-tht-holder/'
+					})
+				);
 		</script>
 	</body>
 </html>

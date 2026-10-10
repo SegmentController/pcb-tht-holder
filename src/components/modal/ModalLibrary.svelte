@@ -1,5 +1,5 @@
 <script lang="ts">
-	import Icon from '@iconify/svelte';
+	import Icon from '@iconify/svelte/dist/OfflineIcon.svelte';
 	import { A, Button, ButtonGroup, Card, Modal } from 'flowbite-svelte';
 	import { createEventDispatcher } from 'svelte';
 

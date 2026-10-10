@@ -18,7 +18,7 @@
   - No props required - entirely driven by store subscription
 -->
 <script lang="ts">
-	import Icon from '@iconify/svelte';
+	import Icon from '@iconify/svelte/dist/OfflineIcon.svelte';
 	import { Toast } from 'flowbite-svelte';
 
 	import { toastStore } from '$stores/toastStore';

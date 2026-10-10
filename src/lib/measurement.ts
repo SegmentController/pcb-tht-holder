@@ -1,4 +1,4 @@
-import type { Writable } from 'svelte/store';
+import { get, type Writable } from 'svelte/store';
 import type { KonvaMouseEvent } from 'svelte-konva';
 
 export type MeasurementInfo = {
@@ -31,7 +31,8 @@ const updateMeasurement = (
 			if (eventContainer.style.cursor !== 'crosshair') eventContainer.style.cursor = 'crosshair';
 		} else if (eventContainer.style.cursor === 'crosshair') eventContainer.style.cursor = 'default';
 
-	if (isMeasurementMode)
+	// The measurement is only drawn while the button is held: skip store churn on plain hover
+	if (isMeasurementMode && get(info).visible)
 		info.update((previous) => {
 			previous.endPoint = { x: event.evt.offsetX / scaleX, y: event.evt.offsetY / scaleY };
 			if (event.evt.shiftKey)
@@ -67,6 +68,10 @@ export const stageMouseMove = (
 	scaleX: number,
 	scaleY: number
 ) => {
+	// Nothing to do outside measure mode, unless the crosshair cursor still has to be reset
+	if (!isMeasurementMode && event.target.getStage()?.container().style.cursor !== 'crosshair')
+		return;
+
 	if (rafId !== undefined) cancelAnimationFrame(rafId);
 	rafId = requestAnimationFrame(() => {
 		updateMeasurement(event, isMeasurementMode, info, scaleX, scaleY);

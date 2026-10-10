@@ -110,7 +110,7 @@
 </script>
 
 <script lang="ts">
-	import Icon from '@iconify/svelte';
+	import Icon from '@iconify/svelte/dist/OfflineIcon.svelte';
 	import {
 		Button,
 		ButtonGroup,
@@ -128,7 +128,6 @@
 	import NavContainer from 'flowbite-svelte/NavContainer.svelte';
 	import { createEventDispatcher } from 'svelte';
 
-	import { generateMeshLazy } from '$lib/3d/mesh';
 	import { virtualDownload } from '$lib/download';
 	import { addNewCircle } from '$lib/elements/circle';
 	import { addCornerLegs, addNewLeg, deleteAllLegsWithConfirm } from '$lib/elements/leg';
@@ -302,11 +301,27 @@
 	 * **Export Options:**
 	 * Modal provides STL download for each mesh variant in both text and binary formats.
 	 */
+	let is3dPrefetched = false;
+	/** Warms the 3D chunks while the browser is idle once a project is open, so "3D" opens instantly */
+	const load3dChunks = () => {
+		import('$lib/3d/mesh');
+		import('$components/modal/ModalMeshDisplay.svelte');
+	};
+	const prefetch3d = () => {
+		if (is3dPrefetched) return;
+		is3dPrefetched = true;
+		if ('requestIdleCallback' in window) requestIdleCallback(load3dChunks);
+		else setTimeout(load3dChunks, 2000);
+	};
+	$: if (projectLoaded) prefetch3d();
+
 	const openDisplay = () => {
 		if (!projectLoaded) return;
 
-		const meshGenerator = (onProgress: (current: number, total: number) => void) =>
-			generateMeshLazy(
+		// three.js + CSG live in their own chunk, loaded only when the 3D view is opened
+		const meshGenerator = async (onProgress: (current: number, total: number) => void) => {
+			const { generateMeshLazy } = await import('$lib/3d/mesh');
+			return generateMeshLazy(
 				{
 					panelSettings: $projectStore.panelSettings,
 					zoom: $projectStore.zoom,
@@ -317,6 +332,7 @@
 				},
 				onProgress
 			);
+		};
 
 		showModalMesh($projectStore.name, meshGenerator);
 	};

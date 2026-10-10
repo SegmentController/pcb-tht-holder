@@ -1,4 +1,4 @@
-import { BoxGeometry, CylinderGeometry, Vector3 } from 'three';
+import { BoxGeometry, type BufferGeometry, CylinderGeometry, Vector3 } from 'three';
 import { TextGeometry } from 'three/addons/geometries/TextGeometry.js';
 import { Font, FontLoader } from 'three/addons/loaders/FontLoader.js';
 import { mergeVertices } from 'three/addons/utils/BufferGeometryUtils.js';
@@ -52,10 +52,18 @@ const loadFont = (): Promise<Font> => {
 	});
 };
 
-const CYLINDER = (radius: number, height: number) =>
-	new CylinderGeometry(radius, radius, height, MathMinMax(radius * 8, 16, 48));
+// CSG only needs positions: uv/normal would be interpolated for every clipped triangle for nothing
+const positionOnly = <T extends BufferGeometry>(geometry: T): T => {
+	geometry.deleteAttribute('uv');
+	geometry.deleteAttribute('normal');
+	return geometry;
+};
 
-const BOX = (width: number, height: number, depth: number) => new BoxGeometry(width, height, depth);
+const CYLINDER = (radius: number, height: number) =>
+	positionOnly(new CylinderGeometry(radius, radius, height, MathMinMax(radius * 8, 16, 48)));
+
+const BOX = (width: number, height: number, depth: number) =>
+	positionOnly(new BoxGeometry(width, height, depth));
 
 type TextGeometryData = {
 	geometry: TextGeometry;
@@ -71,14 +79,16 @@ const TEXT = (
 ): TextGeometryData | undefined => {
 	let size = 20;
 	while (size) {
-		const gText = new TextGeometry(text, {
-			font,
-			size,
-			depth: TEXT_THICKNESS,
-			curveSegments: 4,
-			steps: 1,
-			bevelEnabled: false
-		});
+		const gText = positionOnly(
+			new TextGeometry(text, {
+				font,
+				size,
+				depth: TEXT_THICKNESS,
+				curveSegments: 4,
+				steps: 1,
+				bevelEnabled: false
+			})
+		);
 		gText.computeBoundingBox();
 		if (gText.boundingBox) {
 			const measuredSize = gText.boundingBox.getSize(new Vector3());
@@ -96,7 +106,7 @@ const TEXT = (
 };
 
 const MESH = (geometry: BoxGeometry | CylinderGeometry | TextGeometry) => {
-	const result = new Brush(geometry.translate(0, 0, 0));
+	const result = new Brush(geometry);
 
 	switchType(geometry)
 		.case(BoxGeometry, (geometry) => (result.position.z = geometry.parameters.depth / 2))
@@ -319,6 +329,8 @@ const generateMesh = async (
 
 	// Apply CSG operations to create internal structure
 	const evaluator = new Evaluator();
+	evaluator.attributes = ['position'];
+	evaluator.useGroups = false;
 	// Subtract main cavity for PCB and SMD components
 	const emptySpace = MESH(
 		BOX(adjustedPanelWidth, adjustedPanelHeight, emptyHeight + ROUND_CORRECTION)
@@ -517,7 +529,7 @@ const generateMesh = async (
 
 	return {
 		main: {
-			vertexArray: new Float32Array(gMain.attributes['position'].array),
+			vertexArray: gMain.attributes['position'].array as Float32Array,
 			dimensions: {
 				width: adjustedPanelWidth + 2 * EDGE_THICKNESS,
 				height: adjustedPanelHeight + 2 * EDGE_THICKNESS,
@@ -525,7 +537,7 @@ const generateMesh = async (
 			}
 		},
 		hollow: {
-			vertexArray: new Float32Array(gHollow.attributes['position'].array),
+			vertexArray: gHollow.attributes['position'].array as Float32Array,
 			dimensions: {
 				width: adjustedPanelWidth + 2 * EDGE_THICKNESS,
 				height: adjustedPanelHeight + 2 * EDGE_THICKNESS,
@@ -533,7 +545,7 @@ const generateMesh = async (
 			}
 		},
 		positive: {
-			vertexArray: new Float32Array(gPositive.attributes['position'].array),
+			vertexArray: gPositive.attributes['position'].array as Float32Array,
 			dimensions: {
 				width: panel.width,
 				height: panel.height,

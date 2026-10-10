@@ -58,7 +58,6 @@ import ModalCircleSettings, {
 } from '$components/modal/ModalCircleSettings.svelte';
 import ModalConfirm from '$components/modal/ModalConfirm.svelte';
 import ModalLibrary from '$components/modal/ModalLibrary.svelte';
-import ModalMeshDisplay from '$components/modal/ModalMeshDisplay.svelte';
 import ModalNameEdit from '$components/modal/ModalNameEdit.svelte';
 import ModalProjectSettings from '$components/modal/ModalProjectSettings.svelte';
 import ModalRectangleSettings, {
@@ -235,8 +234,10 @@ export const showModalLibrary = async (): Promise<object> =>
 export const showModalMesh = async (
 	filename: string,
 	meshGenerator: (onProgress: (current: number, total: number) => void) => Promise<MeshInfoTuple>
-): Promise<object> =>
-	await modalStore
+): Promise<object> => {
+	// Lazy chunk: pulls in three.js / threlte only when the 3D preview is actually opened
+	const { default: ModalMeshDisplay } = await import('$components/modal/ModalMeshDisplay.svelte');
+	return await modalStore
 		.push({
 			component: ModalMeshDisplay,
 			props: {
@@ -245,3 +246,4 @@ export const showModalMesh = async (
 			}
 		})
 		.resolve();
+};

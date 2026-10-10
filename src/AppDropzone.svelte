@@ -50,8 +50,6 @@
 	- JSON parsing errors are caught and reported
 -->
 <script lang="ts">
-	import { createCanvas, loadImage } from 'canvas';
-
 	import Dropzone from '$components/base/input/Dropzone.svelte';
 	import { showModalResizeImage } from '$stores/modalStore';
 	import { projectStore } from '$stores/projectStore';
@@ -110,16 +108,17 @@
 				const projectFileData = JSON.parse(fileDataRaw);
 				const isValid = Project.safeParse(projectFileData);
 				if (isValid.success) {
-					// Restore all project elements
-					$projectStore.circles = isValid.data.circles || [];
-					$projectStore.rectangles = isValid.data.rectangles || [];
-					$projectStore.legs = isValid.data.legs || [];
+					// Restore all project elements and panel settings in a single store write
+					projectStore.update((value) => {
+						value.circles = isValid.data.circles || [];
+						value.rectangles = isValid.data.rectangles || [];
+						value.legs = isValid.data.legs || [];
+						value.panelSettings = isValid.data.panelSettings;
+						return value;
+					});
 
 					// Recursively load embedded image (isManualUpload=false to skip prompts)
 					onFileUpload(isValid.data.image, isValid.data.name, false, true);
-
-					// Restore panel settings
-					$projectStore.panelSettings = isValid.data.panelSettings;
 					errorMessage = '';
 					return;
 				}
@@ -135,25 +134,23 @@
 
 		// Image load success handler
 		pcbImage.addEventListener('load', async () => {
-			$projectStore.name = _name;
 			if (pcbImage) {
 				imageSize = { width: pcbImage.width, height: pcbImage.height };
 
-				// Auto-calculate panel height based on aspect ratio for new uploads
-				if (isManualUpload)
-					$projectStore.panelSettings.height = Math.round(
-						$projectStore.panelSettings.width * (imageSize.height / imageSize.width)
-					);
-				$projectStore.image = _fileData;
+				// Persist once (the multi-MB image is serialized on every store write).
+				// Auto-restore from localStorage already has image and name in the store: no write.
+				if (isManualUpload || forceSaveToStore) {
+					const { width, height } = imageSize;
+					projectStore.update((value) => {
+						// Auto-calculate panel height based on aspect ratio for new uploads
+						if (isManualUpload)
+							value.panelSettings.height = Math.round(value.panelSettings.width * (height / width));
+						value.image = _fileData;
+						value.name = _name;
+						return value;
+					});
+				}
 			}
-
-			// Save to localStorage when needed
-			if (isManualUpload || forceSaveToStore)
-				projectStore.update((value) => {
-					value.image = _fileData;
-					value.name = _name;
-					return value;
-				});
 
 			// Offer to resize large images (only for manual uploads)
 			if (isManualUpload && pcbImage && (pcbImage.width > 1280 || pcbImage.height > 1024)) {
@@ -161,14 +158,17 @@
 				if (confirmed) {
 					const height = width * (pcbImage.height / pcbImage.width);
 					try {
-						// Use canvas API to resize
-						const image = await loadImage(_fileData.toString());
-						const canvas = createCanvas(width, height);
+						// Use canvas API to resize (the loaded element already holds the decoded image)
+						const canvas = document.createElement('canvas');
+						canvas.width = Math.round(width);
+						canvas.height = Math.round(height);
 						const context = canvas.getContext('2d');
-						context.drawImage(image, 0, 0, width, height);
+						if (!context) throw new Error('2D canvas not available');
+						context.drawImage(pcbImage, 0, 0, canvas.width, canvas.height);
 
 						// Emulate load again with resized image
 						isManualUpload = false; // Skip resize prompt on recursive call
+						forceSaveToStore = true; // ...but persist the resized image on that load
 						_fileData = canvas.toDataURL('image/jpeg', 0.9);
 						if (pcbImage) pcbImage.src = _fileData;
 
@@ -189,8 +189,11 @@
 					// User cancelled - reset state
 					pcbImage = undefined;
 					imageSize = undefined;
-					$projectStore.image = '';
-					$projectStore.name = '';
+					projectStore.update((value) => {
+						value.image = '';
+						value.name = '';
+						return value;
+					});
 				}
 			}
 		});
@@ -198,8 +201,11 @@
 		// Image load error handler
 		pcbImage.addEventListener('error', () => {
 			pcbImage = undefined;
-			$projectStore.image = '';
-			$projectStore.name = '';
+			projectStore.update((value) => {
+				value.image = '';
+				value.name = '';
+				return value;
+			});
 			errorMessage = 'Cannot load image';
 		});
 

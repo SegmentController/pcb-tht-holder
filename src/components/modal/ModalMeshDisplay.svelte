@@ -1,16 +1,12 @@
 <script lang="ts">
-	import Icon from '@iconify/svelte';
+	import Icon from '@iconify/svelte/dist/OfflineIcon.svelte';
 	import { Canvas } from '@threlte/core';
 	import dayjs from 'dayjs';
 	import { Button, Modal, Range, Toggle } from 'flowbite-svelte';
-	import { createEventDispatcher, onMount } from 'svelte';
+	import { createEventDispatcher, onMount, untrack } from 'svelte';
 	import { persisted } from 'svelte-persisted-store';
 
-	import {
-		generateBinaryStlFromVertices,
-		generateStlFromVertices,
-		getBinaryStlSizeKbFromVertices
-	} from '$lib/3d/stl';
+	import { generateBinaryStlFromVertices, getBinaryStlSizeKbFromVertices } from '$lib/3d/stl';
 	import { POSITIVE_MESH_COLOR } from '$lib/constants';
 	import { virtualDownload } from '$lib/download';
 	import { MathMax } from '$lib/Math';
@@ -37,12 +33,12 @@
 		progress = { current, total };
 	};
 
-	// Start mesh generation with progress tracking
-	const meshInfoTuple = $derived(meshGenerator(progressCallback));
+	// Start mesh generation once with progress tracking (heavy side effect, must not re-run reactively)
+	const meshInfoTuple = untrack(() => meshGenerator(progressCallback));
 
 	onMount(async () => {
 		await meshInfoTuple
-			.then((m) => (volume = MathMax([...m.main.vertexArray.values()])))
+			.then((m) => (volume = MathMax(m.main.vertexArray)))
 			.catch(() => (volume = 1));
 	});
 
@@ -62,17 +58,11 @@
 		return isHollow ? meshinfotuple.hollow : meshinfotuple.main;
 	};
 
-	const downloadStlFile = async (isBinary: boolean) => {
+	const downloadStlFile = async () => {
 		try {
 			const meshinfotuple = await meshInfoTuple;
 			const activeMesh = getActiveMesh(meshinfotuple);
-			const vertices = activeMesh.vertexArray;
-			virtualDownload(
-				generateFilename(),
-				isBinary
-					? generateBinaryStlFromVertices(vertices)
-					: generateStlFromVertices(vertices).join('\n')
-			);
+			virtualDownload(generateFilename(), generateBinaryStlFromVertices(activeMesh.vertexArray));
 		} catch {
 			/**/
 		}
@@ -148,7 +138,7 @@
 					<Toggle id="dateInFilename" class="mr-4" size="small" bind:checked={$useDateInFilename}
 						>Date</Toggle
 					>
-					<Button color="primary" onclick={() => downloadStlFile(true)}>
+					<Button color="primary" onclick={downloadStlFile}>
 						<Icon class="inline-flex mr-2" icon="mdi:download" width={24} />
 						Download STL</Button
 					>
@@ -163,7 +153,7 @@
 					{@const baseOffset = meshInfoTuple.positive
 						? (activeMesh.dimensions.depth + meshInfoTuple.positive.dimensions.depth) / 2
 						: 0}
-					{#key `${activeMesh.vertexArray}-${showPositive}`}
+					{#key `${isHollow}-${showPositive}`}
 						<Mesh3DScene
 							opacity={showPositive ? 0.75 : 1}
 							vertices={activeMesh.vertexArray}

@@ -28,9 +28,12 @@
  *    - legs[]: Support structures for PCB stability
  *
  * **Persistence Strategy:**
- * - Storage: localStorage under key 'project'
+ * - Storage: localStorage, project data under key 'project', PCB image (multi-MB base64)
+ *   under its own key 'project-image' so it is only rewritten when it actually changes
  * - Tab sync: Changes synchronized across browser tabs
- * - Auto-save: Every state update triggers localStorage write
+ * - Auto-save: State updates are debounced and flushed on tab hide/close; a failed write
+ *   (e.g. storage quota) shows a toast
+ * - Migration: legacy single-key projects (image inside 'project') are read transparently
  * - Auto-restore: Application loads last project on mount
  * - Validation: Zod schema validates data on parse
  *
@@ -82,10 +85,10 @@
  * - Auto-resize prompt appears for images >1280x1024px
  * - Consider binary formats for production use
  */
-import { get, type Updater } from 'svelte/store';
-import { persisted } from 'svelte-persisted-store';
+import { get, type Updater, writable } from 'svelte/store';
 
 import { ELEMENT_SKIP_JSON_PROPERTIES } from '$lib/constants';
+import { toastStore } from '$stores/toastStore';
 import { Project } from '$types/Project';
 
 /**
@@ -142,44 +145,137 @@ const emptyProject: Project = {
  * - Would bloat file size unnecessarily
  * - Defined in ELEMENT_SKIP_JSON_PROPERTIES constant
  */
+const skipKonvaProperties = (key: string, value: unknown) =>
+	ELEMENT_SKIP_JSON_PROPERTIES.includes(key) ? undefined : value;
+
 export const projectJsonSerializer = {
 	parse: (text: string) => {
 		try {
 			return Project.parse(JSON.parse(text));
 		} catch {
-			return emptyProject;
+			return structuredClone(emptyProject);
 		}
 	},
-	stringify: (object: Project) =>
-		JSON.stringify(
-			object,
-			(key, value) => {
-				if (!ELEMENT_SKIP_JSON_PROPERTIES.includes(key)) return value;
-			},
-			2
-		)
+	stringify: (object: Project) => JSON.stringify(object, skipKonvaProperties, 2)
+};
+
+const PROJECT_STORAGE_KEY = 'project';
+const IMAGE_STORAGE_KEY = 'project-image';
+const AUTOSAVE_DEBOUNCE_MS = 250;
+
+/** Reads a stored project; the image comes from its own key unless a legacy blob embeds it */
+const parseStoredProject = (text: string): Project => {
+	try {
+		const raw = JSON.parse(text);
+		if (!raw.image) raw.image = localStorage.getItem(IMAGE_STORAGE_KEY) ?? '';
+		return Project.parse(raw);
+	} catch {
+		return structuredClone(emptyProject);
+	}
+};
+
+/** Compact project JSON without the image (that lives under IMAGE_STORAGE_KEY) */
+const stringifyProjectForStorage = (project: Project) =>
+	JSON.stringify(project, (key, value) =>
+		key === 'image' ? undefined : skipKonvaProperties(key, value)
+	);
+
+const loadInitialProject = (): Project => {
+	try {
+		const json = localStorage.getItem(PROJECT_STORAGE_KEY);
+		if (json) return parseStoredProject(json);
+	} catch {
+		/* storage unavailable */
+	}
+	return structuredClone(emptyProject);
+};
+
+/**
+ * Writable store persisted to localStorage.
+ *
+ * Replaces a naive "serialize everything on every set" approach: the image is stored under a
+ * separate key and only rewritten when it changed, writes are debounced (drag end, arrow-key
+ * repeat and zoom slider no longer serialize megabytes each time) and flushed when the page is
+ * hidden or closed.
+ */
+const createProjectStore = () => {
+	let current = loadInitialProject();
+	const { subscribe, set: setInternal } = writable<Project>(current);
+
+	let savedImage: string | undefined; // unknown until first write: legacy blobs get migrated then
+	let timer: ReturnType<typeof setTimeout> | undefined;
+	let hasWriteFailed = false;
+
+	const flush = () => {
+		if (timer === undefined) return;
+		clearTimeout(timer);
+		timer = undefined;
+
+		try {
+			// Image first: if it cannot be stored the previous (consistent) project stays in place
+			if (current.image !== savedImage) {
+				localStorage.setItem(IMAGE_STORAGE_KEY, current.image);
+				savedImage = current.image;
+			}
+			localStorage.setItem(PROJECT_STORAGE_KEY, stringifyProjectForStorage(current));
+			hasWriteFailed = false;
+		} catch {
+			if (!hasWriteFailed)
+				toastStore.error(
+					'Autosave failed (browser storage is full). Download the project file to keep your work.',
+					10_000
+				);
+			hasWriteFailed = true;
+		}
+	};
+
+	const set = (value: Project) => {
+		current = value;
+		setInternal(value);
+		if (timer !== undefined) clearTimeout(timer);
+		timer = setTimeout(flush, AUTOSAVE_DEBOUNCE_MS);
+	};
+
+	if (typeof window !== 'undefined') {
+		window.addEventListener('pagehide', flush);
+		document.addEventListener('visibilitychange', () => {
+			if (document.visibilityState === 'hidden') flush();
+		});
+
+		// Tab sync: adopt what another tab saved (it writes the image before the project)
+		window.addEventListener('storage', (event) => {
+			if (event.key !== PROJECT_STORAGE_KEY || !event.newValue) return;
+			if (timer !== undefined) {
+				clearTimeout(timer);
+				timer = undefined;
+			}
+			current = parseStoredProject(event.newValue);
+			savedImage = undefined;
+			setInternal(current);
+		});
+	}
+
+	return {
+		subscribe,
+		set,
+		update: (updater: Updater<Project>) => set(updater(current))
+	};
 };
 
 /**
  * Persisted project store - central application state
  *
  * **Configuration:**
- * - Key: 'project' in localStorage
- * - Tab sync: true (changes propagate to other tabs)
- * - Storage: 'local' (localStorage, not sessionStorage)
- * - Serializer: projectJsonSerializer (custom JSON handling)
+ * - Keys: 'project' (data) and 'project-image' (image) in localStorage
+ * - Tab sync: changes propagate to other tabs via the storage event
  *
  * **Automatic Behaviors:**
- * - Writes to localStorage on every update
+ * - Debounced write to localStorage after updates (flushed when the page is hidden)
  * - Syncs changes across browser tabs in real-time
  * - Validates data on load with Zod schema
  * - Falls back to emptyProject if data invalid
  */
-export const projectStore = persisted<Project>('project', emptyProject, {
-	syncTabs: true,
-	storage: 'local',
-	serializer: projectJsonSerializer
-});
+export const projectStore = createProjectStore();
 
 /**
  * Gets current project state snapshot

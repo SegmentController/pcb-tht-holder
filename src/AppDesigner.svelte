@@ -132,6 +132,7 @@
 	import {
 		deselectElementByMouseLeave,
 		getSelectedElementInfo,
+		pruneSelectedElements,
 		selectElementByMouseEnter
 	} from '$lib/fineMovement';
 	import {
@@ -276,6 +277,22 @@
 		if (target.y() > maxY) target.y(maxY);
 	};
 
+	/**
+	 * Commits a finished drag with a single store write.
+	 * Position is read from the Konva node and assigned on the raw element (not through the
+	 * store-bound each item), so persistence happens once instead of once per axis plus once more.
+	 */
+	const commitDragEnd = (
+		event: KonvaDragTransformEvent,
+		element: { x: number; y: number },
+		commit: () => void
+	) => {
+		element.x = event.target.x();
+		element.y = event.target.y();
+		commit();
+		clearAlignmentLines();
+	};
+
 	/** Context menu instance for right-click element operations */
 	let contextMenu: ContextMenu | undefined = $state();
 
@@ -377,6 +394,15 @@
 	const clearAlignmentLines = () => {
 		alignmentLines = [];
 	};
+
+	// Deleted elements get no mouseleave: forget them so arrow keys cannot move a stale element
+	$effect(() => {
+		pruneSelectedElements([
+			...$projectStore.circles,
+			...$projectStore.rectangles,
+			...$projectStore.legs
+		]);
+	});
 
 	/**
 	 * Shows hover info for an element with delayed display
@@ -555,15 +581,20 @@
 			scaleY={getStageScaleY}
 			width={imageSize.width * ($projectStore.zoom / 100)}
 		>
-			<Layer>
+			<!-- Background: static image, not interactive, only redrawn when zoom/size changes -->
+			<Layer listening={false}>
 				<Image
 					image={pcbImage}
+					listening={false}
 					offsetY={imageSize.height}
 					opacity={0.25}
 					scaleX={$projectStore.panelSettings.width / imageSize.width}
 					scaleY={(-1 * $projectStore.panelSettings.height) / imageSize.height}
 				/>
-				{#each $projectStore.circles as circle}
+			</Layer>
+			<!-- Elements: redrawn while dragging, without repainting the image -->
+			<Layer>
+				{#each $projectStore.circles as circle (circle.id)}
 					<Circle
 						id={circle.id}
 						draggable={mode === 'pointer'}
@@ -571,10 +602,7 @@
 						ondblclick={() => {
 							if (mode === 'pointer') modifyCircle(circle);
 						}}
-						ondragend={() => {
-							updateCircleChanges();
-							clearAlignmentLines();
-						}}
+						ondragend={(event) => commitDragEnd(event, circle, updateCircleChanges)}
 						ondragmove={(event) => {
 							limitCircle(event, circle);
 							applySnapping(event, circle);
@@ -588,11 +616,12 @@
 						onmousemove={(event) => handleMouseMove(event, circle)}
 						opacity={0.75}
 						radius={circle.radius}
-						bind:x={circle.x}
-						bind:y={circle.y}
+						staticConfig
+						x={circle.x}
+						y={circle.y}
 					/>
 				{/each}
-				{#each $projectStore.rectangles as rectangle}
+				{#each $projectStore.rectangles as rectangle (rectangle.id)}
 					<Rect
 						id={rectangle.id}
 						draggable={mode === 'pointer'}
@@ -603,10 +632,7 @@
 						ondblclick={() => {
 							if (mode === 'pointer') modifyRectangle(rectangle);
 						}}
-						ondragend={() => {
-							updateRectangleChanges();
-							clearAlignmentLines();
-						}}
+						ondragend={(event) => commitDragEnd(event, rectangle, updateRectangleChanges)}
 						ondragmove={(event) => {
 							limitBox(event, rectangle);
 							applySnapping(event, rectangle);
@@ -620,12 +646,13 @@
 						onmousemove={(event) => handleMouseMove(event, rectangle)}
 						opacity={0.75}
 						rotation={rectangle.rotation}
+						staticConfig
 						width={rectangle.width}
-						bind:x={rectangle.x}
-						bind:y={rectangle.y}
+						x={rectangle.x}
+						y={rectangle.y}
 					/>
 				{/each}
-				{#each $projectStore.legs as leg}
+				{#each $projectStore.legs as leg (leg.id)}
 					<Rect
 						id={leg.id}
 						draggable={mode === 'pointer'}
@@ -634,10 +661,7 @@
 						ondblclick={() => {
 							if (mode === 'pointer') deleteLegWithConfirm(leg);
 						}}
-						ondragend={() => {
-							updateLegChanges();
-							clearAlignmentLines();
-						}}
+						ondragend={(event) => commitDragEnd(event, leg, updateLegChanges)}
 						ondragmove={(event) => {
 							limitBox(event, leg);
 							applySnapping(event, leg);
@@ -650,11 +674,15 @@
 						onmouseleave={(event) => handleMouseLeave(event, leg)}
 						onmousemove={(event) => handleMouseMove(event, leg)}
 						opacity={0.75}
+						staticConfig
 						width={leg.width}
-						bind:x={leg.x}
-						bind:y={leg.y}
+						x={leg.x}
+						y={leg.y}
 					/>
 				{/each}
+			</Layer>
+			<!-- Overlays: alignment guides, grid and measurement, never hit-tested -->
+			<Layer listening={false}>
 				{#if mode === 'pointer'}
 					{#each alignmentLines as line}
 						<Line

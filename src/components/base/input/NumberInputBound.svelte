@@ -11,15 +11,17 @@
 
 	let { id, value = $bindable(), min, max, step }: Properties = $props();
 
-	const isError = $derived((min && value < min) || (max && value > max) || false);
+	const isError = $derived(
+		(min !== undefined && value < min) || (max !== undefined && value > max)
+	);
 </script>
 
 <Input
 	{id}
 	color={isError ? 'red' : 'default'}
 	onblur={() => {
-		if (min && value < min) value = min;
-		if (max && value > max) value = max;
+		if (min !== undefined && value < min) value = min;
+		if (max !== undefined && value > max) value = max;
 	}}
 	{step}
 	type="number"

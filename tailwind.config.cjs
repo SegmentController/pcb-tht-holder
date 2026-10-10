@@ -1,8 +1,7 @@
 const config = {
-	content: [
-		'./src/**/*.{html,js,svelte,ts}',
-		'./node_modules/flowbite-svelte/**/*.{html,js,svelte,ts}'
-	],
+	// Sources are declared with @source in src/app.postcss (Tailwind 4); keep this empty so the
+	// whole flowbite-svelte package is not scanned again.
+	content: [],
 
 	plugins: [require('flowbite/plugin')],
 

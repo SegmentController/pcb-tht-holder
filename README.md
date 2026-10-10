@@ -47,6 +47,8 @@ In its current state, it facilitates the installation of circular and oblong com
   - Closing the 3D view cancels a running generation
   - Progress bar shows percentage and visual indicator
 - **Measurement Tool**: Press `M` to measure distances in 1/10th millimeter precision
+- **Canvas Zoom**: 10-300% with the slider, `+` / `-` / `*` keys, or `Ctrl`/`Cmd` + mouse wheel (trackpad pinch)
+  - The point under the cursor stays in place while zooming; scroll to pan a zoomed-in canvas
 - **Comprehensive Undo System**: Press `Ctrl+Z` to undo operations (max 50 actions)
   - Component deletions (circles, rectangles, legs)
   - Property modifications (radius, depth, width, height, rotation)
@@ -88,7 +90,13 @@ In its current state, it facilitates the installation of circular and oblong com
   - `R` - Rotate +5°
   - `Shift+R` - Reset rotation to 0°
   - `F` - Flip dimensions (swap width/height)
-- **Context Menu**: Right-click on any element
+- **Context Menu**: Right-click on any element; use `Arrow keys` / `Home` / `End` to navigate it and `ESC` to close it
+
+### View
+
+- `+` / `-` - Zoom in / out by 10%
+- `*` - Reset zoom to 100%
+- `Ctrl+Wheel` / `Cmd+Wheel` / trackpad pinch - Zoom at the cursor
 
 ### Other
 

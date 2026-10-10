@@ -24,6 +24,12 @@ export const ALIGNMENT_SNAP_DISTANCE = 0.2; // mm distance for magnetic snapping
 export const ALIGNMENT_LINE_COLOR = '#0088ff'; // bright blue for visibility
 export const ALIGNMENT_LINE_WIDTH = 0.1; // mm stroke width
 
+// Canvas zoom (percent of actual size), shared by the slider, keyboard and wheel zoom
+export const ZOOM_MIN = 10;
+export const ZOOM_MAX = 300;
+export const ZOOM_STEP = 10;
+export const ZOOM_DEFAULT = 100;
+
 // Properties to skip when serializing elements to JSON
 // These are Konva-specific properties that shouldn't be persisted
 export const ELEMENT_SKIP_JSON_PROPERTIES = ['fill', 'draggable', 'opacity'];

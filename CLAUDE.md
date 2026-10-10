@@ -37,6 +37,8 @@ The `service-worker` Vite plugin (`vite.config.ts`) emits `service-worker.js` fr
 `src/service-worker.template.js`, filling in `__VERSION__` (package version) and `__PRECACHE__`
 (app shell + hashed entry assets). The 3D stack (three, CSG, threlte) is a lazy chunk loaded when the
 3D view opens; the `drop-unused-threlte-assets` plugin removes unreferenced draco/basis files.
+The `drop-dark-css` plugin strips every `.dark …` rule (~50 KB, flowbite-svelte emits them) from the
+emitted CSS with `postcss`; the app has no dark mode. Remove the plugin before adding one.
 
 Tailwind sources are explicit `@source` directives in `src/app.css` — add a flowbite-svelte
 directory there when using a new flowbite component, otherwise its classes are missing.
@@ -66,6 +68,7 @@ src/
 │   ├── constants.ts  # Centralized constants
 │   ├── alignment.ts  # Alignment guide + magnetic snapping
 │   ├── geometry.ts   # Pure 2D helpers (rotated rectangle extents)
+│   ├── zoom.ts       # Wheel/pinch zoom: pure step helpers (unit-tested) + `wheelZoom` action
 │   ├── format.ts     # File name timestamp
 │   ├── 3d/           # STL generation (stl.ts), CSG meshes (mesh.ts), worker + client, placement.ts (dependency-free constants), leg overlap (legOverlap.ts), watertight repair of CSG output (meshRepair.ts)
 │   ├── elements/     # Circle, rectangle, leg operations; collection.ts (shared store commit/remove/undo)
@@ -184,6 +187,7 @@ POSITIVE_MESH_COLOR = '#ff8811'
 FINE_MOVEMENT_DELTA = 0.1 // mm, SHIFT multiplier = 5
 ALIGNMENT_SNAP_THRESHOLD = 0.1; ALIGNMENT_SNAP_DISTANCE = 0.2
 ALIGNMENT_LINE_COLOR = '#0088ff'; ALIGNMENT_LINE_WIDTH = 0.1
+ZOOM_MIN = 10; ZOOM_MAX = 300; ZOOM_STEP = 10; ZOOM_DEFAULT = 100 // percent, shared by slider, +/-/* and wheel
 ELEMENT_SKIP_JSON_PROPERTIES = ['fill', 'draggable', 'opacity']
 ```
 
@@ -233,6 +237,7 @@ See `Mesh3DScene.svelte` for the canonical example.
 **Mode**: `P` (Pointer), `M` (Measure)
 **Create**: `Shift+C` (circle), `Shift+R` (rectangle), `Shift+L` (leg)
 **Edit**: Arrow keys (0.1mm), Shift+Arrow (0.5mm), `R` (rotate +5°), `Shift+R` (reset rotation), `F` (flip dimensions)
+**View**: `+` / `-` (zoom ±10%), `*` (reset zoom), `Ctrl/Cmd+wheel` or trackpad pinch (zoom at cursor, `wheelZoom` action in `zoom.ts`)
 **Other**: `Ctrl+Z` (undo), `Shift+P` (settings), `D` (display 3D), `ESC` (close modals)
 
 **Modal Awareness**: All shortcuts disabled when modals open (except ESC). Prevents text input interference.
@@ -244,7 +249,12 @@ Implementation: `shortcut` action in `src/lib/shortcut.ts` checks `modalStore` s
 ## Element Operations
 
 - **Fine Movement** (`fineMovement.ts`): Tracks via `Set<GenericElement>`, provides move/rotate/flip functions
-- **Context Menus**: Per-element generators return `ContextMenuItem[]`
+- **Context Menus**: Per-element generators return `ContextMenuItem[]`; `ContextMenu.svelte` moves focus into the
+  menu on open, handles Arrow/Home/End (stopping propagation so fine movement does not fire) and restores focus on ESC
+- **Canvas wrapper** (`AppDesigner.svelte`): `justify-center-safe overflow-x-auto` keeps a zoomed-in canvas
+  scrollable from its left edge; `ContextMenu` uses page coordinates, so keep the wrapper non-positioned
+- **Accessibility**: `<main>` landmark in `App.svelte`, labelled canvas region, `aria-haspopup`/`aria-expanded` on
+  the File/Edit triggers; the Edit menu reads `$projectStore`/`$libraryStore` (never `get()`) so it stays current
 - **Hover Info** (`HoverInfo.svelte`): Shows element info + shortcuts, positioned right to avoid overlap
 
 ## Testing Workflow

@@ -1,5 +1,23 @@
 # Change log
 
+## [1.14.1] - 2026-10-10
+
+### Added
+
+- Ctrl/Cmd + mouse wheel and trackpad pinch zoom the canvas in 10% steps and keep the point under the cursor in place
+- Context menu keyboard support: focus moves into the menu, Arrow keys/Home/End navigate, Escape returns focus
+- `<main>` landmark, labelled designer canvas region, `aria-haspopup`/`aria-expanded` on the File and Edit menus
+
+### Changed
+
+- Stylesheet 182 KB → 131 KB: the unused `.dark` rules of flowbite-svelte are stripped at build time (`dropDarkCss` in `vite.config.ts`; `postcss` is now a direct dev dependency)
+- Zoom limits and step are shared constants for the slider, `+`/`-` shortcuts and wheel zoom
+- Edit menu reads the leg count and library reactively from the stores (library sorted once instead of per render)
+
+### Fixed
+
+- A zoomed-in canvas wider than the window can be scrolled to its left edge (it used to be clipped by centering)
+
 ## [1.14.0] - 2026-10-10
 
 ### Added

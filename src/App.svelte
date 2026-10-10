@@ -79,13 +79,13 @@
 </script>
 
 <AppNavigation projectLoaded={!!imageSize} bind:mode={designerMode} on:reset={reset} />
-<div class="flex flex-col justify-center">
+<main class="flex flex-col justify-center">
 	{#if !!imageSize}
 		<AppDesigner bind:pcbImage bind:imageSize bind:mode={designerMode} />
 	{:else}
 		<AppDropzone bind:this={dropzone} bind:pcbImage bind:imageSize />
 	{/if}
-</div>
+</main>
 
 <ModalPortal store={modalStore} />
 <ToastContainer />

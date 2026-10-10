@@ -6,8 +6,8 @@
 // A new worker waits until old tabs are closed (no skipWaiting), so a page never loses its chunks.
 
 const APP_PREFIX = 'pwa_pcb-tht-holder_';
-const CACHE_NAME = APP_PREFIX + 'v1.14.0';
-const PRECACHE = JSON.parse('["./","index.html","manifest.webmanifest","favicon.png","pcb-board-32.png","pcb-board-128.png","pcb-board-512.png","assets/index-DFYyblH6.js","assets/index-CxOCLFnA.css"]');
+const CACHE_NAME = APP_PREFIX + 'v1.14.1';
+const PRECACHE = JSON.parse('["./","index.html","manifest.webmanifest","favicon.png","pcb-board-32.png","pcb-board-128.png","pcb-board-512.png","assets/index-BS2jvQaI.js","assets/index-LHrACfaD.css"]');
 
 const scopeUrl = (path) => new URL(path, self.registration.scope).href;
 

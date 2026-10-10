@@ -139,7 +139,7 @@
 		rotateSelectedRectangleDegrees
 	} from '$lib/fineMovement';
 	import { shortcut } from '$lib/shortcut';
-	import { getLibraryStoreValue } from '$stores/libraryStore';
+	import { libraryStore } from '$stores/libraryStore';
 	import {
 		showModalConfirm,
 		showModalLibrary,
@@ -147,7 +147,6 @@
 		showModalProjectSettings
 	} from '$stores/modalStore';
 	import {
-		getProjectStoreLegCount,
 		getProjectStoreValue,
 		projectJsonSerializer,
 		projectStore,
@@ -165,6 +164,13 @@
 
 	export let projectLoaded: boolean;
 	export let mode: DesignerMode;
+
+	/** Library entries in the Edit menu, alphabetically; follows the store so the menu is never stale */
+	$: sortedLibrary = $libraryStore.toSorted((a, b) => a.name.localeCompare(b.name));
+
+	/** Open state of the menus, exposed to assistive technology as aria-expanded on their triggers */
+	let fileMenuOpen = false;
+	let editMenuOpen = false;
 
 	const dispatch = createEventDispatcher<{
 		reset: void;
@@ -507,20 +513,20 @@
 				<Toggle id="alignment" size="small" bind:checked={$alignmentEnabled}>Align</Toggle>
 			</div>
 			<NavUl class="flex">
-				<NavLi class="cursor-pointer">
+				<NavLi class="cursor-pointer" aria-expanded={fileMenuOpen} aria-haspopup="menu">
 					File
 					<Icon class="inline-flex" icon="mdi:chevron-down" />
 				</NavLi>
-				<Dropdown class="w-60 z-20 -mt-2" simple trigger="hover">
+				<Dropdown class="w-60 z-20 -mt-2" simple trigger="hover" bind:isOpen={fileMenuOpen}>
 					<DropdownItem onclick={reset}>New</DropdownItem>
 					<DropdownItem onclick={downloadProjectFile}>Save project</DropdownItem>
 				</Dropdown>
 
-				<NavLi class="cursor-pointer">
+				<NavLi class="cursor-pointer" aria-expanded={editMenuOpen} aria-haspopup="menu">
 					Edit
 					<Icon class="inline-flex" icon="mdi:chevron-down" />
 				</NavLi>
-				<Dropdown class="w-72 z-20 -mt-2" simple trigger="hover">
+				<Dropdown class="w-72 z-20 -mt-2" simple trigger="hover" bind:isOpen={editMenuOpen}>
 					{#if $undoStoreLastItem}
 						<DropdownItem onclick={executeLastUndo}
 							>Undo: {$undoStoreLastItem}
@@ -541,16 +547,16 @@
 						<Kbd class="float-right px-2 py-0">shift + L</Kbd>
 					</DropdownItem>
 					<DropdownItem onclick={addCornerLegs}>Auto legs at corner</DropdownItem>
-					{#if getProjectStoreLegCount()}
+					{#if $projectStore.legs.length}
 						<DropdownItem onclick={deleteAllLegsWithConfirm}>Delete all legs</DropdownItem>
 					{/if}
-					{#if getLibraryStoreValue().length}
+					{#if sortedLibrary.length}
 						<DropdownItem class="flex items-center justify-between">
 							Add from library
 							<Icon class="inline-flex" icon="mdi:chevron-right" />
 						</DropdownItem>
 						<Dropdown class="min-w-44 z-20" placement="right-start" simple trigger="hover">
-							{#each getLibraryStoreValue().toSorted( (a, b) => a.name.localeCompare(b.name) ) as libraryItem}
+							{#each sortedLibrary as libraryItem}
 								<DropdownItem class="text-xs" onclick={() => addItemFromLibrary(libraryItem)}>
 									{libraryItem.name} ({libraryItem.type})
 								</DropdownItem>

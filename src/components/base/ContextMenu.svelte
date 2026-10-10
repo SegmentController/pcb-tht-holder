@@ -7,21 +7,53 @@
 </script>
 
 <script lang="ts">
+	import { tick } from 'svelte';
+
 	const MARGIN_DELTA = 16;
 	let items: ContextMenuItem[];
 
-	export const toggleAt = (x: number, y: number) => {
+	export const toggleAt = async (x: number, y: number) => {
 		if (items.length === 0) return;
 
 		posX = x - MARGIN_DELTA;
 		posY = y - MARGIN_DELTA;
 		visible = !visible;
+		if (!visible) return;
+
+		// Keyboard users continue inside the menu; Escape hands focus back to where it was
+		returnFocusTo =
+			document.activeElement instanceof HTMLElement ? document.activeElement : undefined;
+		await tick();
+		getMenuItems()[0]?.focus();
 	};
 	export const setItems = (_items: ContextMenuItem[]) => (items = _items);
 
 	let posX: number = 0;
 	let posY: number = 0;
 	let visible = false;
+	let menu: HTMLUListElement | undefined;
+	let returnFocusTo: HTMLElement | undefined;
+
+	const getMenuItems = () => [...(menu?.querySelectorAll<HTMLElement>('[role="menuitem"]') ?? [])];
+
+	const nextIndex: Record<string, (current: number, count: number) => number> = {
+		ArrowDown: (current, count) => (current + 1) % count,
+		ArrowUp: (current, count) => (current <= 0 ? count - 1 : current - 1),
+		Home: () => 0,
+		End: (_current, count) => count - 1
+	};
+
+	const onMenuKeydown = (event: KeyboardEvent) => {
+		const next = nextIndex[event.key];
+		const entries = getMenuItems();
+		if (!next || entries.length === 0) return;
+
+		event.preventDefault();
+		// Keep arrow keys from also nudging the selected element (fine movement shortcut)
+		event.stopPropagation();
+		const current = entries.indexOf(document.activeElement as HTMLElement);
+		entries[next(current, entries.length)]?.focus();
+	};
 </script>
 
 <svelte:window
@@ -32,13 +64,21 @@
 		if (event.target instanceof HTMLCanvasElement) event.preventDefault();
 	}}
 	onkeydown={(event) => {
-		if (event.key === 'Escape') visible = false;
+		if (event.key !== 'Escape' || !visible) return;
+		visible = false;
+		returnFocusTo?.focus();
 	}}
 />
 
 {#if visible}
 	<nav style="position: absolute; top:{posY}px; left:{posX}px" class="navbar">
-		<ul role="menu">
+		<ul
+			bind:this={menu}
+			aria-label="Element actions"
+			onkeydown={onMenuKeydown}
+			role="menu"
+			tabindex="-1"
+		>
 			{#each items as item}
 				{#if item.name === ''}
 					<hr />

@@ -112,7 +112,10 @@
 		ALIGNMENT_LINE_COLOR,
 		ALIGNMENT_LINE_WIDTH,
 		FINE_MOVEMENT_DELTA,
-		FINE_MOVEMENT_SHIFT_MULTIPLIER
+		FINE_MOVEMENT_SHIFT_MULTIPLIER,
+		ZOOM_MAX,
+		ZOOM_MIN,
+		ZOOM_STEP
 	} from '$lib/constants';
 	import {
 		getContextMenuItemForCircle,
@@ -144,6 +147,7 @@
 		stageMeasureModeMouseUp,
 		stageMouseMove
 	} from '$lib/measurement';
+	import { wheelZoom } from '$lib/zoom';
 	import { projectStore } from '$stores/projectStore';
 	import type { CircleData } from '$types/CircleData';
 	import type { ImageSize } from '$types/ImageSize';
@@ -550,9 +554,24 @@
 
 {#if imageSize}
 	<div class="flex justify-center mb-2">
-		<ZoomRange class="w-2/5" max={300} min={10} step={10} bind:value={$projectStore.zoom} />
+		<ZoomRange
+			class="w-2/5"
+			max={ZOOM_MAX}
+			min={ZOOM_MIN}
+			step={ZOOM_STEP}
+			bind:value={$projectStore.zoom}
+		/>
 	</div>
-	<div class="flex justify-center">
+	<!-- justify-center-safe: centered while it fits, scrollable from the left edge once wider than the viewport -->
+	<div
+		class="flex justify-center-safe overflow-x-auto"
+		aria-label="PCB designer canvas"
+		role="region"
+		use:wheelZoom={{
+			getZoom: () => $projectStore.zoom,
+			setZoom: (zoom) => ($projectStore.zoom = zoom)
+		}}
+	>
 		<Stage
 			height={imageSize.height * ($projectStore.zoom / 100)}
 			onclick={stageClick}

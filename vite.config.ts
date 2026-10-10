@@ -3,6 +3,7 @@ import path from 'node:path';
 
 import { svelte } from '@sveltejs/vite-plugin-svelte';
 import tailwindcss from '@tailwindcss/vite';
+import postcss from 'postcss';
 import { type Plugin } from 'vite';
 import { defineConfig } from 'vitest/config';
 
@@ -14,6 +15,32 @@ const dropUnusedThrelteAssets = (): Plugin => ({
 	generateBundle(_, bundle) {
 		for (const fileName of Object.keys(bundle))
 			if (/(draco_|basis_transcoder)/.test(fileName)) delete bundle[fileName];
+	}
+});
+
+/**
+ * The app has no dark mode (nothing ever sets a `.dark` class), but flowbite-svelte's themes and form
+ * base styles emit ~45 KB of `.dark …` rules. They cannot be switched off in Tailwind, so strip them from
+ * the emitted CSS: selectors mentioning `.dark` are dropped, rules and at-rules left empty are removed.
+ */
+const dropDarkCss = (): Plugin => ({
+	name: 'drop-dark-css',
+	apply: 'build',
+	generateBundle(_, bundle) {
+		for (const file of Object.values(bundle)) {
+			if (file.type !== 'asset' || !file.fileName.endsWith('.css')) continue;
+
+			const root = postcss.parse(String(file.source));
+			root.walkRules((rule) => {
+				const selectors = rule.selectors.filter((selector) => !/\.dark\b/.test(selector));
+				if (selectors.length === 0) rule.remove();
+				else if (selectors.length < rule.selectors.length) rule.selectors = selectors;
+			});
+			root.walkAtRules((atRule) => {
+				if (atRule.nodes?.length === 0) atRule.remove();
+			});
+			file.source = root.toString();
+		}
 	}
 });
 
@@ -55,7 +82,7 @@ const serviceWorker = (): Plugin => ({
 });
 
 export default defineConfig({
-	plugins: [svelte(), tailwindcss(), dropUnusedThrelteAssets(), serviceWorker()],
+	plugins: [svelte(), tailwindcss(), dropUnusedThrelteAssets(), dropDarkCss(), serviceWorker()],
 	worker: { format: 'es' },
 	build: {
 		target: 'esnext',

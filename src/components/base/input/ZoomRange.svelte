@@ -1,15 +1,14 @@
 <script lang="ts">
 	import { Label, Range } from 'flowbite-svelte';
 
+	import { ZOOM_DEFAULT, ZOOM_STEP } from '$lib/constants';
 	import { MathMinMax } from '$lib/Math';
 	import { shortcut } from '$lib/shortcut';
-
-	const DEFAULT_VALUE = 100;
 
 	let aClass = '';
 	export { aClass as class };
 
-	export let value: number = DEFAULT_VALUE;
+	export let value: number = ZOOM_DEFAULT;
 	export let min: number = 0;
 	export let max: number = 100;
 	export let step: number = 1;
@@ -25,21 +24,21 @@
 			{
 				key: '+',
 				callback: () => {
-					updateValue(value + 10);
+					updateValue(value + ZOOM_STEP);
 				},
 				preventDefault: true
 			},
 			{
 				key: '-',
 				callback: () => {
-					updateValue(value - 10);
+					updateValue(value - ZOOM_STEP);
 				},
 				preventDefault: true
 			},
 			{
 				key: '*',
 				callback: () => {
-					updateValue(DEFAULT_VALUE);
+					updateValue(ZOOM_DEFAULT);
 				},
 				preventDefault: true
 			}
@@ -51,7 +50,7 @@
 	<Label
 		class="text-sm whitespace-nowrap cursor-pointer"
 		onclick={() => {
-			value = 100;
+			value = ZOOM_DEFAULT;
 		}}
 		title="Reset zoom">Zoom: <span class="font-semibold">{value}</span>%</Label
 	>

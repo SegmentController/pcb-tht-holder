@@ -38,7 +38,7 @@ The `service-worker` Vite plugin (`vite.config.ts`) emits `service-worker.js` fr
 (app shell + hashed entry assets). The 3D stack (three, CSG, threlte) is a lazy chunk loaded when the
 3D view opens; the `drop-unused-threlte-assets` plugin removes unreferenced draco/basis files.
 
-Tailwind sources are explicit `@source` directives in `src/app.postcss` — add a flowbite-svelte
+Tailwind sources are explicit `@source` directives in `src/app.css` — add a flowbite-svelte
 directory there when using a new flowbite component, otherwise its classes are missing.
 
 Outputs to `docs/` directory for GitHub Pages.
@@ -65,8 +65,10 @@ src/
 ├── lib/
 │   ├── constants.ts  # Centralized constants
 │   ├── alignment.ts  # Alignment guide + magnetic snapping
-│   ├── 3d/           # STL generation (stl.ts), mesh operations (mesh.ts), leg overlap (legOverlap.ts)
-│   ├── elements/     # Circle, rectangle, leg operations
+│   ├── geometry.ts   # Pure 2D helpers (rotated rectangle extents)
+│   ├── format.ts     # File name timestamp
+│   ├── 3d/           # STL generation (stl.ts), CSG meshes (mesh.ts), worker + client, placement.ts (dependency-free constants), leg overlap (legOverlap.ts)
+│   ├── elements/     # Circle, rectangle, leg operations; collection.ts (shared store commit/remove/undo)
 │   └── svelteModal/  # Modal utilities
 ├── components/
 │   ├── base/         # Reusable components (ContextMenu, HoverInfo, ToastContainer, PartnerBadge)
@@ -89,20 +91,30 @@ Tests are co-located as `*.test.ts` next to the module they cover.
 2. **AppDesigner.svelte**: Konva.js Stage for 2D canvas, pointer/measure modes, context menus, keyboard shortcuts
    - **Alignment guides**: Visual blue lines + magnetic snapping (0.2mm range), toggle via Align switch
 3. **3D Mesh Generation** (`src/lib/3d/mesh.ts`):
-   - Async with progress tracking, yields after each CSG operation
-   - Generates 3 meshes: Main (full-depth), Hollow (material-saving), Positive (PCB visualization)
+   - Runs in a Web Worker (`mesh.worker.ts`, via `meshClient.ts`) with progress tracking; falls back to the UI thread
+   - Variants are generated on demand and memoized per project (`createMeshSession`): Main (full-depth),
+     Hollow (material-saving, sliced from the shared base solid), Positive (PCB visualization, display only)
+   - Disjoint cutters/legs/pillars are merged into one CSG operand per batch (`partitionDisjoint`);
+     overlapping ones must stay in separate batches (parity-based inside test)
    - **Leg collision detection**: Auto-filters overlapping legs before mesh generation (`legOverlap.ts`, pure and unit-tested; `hiddenLegsCount` is reported to the UI)
    - **Print tolerance**: Configurable 0-2mm (enlarges holes, shrinks panel)
    - Optional text label engraving (Three.js TextGeometry, Roboto font)
-4. **STL Export** (`src/lib/3d/stl.ts`): Converts to text/binary STL format
+4. **STL Export** (`src/lib/3d/stl.ts`): Binary STL only (the ASCII writer was removed in 1.14.0)
 
 ### Async Mesh Generation
 
-Flow: `AppNavigation.openDisplay()` → `showModalMesh(meshGenerator)` → `ModalMeshDisplay` → `generateMeshLazy()`
+Flow: `AppNavigation.openDisplay()` → `showModalMesh(name, project)` → `ModalMeshDisplay` →
+`createMeshClient(project).generate(kind, onProgress)` → `mesh.worker.ts` → `createMeshSession().generate(kind)`.
 
-Progress tracking via `onProgress(current, total)` callback. `YIELD_DELAY_MS` in mesh.ts (0 for prod, 10+ for testing).
-
-Operation count (`totalOperations` in `generateMesh`): 2 base + 2 empty space + 8 cutouts + (rectangles + circles) × 2 + (visible legs × 2) + (rectangles + circles) positive + 1 if label. Keep it in sync when adding CSG steps or the progress bar misreports.
+- The worker keeps the latest session (keyed by project content without zoom), so reopening the 3D view or
+  toggling Hollow/PCB reuses solids; closing the modal sends a cancel that stops at the next operation.
+- Progress via `onProgress(current, total)`. `YIELD_DELAY_MS` in mesh.ts (0 for prod, 10+ for testing).
+- Operation count per variant is derived from the batches (`solidOperations`, `mainOperations`,
+  `hollowOperations`, `positiveOperations` in `createMeshSession`): keep them in sync when adding CSG steps
+  or the progress bar misreports.
+- Regression tests (`mesh.test.ts`) compare volume and bounds, not triangle counts. Positive pillars sink
+  1 mm into the base plate (coplanar contact faces blow up the CSG triangulation).
+- three-bvh-csg 0.0.18 logs a deprecated `maxLeafSize` warning; it is filtered in the worker.
 
 ### Coordinate Systems (CRITICAL)
 

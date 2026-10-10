@@ -23,15 +23,23 @@
 <EscapeClose on:escape={() => resolve(false)}>
 	<Modal dismissable={false} open={true} size="sm">
 		<AutoFocus />
-		<div class="flex flex-col space-y-6">
-			<div>
-				<Label class="mb-2" for="name">Name</Label>
-				<Input id="name" bind:value={name} />
+		<!-- Enter confirms (inputs commit/clamp their value on change before submit) -->
+		<form
+			onsubmit={(event) => {
+				event.preventDefault();
+				resolve(true);
+			}}
+		>
+			<div class="flex flex-col space-y-6">
+				<div>
+					<Label class="mb-2" for="name">Name</Label>
+					<Input id="name" bind:value={name} />
+				</div>
 			</div>
-		</div>
-		<div class="text-center mt-4 space-y-6">
-			<Button class="me-2" color="green" onclick={() => resolve(true)}>OK</Button>
-			<Button class="me-2" color="alternative" onclick={() => resolve(false)}>Cancel</Button>
-		</div>
+			<div class="text-center mt-4 space-y-6">
+				<Button class="me-2" color="green" type="submit">OK</Button>
+				<Button class="me-2" color="alternative" onclick={() => resolve(false)}>Cancel</Button>
+			</div>
+		</form>
 	</Modal>
 </EscapeClose>

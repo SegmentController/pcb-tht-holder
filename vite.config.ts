@@ -56,6 +56,7 @@ const serviceWorker = (): Plugin => ({
 
 export default defineConfig({
 	plugins: [svelte(), tailwindcss(), dropUnusedThrelteAssets(), serviceWorker()],
+	worker: { format: 'es' },
 	build: {
 		target: 'esnext',
 		sourcemap: false,
@@ -64,7 +65,7 @@ export default defineConfig({
 		copyPublicDir: true,
 		emptyOutDir: true,
 		outDir: 'docs',
-		chunkSizeWarningLimit: 700,
+		chunkSizeWarningLimit: 850,
 		assetsInlineLimit: 0,
 		rolldownOptions: {
 			treeshake: {
@@ -87,7 +88,10 @@ export default defineConfig({
 	},
 	test: {
 		environment: 'node',
-		include: ['src/**/*.test.ts']
+		include: ['src/**/*.test.ts'],
+		// three-bvh-csg 0.0.18 still passes an option three-mesh-bvh deprecated and warns on every
+		// boolean operation; nothing the app can fix (the worker filters it the same way)
+		onConsoleLog: (log) => (log.includes('"maxLeafSize"') ? false : undefined)
 	},
 	define: {
 		__PKG_VERSION__: `"${package_.version}"`,

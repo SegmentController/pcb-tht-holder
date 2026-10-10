@@ -7,6 +7,7 @@
 	import { virtualDownload } from '$lib/download';
 	import { libraryStore, loadDefaultsToLibrary } from '$stores/libraryStore';
 	import { showModalConfirm, showModalNameEdit } from '$stores/modalStore';
+	import { toastStore } from '$stores/toastStore';
 	import { Library, LibraryItem } from '$types/Library';
 
 	import EscapeClose from './util/EscapeClose.svelte';
@@ -21,8 +22,15 @@
 
 	const importLibrary = () =>
 		fileInput.selectTextFile((filename, data) => {
-			const parseResult = Library.safeParse(JSON.parse(data));
-			if (parseResult.success) $libraryStore = parseResult.data;
+			try {
+				const parseResult = Library.safeParse(JSON.parse(data));
+				if (parseResult.success) {
+					$libraryStore = parseResult.data;
+					toastStore.push('success', `Imported ${parseResult.data.length} library items`);
+				} else toastStore.error(`${filename} is not a valid library file`);
+			} catch {
+				toastStore.error(`${filename} is not valid JSON`);
+			}
 		});
 
 	const editName = async (libraryItem: LibraryItem) => {
@@ -59,7 +67,11 @@
 					<h5 class="mb-2 text-md font-bold tracking-tight text-gray-900 dark:text-white">
 						{libraryItem.name}
 					</h5>
-					<A class="absolute right-4 text-gray" onclick={() => editName(libraryItem)}>
+					<A
+						class="absolute right-4 text-gray"
+						aria-label="Rename {libraryItem.name}"
+						onclick={() => editName(libraryItem)}
+					>
 						<Icon class="inline-flex" icon="mdi:edit" />
 					</A>
 					<p class="font-semibold">{libraryItem.type}</p>
@@ -73,6 +85,7 @@
 					{/if}
 					<A
 						class="absolute bottom-4 right-4"
+						aria-label="Delete {libraryItem.name}"
 						onclick={() => {
 							$libraryStore = $libraryStore.filter((li) => li !== libraryItem);
 						}}

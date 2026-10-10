@@ -11,6 +11,12 @@
 
 	let { id, value = $bindable(), min, max, step }: Properties = $props();
 
+	// Clamp on change as well as blur: Enter submits a form without blurring the input
+	const clamp = () => {
+		if (min !== undefined && value < min) value = min;
+		if (max !== undefined && value > max) value = max;
+	};
+
 	const isError = $derived(
 		(min !== undefined && value < min) || (max !== undefined && value > max)
 	);
@@ -19,10 +25,8 @@
 <Input
 	{id}
 	color={isError ? 'red' : 'default'}
-	onblur={() => {
-		if (min !== undefined && value < min) value = min;
-		if (max !== undefined && value > max) value = max;
-	}}
+	onblur={clamp}
+	onchange={clamp}
 	{step}
 	type="number"
 	bind:value

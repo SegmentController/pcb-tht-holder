@@ -1,4 +1,4 @@
-import { z } from 'zod';
+import * as z from 'zod/mini';
 
 import { CIRCLE_COLOR, ELEMENT_DRAGGABLE, ELEMENT_OPACITY } from '$lib/constants';
 
@@ -49,12 +49,12 @@ export const CircleData = z.object({
 	radius: z.number(),
 
 	/** Konva.js fill color (excluded from JSON serialization) */
-	fill: z.literal(CIRCLE_COLOR).default(CIRCLE_COLOR),
+	fill: z._default(z.literal(CIRCLE_COLOR), CIRCLE_COLOR),
 
 	/** Konva.js draggable flag (excluded from JSON serialization) */
-	draggable: z.literal(ELEMENT_DRAGGABLE).default(ELEMENT_DRAGGABLE),
+	draggable: z._default(z.literal(ELEMENT_DRAGGABLE), ELEMENT_DRAGGABLE),
 
 	/** Konva.js opacity value 0-1 (excluded from JSON serialization) */
-	opacity: z.literal(ELEMENT_OPACITY).default(ELEMENT_OPACITY)
+	opacity: z._default(z.literal(ELEMENT_OPACITY), ELEMENT_OPACITY)
 });
 export type CircleData = z.infer<typeof CircleData>;

@@ -81,4 +81,44 @@ describe('undoStore', () => {
 		clearUndoStack();
 		expect(get(undoStoreLastItem)).toBeUndefined();
 	});
+
+	describe('coalescing', () => {
+		it('merges quick operations with the same key into the entry restoring the oldest state', () => {
+			const restored: string[] = [];
+			addUndo('Rotate', () => restored.push('first'), 'rotate:1');
+			vi.advanceTimersByTime(300);
+			addUndo('Rotate', () => restored.push('second'), 'rotate:1');
+			addUndo('Rotate', () => restored.push('third'), 'rotate:1');
+
+			executeLastUndo();
+
+			expect(restored).toEqual(['first']);
+			expect(get(undoStoreLastItem)).toBeUndefined();
+		});
+
+		it('starts a new entry after the window has passed', () => {
+			addUndo('Rotate', vi.fn(), 'rotate:1');
+			vi.advanceTimersByTime(2000);
+			addUndo('Rotate', vi.fn(), 'rotate:1');
+
+			executeLastUndo();
+
+			expect(get(undoStoreLastItem)).toBe('Rotate');
+		});
+
+		it('does not merge different keys or entries without a key', () => {
+			addUndo('Rotate A', vi.fn(), 'rotate:a');
+			addUndo('Rotate B', vi.fn(), 'rotate:b');
+			addUndo('Delete', vi.fn());
+			addUndo('Delete', vi.fn());
+
+			let count = 0;
+			while (get(undoStoreLastItem) !== undefined) {
+				executeLastUndo();
+				count++;
+			}
+
+			expect(count).toBe(4);
+		});
+	});
 });

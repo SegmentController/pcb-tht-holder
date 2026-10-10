@@ -1,4 +1,4 @@
-import { z } from 'zod';
+import * as z from 'zod/mini';
 
 import { ELEMENT_DRAGGABLE, ELEMENT_OPACITY, RECTANGLE_COLOR } from '$lib/constants';
 
@@ -71,15 +71,15 @@ export const RectangleData = z.object({
 	 * - Defaults to 0° (no rotation)
 	 * - Constrained to [0, 359] range by Zod validator
 	 */
-	rotation: z.number().min(0).max(359).default(0),
+	rotation: z._default(z.number().check(z.minimum(0), z.maximum(359)), 0),
 
 	/** Konva.js fill color (excluded from JSON serialization) */
-	fill: z.literal(RECTANGLE_COLOR).default(RECTANGLE_COLOR),
+	fill: z._default(z.literal(RECTANGLE_COLOR), RECTANGLE_COLOR),
 
 	/** Konva.js draggable flag (excluded from JSON serialization) */
-	draggable: z.literal(ELEMENT_DRAGGABLE).default(ELEMENT_DRAGGABLE),
+	draggable: z._default(z.literal(ELEMENT_DRAGGABLE), ELEMENT_DRAGGABLE),
 
 	/** Konva.js opacity value 0-1 (excluded from JSON serialization) */
-	opacity: z.literal(ELEMENT_OPACITY).default(ELEMENT_OPACITY)
+	opacity: z._default(z.literal(ELEMENT_OPACITY), ELEMENT_OPACITY)
 });
 export type RectangleData = z.infer<typeof RectangleData>;

@@ -1,4 +1,3 @@
-import type { Action, ActionReturn } from 'svelte/action';
 import { get } from 'svelte/store';
 
 import { modalStore } from '$stores/modalStore';
@@ -32,10 +31,6 @@ export interface ShortcutEventDetail {
 	trigger: ShortcutTrigger;
 	originalEvent: KeyboardEvent;
 }
-
-export type ShortcutAction = Action<HTMLElement, ShortcutParameter, ShortcutAttributes>;
-
-export type ShortcutActionReturn = ActionReturn<ShortcutParameter, ShortcutAttributes>;
 
 type NormalizedTrigger = Omit<ShortcutTrigger, 'modifier'> & {
 	modifierDefs: ShortcutModifier[][];
@@ -113,7 +108,6 @@ export function shortcut(node: HTMLElement, parameter: ShortcutParameter) {
 					continue; // never swallow browser shortcuts (reload, find, zoom...)
 				if (event.key === key) {
 					if (preventDefault) event.preventDefault();
-					/** @type {import('./public').ShortcutEventDetail} */
 					const detail = {
 						node,
 						trigger: normalizedTrigger as ShortcutTrigger,

@@ -304,7 +304,6 @@
 	let is3dPrefetched = false;
 	/** Warms the 3D chunks while the browser is idle once a project is open, so "3D" opens instantly */
 	const load3dChunks = () => {
-		import('$lib/3d/mesh');
 		import('$components/modal/ModalMeshDisplay.svelte');
 	};
 	const prefetch3d = () => {
@@ -318,23 +317,15 @@
 	const openDisplay = () => {
 		if (!projectLoaded) return;
 
-		// three.js + CSG live in their own chunk, loaded only when the 3D view is opened
-		const meshGenerator = async (onProgress: (current: number, total: number) => void) => {
-			const { generateMeshLazy } = await import('$lib/3d/mesh');
-			return generateMeshLazy(
-				{
-					panelSettings: $projectStore.panelSettings,
-					zoom: $projectStore.zoom,
-					label: $projectStore.label,
-					rectangles: $projectStore.rectangles,
-					circles: $projectStore.circles,
-					legs: $projectStore.legs
-				},
-				onProgress
-			);
-		};
-
-		showModalMesh($projectStore.name, meshGenerator);
+		// Meshes are generated in a worker from this snapshot; the zoom is irrelevant for them
+		showModalMesh($projectStore.name, {
+			panelSettings: $projectStore.panelSettings,
+			zoom: $projectStore.zoom,
+			label: $projectStore.label,
+			rectangles: $projectStore.rectangles,
+			circles: $projectStore.circles,
+			legs: $projectStore.legs
+		});
 	};
 
 	/**
@@ -499,7 +490,8 @@
 				<ButtonGroup>
 					{#each ModeButtons as { title, shortcut, recentMode, icon }}
 						<Button
-							checked={mode === recentMode}
+							aria-label={title}
+							aria-pressed={mode === recentMode}
 							color={mode === recentMode ? 'gray' : 'light'}
 							onclick={() => (mode = recentMode)}
 							size="xs"

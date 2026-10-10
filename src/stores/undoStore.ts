@@ -75,7 +75,14 @@ type Undoable = {
 	name: string;
 	/** Closure that reverses the operation when executed */
 	action: UndoAction;
+	/** Repeated operations with the same key shortly after each other share one entry */
+	coalesceKey?: string;
+	/** Creation time, used for coalescing */
+	timestamp: number;
 };
+
+/** Operations with the same coalesce key within this window collapse into one undo entry */
+const COALESCE_WINDOW_MS = 1500;
 
 /**
  * Internal undo stack - array of undoable operations
@@ -99,11 +106,26 @@ export const undoStoreLastItem = derived(undoStore, ($undoStore) => $undoStore.a
  *
  * @param name - User-friendly operation name for Edit menu display
  * @param action - Closure that reverses the operation when called
+ * @param coalesceKey - Optional: a following call with the same key within 1.5 s is merged into this entry
  */
-export const addUndo = (name: string, action: UndoAction) =>
+export const addUndo = (name: string, action: UndoAction, coalesceKey?: string) =>
 	undoStore.update((undoables) => {
+		const now = Date.now();
+
+		// Repeated quick operations (e.g. holding the rotate key) keep the entry that restores the
+		// oldest state, instead of flooding the stack and evicting real deletions
+		const last = undoables.at(-1);
+		if (
+			coalesceKey !== undefined &&
+			last?.coalesceKey === coalesceKey &&
+			now - last.timestamp <= COALESCE_WINDOW_MS
+		) {
+			last.timestamp = now;
+			return undoables;
+		}
+
 		// Add new undo entry
-		undoables.push({ name, action });
+		undoables.push({ name, action, coalesceKey, timestamp: now });
 
 		// Enforce stack size limit (remove oldest if exceeded)
 		if (undoables.length > MAX_UNDO_STACK_SIZE) undoables.shift(); // Remove oldest entry (FIFO)

@@ -26,25 +26,33 @@
 
 <svelte:window
 	onclick={() => (visible = false)}
-	on:contextmenu|preventDefault={() => (visible = false)}
+	oncontextmenu={(event) => {
+		visible = false;
+		// Only the designer canvas gets the custom menu: keep the native one (copy/paste) elsewhere
+		if (event.target instanceof HTMLCanvasElement) event.preventDefault();
+	}}
+	onkeydown={(event) => {
+		if (event.key === 'Escape') visible = false;
+	}}
 />
 
 {#if visible}
 	<nav style="position: absolute; top:{posY}px; left:{posX}px" class="navbar">
-		<ul>
+		<ul role="menu">
 			{#each items as item}
 				{#if item.name === ''}
 					<hr />
 				{:else if !item.onClick}
-					<li class="group">{item.name}</li>
+					<li class="group" role="presentation">{item.name}</li>
 				{:else}
-					<li>
+					<li role="none">
 						<button
 							onclick={() => {
 								if (!item.onClick) return;
 								visible = false;
 								item.onClick(item.extra);
 							}}
+							role="menuitem"
 						>
 							{item.name}
 						</button>

@@ -1,4 +1,4 @@
-import { z } from 'zod';
+import * as z from 'zod/mini';
 
 /**
  * Physical properties and manufacturing tolerances for PCB panel and holder
@@ -103,6 +103,6 @@ export const PanelSettings = z.object({
 	 * The tolerance is NOT applied to the positive mesh (PCB visualization),
 	 * which always uses exact dimensions for accurate component visualization.
 	 */
-	printTolerance: z.number().default(0)
+	printTolerance: z._default(z.number(), 0)
 });
 export type PanelSettings = z.infer<typeof PanelSettings>;

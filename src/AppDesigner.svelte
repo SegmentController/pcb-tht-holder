@@ -135,6 +135,7 @@
 		pruneSelectedElements,
 		selectElementByMouseEnter
 	} from '$lib/fineMovement';
+	import { rotatedHalfExtents } from '$lib/geometry';
 	import {
 		cleanupMeasurement,
 		emptyMeasurementInfo,
@@ -148,7 +149,7 @@
 	import type { ImageSize } from '$types/ImageSize';
 	import { type LegData } from '$types/LegData';
 	import type { RectangleData } from '$types/RectangleData';
-	import { isRectangle } from '$types/typeGuards';
+	import { type GenericElement, isRectangle } from '$types/typeGuards';
 
 	import { alignmentEnabled } from './AppNavigation.svelte';
 
@@ -196,51 +197,18 @@
 	const limitBox = (event: KonvaDragTransformEvent, box: RectangleData | LegData) => {
 		const target = event.target;
 
-		let minX: number, maxX: number, minY: number, maxY: number;
-
-		// Check if it's a rectangle with rotation
-		if ('rotation' in box && box.rotation !== 0) {
-			const angleRad = (box.rotation * Math.PI) / 180;
-			const cos = Math.cos(angleRad);
-			const sin = Math.sin(angleRad);
-
-			// Four corners relative to center
-			const halfWidth = box.width / 2;
-			const halfHeight = box.height / 2;
-			const corners = [
-				{ dx: -halfWidth, dy: -halfHeight }, // top-left
-				{ dx: halfWidth, dy: -halfHeight }, // top-right
-				{ dx: halfWidth, dy: halfHeight }, // bottom-right
-				{ dx: -halfWidth, dy: halfHeight } // bottom-left
-			];
-
-			// Rotate each corner around center using 2D rotation matrix
-			const rotatedCorners = corners.map((c) => ({
-				x: c.dx * cos - c.dy * sin,
-				y: c.dx * sin + c.dy * cos
-			}));
-
-			// Find axis-aligned bounding box (AABB) offsets from center
-			minX = Math.min(...rotatedCorners.map((c) => c.x));
-			maxX = Math.max(...rotatedCorners.map((c) => c.x));
-			minY = Math.min(...rotatedCorners.map((c) => c.y));
-			maxY = Math.max(...rotatedCorners.map((c) => c.y));
-		} else {
-			// No rotation (leg or 0° rectangle)
-			const isRectangle = 'rotation' in box;
-			if (isRectangle) {
-				// Rectangle at 0° rotation - offsets from center
-				minX = -box.width / 2;
-				maxX = box.width / 2;
-				minY = -box.height / 2;
-				maxY = box.height / 2;
-			} else {
-				// Leg - top-left based (no offset adjustment needed)
-				minX = 0;
-				maxX = box.width;
-				minY = 0;
-				maxY = box.height;
-			}
+		// Offsets of the (rotated) shape's bounding box relative to the anchor position
+		let minX = 0;
+		let maxX = box.width;
+		let minY = 0;
+		let maxY = box.height;
+		if ('rotation' in box) {
+			// Rectangle: anchor is the center, rotation is applied around it
+			const half = rotatedHalfExtents(box.width, box.height, box.rotation);
+			minX = -half.x;
+			maxX = half.x;
+			minY = -half.y;
+			maxY = half.y;
 		}
 
 		// Apply boundary limits: clamp position so (position + offset) stays within bounds
@@ -299,8 +267,23 @@
 	/** Hover info tooltip showing element details and keyboard shortcuts */
 	let hoverInfo: HoverInfo | undefined = $state();
 
-	/** Alignment lines to display during element dragging */
-	let alignmentLines: AlignmentLine[] = $state([]);
+	/** Alignment lines to display during element dragging (replaced as a whole, never mutated) */
+	let alignmentLines: AlignmentLine[] = $state.raw([]);
+
+	/** Other elements of the drag in progress: built once per drag, not on every move event */
+	let otherElementsCache: { id: string; elements: GenericElement[] } | undefined;
+	const getOtherElements = (draggedId: string) => {
+		if (otherElementsCache?.id !== draggedId)
+			otherElementsCache = {
+				id: draggedId,
+				elements: [
+					...$projectStore.circles.filter((c) => c.id !== draggedId),
+					...$projectStore.rectangles.filter((r) => r.id !== draggedId),
+					...$projectStore.legs.filter((l) => l.id !== draggedId)
+				]
+			};
+		return otherElementsCache.elements;
+	};
 
 	/**
 	 * Applies magnetic snapping to a dragged element
@@ -327,12 +310,7 @@
 			y: event.target.y()
 		};
 
-		// Combine all elements except the dragged one
-		const allOtherElements = [
-			...$projectStore.circles.filter((c) => c.id !== draggedElement.id),
-			...$projectStore.rectangles.filter((r) => r.id !== draggedElement.id),
-			...$projectStore.legs.filter((l) => l.id !== draggedElement.id)
-		];
+		const allOtherElements = getOtherElements(draggedElement.id);
 
 		// Calculate snapped position
 		const snappedPosition = calculateSnapPosition(liveElement, allOtherElements);
@@ -371,12 +349,7 @@
 			y: event.target.y()
 		};
 
-		// Combine all elements except the dragged one
-		const allOtherElements = [
-			...$projectStore.circles.filter((c) => c.id !== draggedElement.id),
-			...$projectStore.rectangles.filter((r) => r.id !== draggedElement.id),
-			...$projectStore.legs.filter((l) => l.id !== draggedElement.id)
-		];
+		const allOtherElements = getOtherElements(draggedElement.id);
 
 		alignmentLines = detectAlignments(
 			liveElement,
@@ -393,6 +366,8 @@
 	 */
 	const clearAlignmentLines = () => {
 		alignmentLines = [];
+		otherElementsCache = undefined;
+		hoverAnchor = undefined; // the dragged element moved
 	};
 
 	// Deleted elements get no mouseleave: forget them so arrow keys cannot move a stale element
@@ -413,9 +388,13 @@
 	 * @param event - Konva mouse event with target element and stage
 	 * @param element - Circle, rectangle, or leg data
 	 */
+	/** Tooltip anchor of the hovered element, measured once on enter (mousemove only restarts the timer) */
+	let hoverAnchor: { element: GenericElement; x: number; y: number } | undefined;
+
 	const showHoverInfoForElement = (
 		event: KonvaMouseEvent,
-		element: CircleData | RectangleData | LegData
+		element: CircleData | RectangleData | LegData,
+		remeasure = true
 	) => {
 		if (mode !== 'pointer') return;
 
@@ -433,17 +412,25 @@
 		instructions.push('Right click: context menu');
 
 		// Calculate position to the right of the element
-		const stage = event.target.getStage();
-		if (stage) {
-			const elementBounds = event.target.getClientRect();
-			const stageContainer = stage.container().getBoundingClientRect();
+		if (remeasure || hoverAnchor?.element !== element) {
+			hoverAnchor = undefined;
 
-			// Position to the right of the element with some padding
-			const infoX = stageContainer.left + elementBounds.x + elementBounds.width + 20;
-			const infoY = stageContainer.top + elementBounds.y;
+			const stage = event.target.getStage();
+			if (stage) {
+				const elementBounds = event.target.getClientRect();
+				const stageContainer = stage.container().getBoundingClientRect();
 
-			hoverInfo?.show(infoX, infoY, elementInfo, instructions.join('\n'));
+				// Position to the right of the element with some padding
+				hoverAnchor = {
+					element,
+					x: stageContainer.left + elementBounds.x + elementBounds.width + 20,
+					y: stageContainer.top + elementBounds.y
+				};
+			}
 		}
+
+		if (hoverAnchor)
+			hoverInfo?.show(hoverAnchor.x, hoverAnchor.y, elementInfo, instructions.join('\n'));
 	};
 
 	/**
@@ -478,7 +465,7 @@
 		event: KonvaMouseEvent,
 		element: CircleData | RectangleData | LegData
 	) => {
-		showHoverInfoForElement(event, element);
+		showHoverInfoForElement(event, element, false);
 	};
 
 	/**
@@ -496,6 +483,7 @@
 		element: CircleData | RectangleData | LegData
 	) => {
 		deselectElementByMouseLeave(event, element, mode === 'measure');
+		hoverAnchor = undefined;
 		hoverInfo?.hide();
 	};
 

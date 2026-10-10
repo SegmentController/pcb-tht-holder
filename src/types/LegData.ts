@@ -1,4 +1,4 @@
-import { z } from 'zod';
+import * as z from 'zod/mini';
 
 import { ELEMENT_DRAGGABLE, ELEMENT_OPACITY, LEG_COLOR } from '$lib/constants';
 
@@ -72,12 +72,12 @@ export const LegData = z.object({
 	height: z.number(),
 
 	/** Konva.js fill color (excluded from JSON serialization) */
-	fill: z.literal(LEG_COLOR).default(LEG_COLOR),
+	fill: z._default(z.literal(LEG_COLOR), LEG_COLOR),
 
 	/** Konva.js draggable flag (excluded from JSON serialization) */
-	draggable: z.literal(ELEMENT_DRAGGABLE).default(ELEMENT_DRAGGABLE),
+	draggable: z._default(z.literal(ELEMENT_DRAGGABLE), ELEMENT_DRAGGABLE),
 
 	/** Konva.js opacity value 0-1 (excluded from JSON serialization) */
-	opacity: z.literal(ELEMENT_OPACITY).default(ELEMENT_OPACITY)
+	opacity: z._default(z.literal(ELEMENT_OPACITY), ELEMENT_OPACITY)
 });
 export type LegData = z.infer<typeof LegData>;

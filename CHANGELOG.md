@@ -1,5 +1,41 @@
 # Change log
 
+## [1.14.0] - 2026-10-10
+
+### Added
+
+- Mesh generation runs in a Web Worker (`mesh.worker.ts`, `meshClient.ts`); variants are generated on demand, memoized per project and cancelled when the 3D view closes
+- Golden regression tests for the CSG pipeline (`mesh.test.ts`), element collection, geometry and undo coalescing tests
+- Toast on library import success/failure; toast when autosave fails (storage full)
+- Service worker generated at build time with a hashed-asset precache (`vite.config.ts`)
+- Accessible names for icon-only buttons, `menu`/`menuitem` roles and Escape-to-close for the context menu
+
+### Changed
+
+- Project persistence: image under its own `project-image` key, debounced compact writes, one write per drag end (legacy single-key projects migrate transparently)
+- CSG: disjoint holes/legs/pillars batched into one boolean operation, hollow holder sliced from the shared base solid, cavity + edge cutouts as one prism, text label sized in one pass
+- 3D preview: one camera/controls/lights for all meshes, on-demand rendering, no per-toggle stringification of vertex arrays
+- Entry bundle 420 KB → ~150 KB gzip (3D stack lazy), Tailwind sources restricted with `@source`, icons bundled (no runtime iconify API calls), font trimmed to Latin + Latin Extended-A
+- Konva: image, elements and overlays on separate layers; grid drawn as two paths
+- zod → zod/mini; single Tailwind pipeline (`src/app.css`, `@tailwindcss/vite`)
+- Shortcuts no longer swallow Ctrl/Cmd/Alt combinations or keys typed in form controls
+- Undo: cancelling "add" leaves no undo entry, repeated rotate presses coalesce, reset rotation is undoable
+- Settings dialogs submit on Enter; context menu only replaces the native menu on the canvas
+- Number inputs clamp to min/max on change as well as blur, so Enter cannot submit an out-of-range value
+- Resize image dialog offers only widths that also respect the maximum height (tall images no longer stay above it)
+- Library import reports invalid JSON/schema errors instead of failing silently
+- Shared code extracted into `elements/collection.ts`, `geometry.ts`, `format.ts` (replaces dayjs) and `3d/placement.ts`
+- Tests: `three-bvh-csg` is aliased to its ESM source in `vite.config.ts`, which removes the `THREE_CJS_DEPRECATED` warning (its UMD build loaded a second copy of three); `mesh.test.ts` now also asserts zero open edges and an origin-independent volume
+
+### Fixed
+
+- STL export: generated meshes were not watertight (slicers such as Bambu Studio reported thousands of open edges). Mesh variants now go through a repair pass (`src/lib/3d/meshRepair.ts`) after the CSG operations: near-duplicate vertices are welded, T-junctions are split, zero-area triangles and fins are dropped, flipped patches are re-oriented and small planar holes are filled. `mergeVertices` is no longer used.
+- Hollow holder volumes in the golden tests were re-captured from the repaired meshes: the raw CSG output had small holes, so its signed volume depended on the origin by up to ~35 mm³
+
+### Removed
+
+- `canvas`, `dayjs`, `replace-in-file`, `@tailwindcss/postcss`, `postcss` dependencies; `postcss.config.mjs` and `src/app.postcss`; ASCII (text) STL writer, STL download is binary only; committed `public/service-worker.js`
+
 ## [1.13.13] - 2026-10-10
 
 ### Added

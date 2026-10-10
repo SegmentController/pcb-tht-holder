@@ -48,7 +48,7 @@
 </script>
 
 {#if visible}
-	<div style="position: absolute; top:{posY}px; left:{posX}px" class="hover-info">
+	<div style="position: fixed; top:{posY}px; left:{posX}px" class="hover-info">
 		<div class="header">{header}</div>
 		<div class="content">{content}</div>
 	</div>

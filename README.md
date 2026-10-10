@@ -35,13 +35,17 @@ In its current state, it facilitates the installation of circular and oblong com
   - Legs overlapping with components are automatically filtered during mesh generation
   - Warning notification shows count of hidden legs
   - Prevents mesh generation errors and ensures clean STL output
+- **Print-ready STL**: Exported meshes are watertight and consistently oriented
+  - A repair pass after the CSG operations welds seams, splits T-junctions and closes small holes
+  - Slicers such as Bambu Studio import the file without "open edges" warnings or a repair step
 - **Print Tolerance**: Adjustable tolerance setting (0-2mm with 0.1mm precision)
   - Compensates for 3D printer dimensional inaccuracies
   - Enlarges component holes and shrinks holder panel for perfect fit
 - **Responsive Mesh Generation**: Real-time progress tracking during 3D mesh generation
-  - Async generation prevents UI freezing with 100+ components
+  - Meshes are generated in a Web Worker, so the UI never freezes, even with 100+ components
+  - Variants (Main, Hollow, PCB preview) are generated on demand and reused until the project changes
+  - Closing the 3D view cancels a running generation
   - Progress bar shows percentage and visual indicator
-  - UI remains responsive throughout the generation process
 - **Measurement Tool**: Press `M` to measure distances in 1/10th millimeter precision
 - **Comprehensive Undo System**: Press `Ctrl+Z` to undo operations (max 50 actions)
   - Component deletions (circles, rectangles, legs)
@@ -50,7 +54,7 @@ In its current state, it facilitates the installation of circular and oblong com
   - Visual error notifications for failed undo operations
   - Automatic stack clearing on project reset
 - **Component Library**: Save and reuse your favorite component configurations
-  - Pre-defined library with 14 common THT components (DIP sockets, capacitors, buzzers, terminals, relays)
+  - Pre-defined library with 13 common THT components (DIP sockets, capacitors, buzzers, terminals, relays)
   - One-click loading of standard footprints with datasheet-sourced dimensions
   - Import/export library as JSON for backup or sharing
   - Clear library with confirmation for fresh start
@@ -60,7 +64,7 @@ In its current state, it facilitates the installation of circular and oblong com
 - **Custom Labels**: Print text labels on the side of your holder
 - **Auto Image Resize**: Automatically resizes large images (>1280x1024) for easier handling
 - **PWA Support**: Install as a standalone application on your device
-- **Offline Ready**: Works without internet connection after first load
+- **Offline Ready**: Works without internet connection after first load (service worker precaches the app shell)
 
 ## Keyboard Shortcuts
 
@@ -112,7 +116,7 @@ Place the THT parts by placing circles or squares. Adjust their height/depth exa
 
 ### Generate a 3D design in STL format
 
-Click the Display 3D button and see the generated mesh. Rotate it, check that all components are in place. At the end, download the STL file in binary format. (It is also possible to download a text STL file for debug purposes).
+Click the Display 3D button and see the generated mesh. Rotate it, check that all components are in place. At the end, download the STL file (binary format).
 
 ![alt text](./step3.png)
 
@@ -131,12 +135,13 @@ Use a PLA printer to save time and money. Practice shows that it is enough to pr
 ### Tech Stack
 
 - **Framework**: Svelte 5 with TypeScript (rune syntax: `$props()`, `$state()`, `$derived()`)
-- **Build Tool**: Vite
+- **Build Tool**: Vite (Tailwind via `@tailwindcss/vite`)
 - **3D Rendering**: Three.js with @threlte/core
 - **3D Operations**: three-bvh-csg for CSG boolean operations
 - **2D Canvas**: Konva.js for component placement
 - **UI**: Flowbite Svelte with Tailwind CSS 4
-- **State**: svelte-persisted-store for local storage
+- **State**: Svelte stores persisted to local storage
+- **Testing**: Vitest (unit tests run in Node, co-located as `*.test.ts`)
 
 ### Requirements
 
@@ -152,6 +157,12 @@ npm install
 # Start development server (accessible on network)
 npm run dev
 
+# Run unit tests (Vitest)
+npm run test
+
+# Run tests in watch mode
+npm run test:watch
+
 # Run type checking
 npm run ts:check
 
@@ -164,7 +175,7 @@ npm run format:fix
 # Build for production
 npm run build
 
-# Run all checks and build
+# Run all checks (format, lint, types, tests) and build
 npm run all
 ```
 
@@ -172,9 +183,9 @@ npm run all
 
 - `src/` - Source code
   - `components/` - Svelte components
-  - `lib/` - Utility functions and 3D generation logic
+  - `lib/` - Utility functions and 3D generation logic (`lib/3d/` runs CSG in a Web Worker and repairs the result into a watertight mesh)
   - `stores/` - Svelte stores for state management
-  - `types/` - TypeScript type definitions
+  - `types/` - TypeScript type definitions and Zod schemas
 - `public/` - Static assets
 - `docs/` - Production build output (GitHub Pages)
 

@@ -1,4 +1,4 @@
-import { z } from 'zod';
+import * as z from 'zod/mini';
 
 import { CircleData } from './CircleData';
 import { LegData } from './LegData';
@@ -33,7 +33,7 @@ export const Project = z.object({
 	image: z.string(),
 
 	/** Optional text label engraved on the side of the 3D holder */
-	label: z.string().default(''),
+	label: z._default(z.string(), ''),
 
 	/** Physical properties of the PCB panel and holder */
 	panelSettings: PanelSettings,

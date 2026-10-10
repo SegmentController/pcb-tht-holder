@@ -44,17 +44,20 @@
 			property="twitter:image"
 			content="https://segmentcontroller.github.io/pcb-tht-holder/pcb-board-32.png"
 		/>
-		<script type="module" crossorigin src="/pcb-tht-holder/assets/index-k5qFqIiM.js"></script>
-		<link rel="stylesheet" crossorigin href="/pcb-tht-holder/assets/index-B-0ssAbs.css">
+		<script type="module" crossorigin src="/pcb-tht-holder/assets/index-DFYyblH6.js"></script>
+		<link rel="stylesheet" crossorigin href="/pcb-tht-holder/assets/index-CxOCLFnA.css">
 	</head>
 
 	<body>
 		<div id="app"></div>
 		<script>
-			if ('serviceWorker' in navigator)
-				navigator.serviceWorker.register('/pcb-tht-holder/service-worker.js', {
-					scope: '/pcb-tht-holder/'
-				});
+			// Register after load so the worker's precache downloads do not compete with the app itself
+			if ('serviceWorker' in navigator && location.pathname.startsWith('/pcb-tht-holder/'))
+				addEventListener('load', () =>
+					navigator.serviceWorker.register('/pcb-tht-holder/service-worker.js', {
+						scope: '/pcb-tht-holder/'
+					})
+				);
 		</script>
 	</body>
 </html>

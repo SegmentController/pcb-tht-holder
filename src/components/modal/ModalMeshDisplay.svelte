@@ -1,20 +1,21 @@
 <script lang="ts">
-	import Icon from '@iconify/svelte';
+	import Icon from '@iconify/svelte/dist/OfflineIcon.svelte';
 	import { Canvas } from '@threlte/core';
-	import dayjs from 'dayjs';
 	import { Button, Modal, Range, Toggle } from 'flowbite-svelte';
-	import { createEventDispatcher, onMount } from 'svelte';
+	import { createEventDispatcher, onDestroy, onMount, untrack } from 'svelte';
 	import { persisted } from 'svelte-persisted-store';
 
-	import {
-		generateBinaryStlFromVertices,
-		generateStlFromVertices,
-		getBinaryStlSizeKbFromVertices
-	} from '$lib/3d/stl';
+	import type { MeshKind } from '$lib/3d/mesh';
+	import { createMeshClient, MeshClientCancelledError } from '$lib/3d/meshClient';
+	import { positivePlacementOffset } from '$lib/3d/placement';
+	import { generateBinaryStlFromVertices, getBinaryStlSizeKbFromVertices } from '$lib/3d/stl';
 	import { POSITIVE_MESH_COLOR } from '$lib/constants';
 	import { virtualDownload } from '$lib/download';
+	import { formatFileTimestamp } from '$lib/format';
 	import { MathMax } from '$lib/Math';
-	import type { MeshInfoTuple } from '$types/MeshInfo';
+	import type { MeshInfo } from '$types/MeshInfo';
+	import type { RenderableProject } from '$types/Project';
+	import type { SceneMesh } from '$types/SceneMesh';
 
 	import Mesh3DScene from '../Mesh3DScene.svelte';
 	import EscapeClose from './util/EscapeClose.svelte';
@@ -24,27 +25,47 @@
 
 	interface Properties {
 		name: string;
-		meshGenerator: (onProgress: (current: number, total: number) => void) => Promise<MeshInfoTuple>;
+		project: RenderableProject;
 	}
 
-	let { name, meshGenerator }: Properties = $props();
+	let { name, project }: Properties = $props();
 
-	let volume = $state(1);
-	let progress = $state<{ current: number; total: number } | undefined>();
-
-	// Create progress callback that updates local state
-	const progressCallback = (current: number, total: number) => {
-		progress = { current, total };
+	const KIND_LABELS: Record<MeshKind, string> = {
+		main: 'Generating mesh...',
+		hollow: 'Generating hollow mesh...',
+		positive: 'Generating PCB mesh...'
 	};
 
-	// Start mesh generation with progress tracking
-	const meshInfoTuple = $derived(meshGenerator(progressCallback));
+	// Generation runs in a worker; the variants are requested one by one as they are needed
+	const client = untrack(() => createMeshClient($state.snapshot(project) as RenderableProject));
 
-	onMount(async () => {
-		await meshInfoTuple
-			.then((m) => (volume = MathMax([...m.main.vertexArray.values()])))
-			.catch(() => (volume = 1));
-	});
+	// Large typed arrays: keep them out of Svelte's deep reactivity
+	let meshes = $state.raw<Partial<Record<MeshKind, MeshInfo>>>({});
+	const progress = $state<Partial<Record<MeshKind, { current: number; total: number }>>>({});
+	let errorMessage = $state<string | undefined>();
+	let hiddenLegsCount = $state(0);
+	let volume = $state(1);
+
+	const requested: Partial<Record<MeshKind, boolean>> = {};
+	const request = (kind: MeshKind) => {
+		if (requested[kind]) return;
+		requested[kind] = true;
+		progress[kind] = { current: 0, total: 1 };
+
+		client
+			.generate(kind, (current, total) => (progress[kind] = { current, total }))
+			.then((result) => {
+				meshes = { ...meshes, [kind]: result.mesh };
+				hiddenLegsCount = result.hiddenLegsCount;
+				if (kind === 'main') volume = MathMax(result.mesh.vertexArray);
+			})
+			.catch((error) => {
+				requested[kind] = false;
+				if (error instanceof MeshClientCancelledError) return;
+				errorMessage = error instanceof Error ? error.message : String(error);
+			})
+			.finally(() => delete progress[kind]);
+	};
 
 	let isWireframe = $state(false);
 	let isHollow = $state(false);
@@ -52,30 +73,61 @@
 	let meshDistance = $state(10);
 	const useDateInFilename = persisted('useDateInFilename', false);
 
+	onMount(() => request('main'));
+	onDestroy(() => client.dispose());
+
+	$effect(() => {
+		if (isHollow) untrack(() => request('hollow'));
+	});
+	$effect(() => {
+		if (showPositive) untrack(() => request('positive'));
+	});
+
+	const wantedKind = $derived<MeshKind>(isHollow ? 'hollow' : 'main');
+	const activeMesh = $derived(meshes[wantedKind]);
+	// Show the main holder until a requested hollow variant is ready
+	const shownMesh = $derived(activeMesh ?? (isHollow ? meshes.main : undefined));
+	const pendingKind = $derived(
+		(['main', 'hollow', 'positive'] as MeshKind[]).find((kind) => progress[kind])
+	);
+	const pendingProgress = $derived(pendingKind ? progress[pendingKind] : undefined);
+
+	const sceneMeshes = $derived.by<SceneMesh[]>(() => {
+		if (!shownMesh) return [];
+		const positive = showPositive ? meshes.positive : undefined;
+
+		const result: SceneMesh[] = [
+			{
+				key: 'holder',
+				vertices: shownMesh.vertexArray,
+				opacity: positive ? 0.75 : 1
+			}
+		];
+		if (positive && meshes.main)
+			result.push({
+				key: 'positive',
+				vertices: positive.vertexArray,
+				color: POSITIVE_MESH_COLOR,
+				flipZ: true,
+				opacity: 0.75,
+				positionOffset: positivePlacementOffset({
+					holderDepth: meshes.main.dimensions.depth,
+					pcbThickness: project.panelSettings.pcbThickness,
+					distance: meshDistance
+				})
+			});
+		return result;
+	});
+
 	const generateFilename = () =>
 		name +
-		($useDateInFilename ? '-' + dayjs().format('YYYYMMDD-HHmmss') : '') +
+		($useDateInFilename ? '-' + formatFileTimestamp() : '') +
 		(isHollow ? '-hollow' : '') +
 		'.stl';
 
-	const getActiveMesh = (meshinfotuple: MeshInfoTuple) => {
-		return isHollow ? meshinfotuple.hollow : meshinfotuple.main;
-	};
-
-	const downloadStlFile = async (isBinary: boolean) => {
-		try {
-			const meshinfotuple = await meshInfoTuple;
-			const activeMesh = getActiveMesh(meshinfotuple);
-			const vertices = activeMesh.vertexArray;
-			virtualDownload(
-				generateFilename(),
-				isBinary
-					? generateBinaryStlFromVertices(vertices)
-					: generateStlFromVertices(vertices).join('\n')
-			);
-		} catch {
-			/**/
-		}
+	const downloadStlFile = () => {
+		if (activeMesh)
+			virtualDownload(generateFilename(), generateBinaryStlFromVertices(activeMesh.vertexArray));
 	};
 </script>
 
@@ -86,54 +138,56 @@
 				{generateFilename()}
 			</span>
 
-			{#await meshInfoTuple}
-				{#if progress}
-					<div class="flex items-center gap-2">
-						<span class="text-sm">Generating mesh...</span>
-						<span class="text-sm text-gray-500"
-							>{Math.round((progress.current / progress.total) * 100)}%</span
-						>
-						<div class="flex-1 bg-gray-200 rounded h-2 min-w-48">
-							<div
-								style="width: {(progress.current / progress.total) * 100}%"
-								class="bg-blue-600 h-2 rounded"
-							></div>
-						</div>
-					</div>
-				{:else}
-					<p>Initializing...</p>
-				{/if}
-			{:then meshInfoTuple}
-				{@const activeMesh = getActiveMesh(meshInfoTuple)}
-				{activeMesh.dimensions.width} x
-				{activeMesh.dimensions.height} x
-				{activeMesh.dimensions.depth} mm |
-				{activeMesh.vertexArray.length / 9} polygons |
-				{getBinaryStlSizeKbFromVertices(activeMesh.vertexArray.length)} kB
-			{:catch message}
-				<span class="text-red-500 text-xl">Error '{message}' occured while rendering mesh</span>
-			{/await}
-		</div>
-		{#await meshInfoTuple then meshInfoTuple}
-			{#if meshInfoTuple.hiddenLegsCount > 0}
-				<div
-					class="mt-2 p-2 bg-yellow-100 border border-yellow-400 rounded text-sm text-yellow-800"
+			{#if errorMessage}
+				<span class="text-red-500 text-xl">Error '{errorMessage}' occured while rendering mesh</span
 				>
-					<Icon class="inline-flex mr-1" icon="mdi:alert" width={16} />
-					Note: {meshInfoTuple.hiddenLegsCount} leg{meshInfoTuple.hiddenLegsCount > 1
-						? 's were'
-						: ' was'} hidden because they overlap with components.
+			{:else if shownMesh && !pendingProgress}
+				{shownMesh.dimensions.width} x
+				{shownMesh.dimensions.height} x
+				{shownMesh.dimensions.depth} mm |
+				{shownMesh.vertexArray.length / 9} polygons |
+				{getBinaryStlSizeKbFromVertices(shownMesh.vertexArray.length)} kB
+			{:else if pendingKind && pendingProgress}
+				<div class="flex items-center gap-2">
+					<span class="text-sm">{KIND_LABELS[pendingKind]}</span>
+					<span class="text-sm text-gray-500"
+						>{Math.round((pendingProgress.current / pendingProgress.total) * 100)}%</span
+					>
+					<div
+						class="flex-1 bg-gray-200 rounded h-2 min-w-48"
+						aria-label={KIND_LABELS[pendingKind]}
+						aria-valuemax={100}
+						aria-valuemin={0}
+						aria-valuenow={Math.round((pendingProgress.current / pendingProgress.total) * 100)}
+						role="progressbar"
+					>
+						<div
+							style="width: {(pendingProgress.current / pendingProgress.total) * 100}%"
+							class="bg-blue-600 h-2 rounded"
+						></div>
+					</div>
 				</div>
+			{:else}
+				<p>Initializing...</p>
 			{/if}
-		{/await}
+		</div>
+		{#if hiddenLegsCount > 0}
+			<div class="mt-2 p-2 bg-yellow-100 border border-yellow-400 rounded text-sm text-yellow-800">
+				<Icon class="inline-flex mr-1" icon="mdi:alert" width={16} />
+				Note: {hiddenLegsCount} leg{hiddenLegsCount > 1 ? 's were' : ' was'} hidden because they overlap
+				with components.
+			</div>
+		{/if}
 		<div class="grid grid-cols-2">
 			<div class="flex flex-col gap-2">
 				<div class="flex justify-start items-center gap-4">
-					{#await meshInfoTuple then}
-						<Toggle id="wireframe" size="large" bind:checked={isWireframe}>Wireframe</Toggle>
-						<Toggle id="hollow" size="large" bind:checked={isHollow}>Hollow</Toggle>
-						<Toggle id="positive" size="large" bind:checked={showPositive}>PCB</Toggle>
-					{/await}
+					<Toggle id="wireframe" size="large" bind:checked={isWireframe}>Wireframe</Toggle>
+					<Toggle id="hollow" disabled={!meshes.main} size="large" bind:checked={isHollow}
+						>Hollow</Toggle
+					>
+					<Toggle id="positive" disabled={!meshes.main} size="large" bind:checked={showPositive}
+						>PCB</Toggle
+					>
 				</div>
 				{#if showPositive}
 					<div class="flex items-center gap-2 ml-2">
@@ -144,45 +198,21 @@
 				{/if}
 			</div>
 			<div class="flex justify-end">
-				{#await meshInfoTuple then}
-					<Toggle id="dateInFilename" class="mr-4" size="small" bind:checked={$useDateInFilename}
-						>Date</Toggle
-					>
-					<Button color="primary" onclick={() => downloadStlFile(true)}>
-						<Icon class="inline-flex mr-2" icon="mdi:download" width={24} />
-						Download STL</Button
-					>
-				{/await}
+				<Toggle id="dateInFilename" class="mr-4" size="small" bind:checked={$useDateInFilename}
+					>Date</Toggle
+				>
+				<Button color="primary" disabled={!activeMesh} onclick={downloadStlFile}>
+					<Icon class="inline-flex mr-2" icon="mdi:download" width={24} />
+					Download STL</Button
+				>
 				<Button class="ml-2" color="alternative" onclick={resolve}>Close</Button>
 			</div>
 		</div>
 		<div class="canvasContainer">
-			<Canvas>
-				{#await meshInfoTuple then meshInfoTuple}
-					{@const activeMesh = getActiveMesh(meshInfoTuple)}
-					{@const baseOffset = meshInfoTuple.positive
-						? (activeMesh.dimensions.depth + meshInfoTuple.positive.dimensions.depth) / 2
-						: 0}
-					{#key `${activeMesh.vertexArray}-${showPositive}`}
-						<Mesh3DScene
-							opacity={showPositive ? 0.75 : 1}
-							vertices={activeMesh.vertexArray}
-							{volume}
-							wireframe={isWireframe}
-						/>
-						{#if showPositive && meshInfoTuple.positive}
-							<Mesh3DScene
-								color={POSITIVE_MESH_COLOR}
-								flipZ={true}
-								opacity={0.75}
-								positionOffset={baseOffset + meshDistance + 1}
-								vertices={meshInfoTuple.positive.vertexArray}
-								{volume}
-								wireframe={isWireframe}
-							/>
-						{/if}
-					{/key}
-				{/await}
+			<Canvas renderMode="on-demand">
+				{#if sceneMeshes.length > 0}
+					<Mesh3DScene meshes={sceneMeshes} {volume} wireframe={isWireframe} />
+				{/if}
 			</Canvas>
 		</div>
 	</Modal>

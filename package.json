@@ -1,6 +1,6 @@
 {
 	"name": "pcb-tht-holder",
-	"version": "1.13.13",
+	"version": "1.14.0",
 	"type": "module",
 	"main": "build/index.js",
 	"engines": {
@@ -9,22 +9,22 @@
 	},
 	"scripts": {
 		"dev": "vite dev --host",
-		"prebuild": "cp src/service-worker.template.js public/service-worker.js && replace-in-file __VERSION__ v$npm_package_version public/service-worker.js",
 		"build": "vite build",
 		"preview": "vite preview",
 		"ts:check": "svelte-check --tsconfig ./tsconfig.json",
+		"test": "vitest run",
+		"test:watch": "vitest",
 		"format:check": "prettier --check .",
 		"format:fix": "prettier --write . | grep -v 'unchanged' | sed G",
 		"lint:check": "eslint .",
 		"lint:fix": "eslint --fix .",
 		"npm:reinstall": "rm -rf ./node_modules && rm -f ./package-lock.json && npm i && npm i",
-		"all": "node --run format:fix && node --run lint:fix && node --run ts:check && node --run prebuild && node --run build"
+		"all": "node --run format:fix && node --run lint:fix && node --run ts:check && node --run test && node --run build"
 	},
 	"devDependencies": {
 		"@eslint/eslintrc": "^3.3.7",
 		"@eslint/js": "^10.0.1",
 		"@sveltejs/vite-plugin-svelte": "^7.3.1",
-		"@tailwindcss/postcss": "^4.3.3",
 		"@tailwindcss/vite": "^4.3.3",
 		"@tsconfig/svelte": "^5.0.8",
 		"@types/three": "^0.186.0",
@@ -35,23 +35,20 @@
 		"eslint-plugin-simple-import-sort": "^14.0.0",
 		"eslint-plugin-svelte": "^3.23.1",
 		"eslint-plugin-unicorn": "^64.0.0",
-		"postcss": "^8.5.29",
 		"prettier": "^3.9.10",
 		"prettier-plugin-svelte": "^4.1.1",
-		"replace-in-file": "^9.0.0",
 		"svelte-check": "^4.7.6",
 		"svelte-eslint-parser": "^1.9.0",
 		"tailwindcss": "^4.3.3",
 		"tslib": "^2.8.1",
 		"typescript": "^6.0.2",
-		"vite": "^8.3.4"
+		"vite": "^8.3.4",
+		"vitest": "^5.0.3"
 	},
 	"dependencies": {
 		"@iconify/svelte": "^5.2.2",
 		"@threlte/core": "^8.6.1",
 		"@threlte/extras": "^9.22.0",
-		"canvas": "^3.2.3",
-		"dayjs": "^1.11.23",
 		"flowbite-svelte": "^1.33.1",
 		"konva": "^10.7.1",
 		"nanoid": "^5.1.7",

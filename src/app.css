@@ -1,0 +1,11 @@
+@import 'tailwindcss' source(none);
+
+/* Explicit sources: the app itself + only the flowbite-svelte components it (transitively) uses.
+   Auto-detection would also scan every flowbite-svelte component (~80 KB of unused utilities).
+   Add a directory here when using a new flowbite-svelte component. */
+@source '../index.html';
+@source './**/*.{html,js,svelte,ts}';
+@source '../node_modules/flowbite-svelte/dist/*.{js,svelte}';
+@source '../node_modules/flowbite-svelte/dist/{button-group,buttons,card,dialog,dropdown,forms,kbd,modal,navbar,popover,spinner,theme,toast,tooltip,typography,utils}/**/*.{js,svelte}';
+
+@config "./../tailwind.config.cjs";

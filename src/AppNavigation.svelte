@@ -110,7 +110,7 @@
 </script>
 
 <script lang="ts">
-	import Icon from '@iconify/svelte';
+	import Icon from '@iconify/svelte/dist/OfflineIcon.svelte';
 	import {
 		Button,
 		ButtonGroup,
@@ -128,7 +128,6 @@
 	import NavContainer from 'flowbite-svelte/NavContainer.svelte';
 	import { createEventDispatcher } from 'svelte';
 
-	import { generateMeshLazy } from '$lib/3d/mesh';
 	import { virtualDownload } from '$lib/download';
 	import { addNewCircle } from '$lib/elements/circle';
 	import { addCornerLegs, addNewLeg, deleteAllLegsWithConfirm } from '$lib/elements/leg';
@@ -302,23 +301,31 @@
 	 * **Export Options:**
 	 * Modal provides STL download for each mesh variant in both text and binary formats.
 	 */
+	let is3dPrefetched = false;
+	/** Warms the 3D chunks while the browser is idle once a project is open, so "3D" opens instantly */
+	const load3dChunks = () => {
+		import('$components/modal/ModalMeshDisplay.svelte');
+	};
+	const prefetch3d = () => {
+		if (is3dPrefetched) return;
+		is3dPrefetched = true;
+		if ('requestIdleCallback' in window) requestIdleCallback(load3dChunks);
+		else setTimeout(load3dChunks, 2000);
+	};
+	$: if (projectLoaded) prefetch3d();
+
 	const openDisplay = () => {
 		if (!projectLoaded) return;
 
-		const meshGenerator = (onProgress: (current: number, total: number) => void) =>
-			generateMeshLazy(
-				{
-					panelSettings: $projectStore.panelSettings,
-					zoom: $projectStore.zoom,
-					label: $projectStore.label,
-					rectangles: $projectStore.rectangles,
-					circles: $projectStore.circles,
-					legs: $projectStore.legs
-				},
-				onProgress
-			);
-
-		showModalMesh($projectStore.name, meshGenerator);
+		// Meshes are generated in a worker from this snapshot; the zoom is irrelevant for them
+		showModalMesh($projectStore.name, {
+			panelSettings: $projectStore.panelSettings,
+			zoom: $projectStore.zoom,
+			label: $projectStore.label,
+			rectangles: $projectStore.rectangles,
+			circles: $projectStore.circles,
+			legs: $projectStore.legs
+		});
 	};
 
 	/**
@@ -483,7 +490,8 @@
 				<ButtonGroup>
 					{#each ModeButtons as { title, shortcut, recentMode, icon }}
 						<Button
-							checked={mode === recentMode}
+							aria-label={title}
+							aria-pressed={mode === recentMode}
 							color={mode === recentMode ? 'gray' : 'light'}
 							onclick={() => (mode = recentMode)}
 							size="xs"

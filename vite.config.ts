@@ -1,13 +1,62 @@
+import { readFileSync } from 'node:fs';
 import path from 'node:path';
 
 import { svelte } from '@sveltejs/vite-plugin-svelte';
 import tailwindcss from '@tailwindcss/vite';
-import { defineConfig } from 'vite';
+import { type Plugin } from 'vite';
+import { defineConfig } from 'vitest/config';
 
 import package_ from './package.json' with { type: 'json' };
 
+/** @threlte/extras' barrel makes Vite emit ~1.9 MB of draco/basis decoders that no chunk references */
+const dropUnusedThrelteAssets = (): Plugin => ({
+	name: 'drop-unused-threlte-assets',
+	generateBundle(_, bundle) {
+		for (const fileName of Object.keys(bundle))
+			if (/(draco_|basis_transcoder)/.test(fileName)) delete bundle[fileName];
+	}
+});
+
+/** Static files copied from public/ that make up the offline app shell */
+const SHELL_FILES = [
+	'./',
+	'index.html',
+	'manifest.webmanifest',
+	'favicon.png',
+	'pcb-board-32.png',
+	'pcb-board-128.png',
+	'pcb-board-512.png'
+];
+
+/** Emits service-worker.js from the template with a precache list of the entry assets (hashed names) */
+const serviceWorker = (): Plugin => ({
+	name: 'service-worker',
+	apply: 'build',
+	generateBundle(_, bundle) {
+		const precache = new Set(SHELL_FILES);
+		for (const file of Object.values(bundle))
+			if (file.type === 'chunk' && file.isEntry) {
+				precache.add(file.fileName);
+				for (const css of file.viteMetadata?.importedCss ?? []) precache.add(css);
+			}
+
+		const template = readFileSync(
+			path.resolve(import.meta.dirname, 'src/service-worker.template.js'),
+			'utf8'
+		);
+		this.emitFile({
+			type: 'asset',
+			fileName: 'service-worker.js',
+			source: template
+				.replaceAll('__VERSION__', `v${package_.version}`)
+				.replace('__PRECACHE__', JSON.stringify([...precache]))
+		});
+	}
+});
+
 export default defineConfig({
-	plugins: [svelte(), tailwindcss()],
+	plugins: [svelte(), tailwindcss(), dropUnusedThrelteAssets(), serviceWorker()],
+	worker: { format: 'es' },
 	build: {
 		target: 'esnext',
 		sourcemap: false,
@@ -16,8 +65,17 @@ export default defineConfig({
 		copyPublicDir: true,
 		emptyOutDir: true,
 		outDir: 'docs',
-		chunkSizeWarningLimit: 2000,
-		assetsInlineLimit: 0
+		chunkSizeWarningLimit: 850,
+		assetsInlineLimit: 0,
+		rolldownOptions: {
+			treeshake: {
+				// These libraries are side-effect free but do not declare it (barrel imports would
+				// otherwise pull in every component, and threlte extras emits unused draco/basis assets)
+				moduleSideEffects: [
+					{ test: /node_modules[/\\](flowbite-svelte|@threlte)[/\\]/, sideEffects: false }
+				]
+			}
+		}
 	},
 	base: process.env.NODE_ENV === 'production' ? '/pcb-tht-holder' : '',
 	resolve: {
@@ -27,6 +85,18 @@ export default defineConfig({
 			$stores: path.resolve(import.meta.dirname, './src/stores'),
 			$types: path.resolve(import.meta.dirname, './src/types')
 		}
+	},
+	test: {
+		environment: 'node',
+		include: ['src/**/*.test.ts'],
+		// Persist transformed modules between runs (three / three-bvh-csg dominate the transform time)
+		fsModuleCache: true,
+		// three-bvh-csg's UMD `main` would `require('three')`: a deprecated second copy (three.cjs) and a
+		// warning. Its `module` entry is what the production build resolves; use it in tests too
+		alias: { 'three-bvh-csg': 'three-bvh-csg/src/index.js' },
+		// three-bvh-csg 0.0.18 still passes an option three-mesh-bvh deprecated and warns on every
+		// boolean operation; nothing the app can fix (the worker filters it the same way)
+		onConsoleLog: (log) => (log.includes('"maxLeafSize"') ? false : undefined)
 	},
 	define: {
 		__PKG_VERSION__: `"${package_.version}"`,

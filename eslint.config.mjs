@@ -72,6 +72,17 @@ export default [
 		}
 	},
 	{
+		files: ['**/*.test.ts'],
+
+		rules: {
+			'unicorn/prevent-abbreviations': 'off',
+			'unicorn/consistent-function-scoping': 'off',
+			'unicorn/no-null': 'off',
+			// toastStore.push / modalStore.push are not Array#push; merging calls changes semantics
+			'unicorn/prefer-single-call': 'off'
+		}
+	},
+	{
 		files: ['**/*.svelte'],
 
 		languageOptions: {

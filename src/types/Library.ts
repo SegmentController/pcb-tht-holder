@@ -1,4 +1,4 @@
-import { z } from 'zod';
+import * as z from 'zod/mini';
 
 /**
  * Component library types for saving and reusing common THT component configurations
@@ -52,7 +52,7 @@ export const LibraryItem = z.union([
 		/** Component depth/height in millimeters */
 		depth: z.number(),
 		/** Rotation angle in degrees (0-359), defaults to 0 */
-		rotation: z.number().default(0)
+		rotation: z._default(z.number(), 0)
 	})
 ]);
 export type LibraryItem = z.infer<typeof LibraryItem>;

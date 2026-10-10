@@ -32,7 +32,7 @@
 	- Connected to modalStore for centralized modal management
 -->
 <script lang="ts">
-	import './app.postcss';
+	import './app.css';
 
 	import { onMount } from 'svelte';
 

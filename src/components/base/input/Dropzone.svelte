@@ -1,5 +1,5 @@
 <script lang="ts">
-	import Icon from '@iconify/svelte';
+	import Icon from '@iconify/svelte/dist/OfflineIcon.svelte';
 	import { Dropzone } from 'flowbite-svelte';
 
 	export let title: string;

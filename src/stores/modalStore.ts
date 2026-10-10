@@ -58,7 +58,6 @@ import ModalCircleSettings, {
 } from '$components/modal/ModalCircleSettings.svelte';
 import ModalConfirm from '$components/modal/ModalConfirm.svelte';
 import ModalLibrary from '$components/modal/ModalLibrary.svelte';
-import ModalMeshDisplay from '$components/modal/ModalMeshDisplay.svelte';
 import ModalNameEdit from '$components/modal/ModalNameEdit.svelte';
 import ModalProjectSettings from '$components/modal/ModalProjectSettings.svelte';
 import ModalRectangleSettings, {
@@ -66,8 +65,8 @@ import ModalRectangleSettings, {
 } from '$components/modal/ModalRectangleSettings.svelte';
 import ModalResizeImage from '$components/modal/ModalResizeImage.svelte';
 import { createModalStore } from '$lib/svelteModal/modal';
-import type { MeshInfoTuple } from '$types/MeshInfo';
 import type { PanelSettings } from '$types/PanelSettings';
+import type { RenderableProject } from '$types/Project';
 
 /**
  * Global modal store instance
@@ -229,19 +228,22 @@ export const showModalLibrary = async (): Promise<object> =>
  * - STL export buttons (text and binary formats)
  *
  * @param filename - Project name used for STL download filename
- * @param meshGenerator - Function that accepts progress callback and returns Promise of mesh tuple
+ * @param project - Snapshot of the project to generate the meshes for (generated in a worker)
  * @returns Promise resolving to empty object when modal closes
  */
 export const showModalMesh = async (
 	filename: string,
-	meshGenerator: (onProgress: (current: number, total: number) => void) => Promise<MeshInfoTuple>
-): Promise<object> =>
-	await modalStore
+	project: RenderableProject
+): Promise<object> => {
+	// Lazy chunk: pulls in three.js / threlte only when the 3D preview is actually opened
+	const { default: ModalMeshDisplay } = await import('$components/modal/ModalMeshDisplay.svelte');
+	return await modalStore
 		.push({
 			component: ModalMeshDisplay,
 			props: {
 				name: filename,
-				meshGenerator
+				project
 			}
 		})
 		.resolve();
+};

@@ -28,6 +28,7 @@
  */
 
 import { ALIGNMENT_SNAP_DISTANCE, ALIGNMENT_SNAP_THRESHOLD } from '$lib/constants';
+import { rotatedHalfExtents } from '$lib/geometry';
 import type { CircleData } from '$types/CircleData';
 import type { LegData } from '$types/LegData';
 import type { RectangleData } from '$types/RectangleData';
@@ -95,50 +96,13 @@ const getCircleAlignmentPoints = (circle: CircleData): AlignmentPoints => {
  * @returns Categorized alignment points
  */
 const getRectangleAlignmentPoints = (rectangle: RectangleData): AlignmentPoints => {
-	if (rectangle.rotation === 0)
-		// No rotation - simple edge calculation
-		return {
-			center: { x: rectangle.x, y: rectangle.y },
-			verticalEdges: [
-				rectangle.x - rectangle.width / 2, // Left
-				rectangle.x + rectangle.width / 2 // Right
-			],
-			horizontalEdges: [
-				rectangle.y - rectangle.height / 2, // Top
-				rectangle.y + rectangle.height / 2 // Bottom
-			]
-		};
-
-	// Calculate AABB for rotated rectangle
-	const angleRad = (rectangle.rotation * Math.PI) / 180;
-	const cos = Math.cos(angleRad);
-	const sin = Math.sin(angleRad);
-
-	const halfWidth = rectangle.width / 2;
-	const halfHeight = rectangle.height / 2;
-	const corners = [
-		{ dx: -halfWidth, dy: -halfHeight }, // top-left
-		{ dx: halfWidth, dy: -halfHeight }, // top-right
-		{ dx: halfWidth, dy: halfHeight }, // bottom-right
-		{ dx: -halfWidth, dy: halfHeight } // bottom-left
-	];
-
-	// Rotate corners around center
-	const rotatedCorners = corners.map((c) => ({
-		x: rectangle.x + c.dx * cos - c.dy * sin,
-		y: rectangle.y + c.dx * sin + c.dy * cos
-	}));
-
-	// Find AABB bounds
-	const minX = Math.min(...rotatedCorners.map((c) => c.x));
-	const maxX = Math.max(...rotatedCorners.map((c) => c.x));
-	const minY = Math.min(...rotatedCorners.map((c) => c.y));
-	const maxY = Math.max(...rotatedCorners.map((c) => c.y));
+	// Rotated rectangles are represented by their axis-aligned bounding box
+	const half = rotatedHalfExtents(rectangle.width, rectangle.height, rectangle.rotation);
 
 	return {
 		center: { x: rectangle.x, y: rectangle.y },
-		verticalEdges: [minX, maxX], // Left, Right
-		horizontalEdges: [minY, maxY] // Top, Bottom
+		verticalEdges: [rectangle.x - half.x, rectangle.x + half.x], // Left, Right
+		horizontalEdges: [rectangle.y - half.y, rectangle.y + half.y] // Top, Bottom
 	};
 };
 
@@ -200,38 +164,12 @@ const getElementBounds = (
 		};
 
 	if (isRectangle(element)) {
-		if (element.rotation !== 0) {
-			// Calculate AABB for rotated rectangle
-			const angleRad = (element.rotation * Math.PI) / 180;
-			const cos = Math.cos(angleRad);
-			const sin = Math.sin(angleRad);
-
-			const halfWidth = element.width / 2;
-			const halfHeight = element.height / 2;
-			const corners = [
-				{ dx: -halfWidth, dy: -halfHeight },
-				{ dx: halfWidth, dy: -halfHeight },
-				{ dx: halfWidth, dy: halfHeight },
-				{ dx: -halfWidth, dy: halfHeight }
-			];
-
-			const rotatedCorners = corners.map((c) => ({
-				x: element.x + c.dx * cos - c.dy * sin,
-				y: element.y + c.dx * sin + c.dy * cos
-			}));
-
-			return {
-				minX: Math.min(...rotatedCorners.map((c) => c.x)),
-				maxX: Math.max(...rotatedCorners.map((c) => c.x)),
-				minY: Math.min(...rotatedCorners.map((c) => c.y)),
-				maxY: Math.max(...rotatedCorners.map((c) => c.y))
-			};
-		}
+		const half = rotatedHalfExtents(element.width, element.height, element.rotation);
 		return {
-			minX: element.x - element.width / 2,
-			maxX: element.x + element.width / 2,
-			minY: element.y - element.height / 2,
-			maxY: element.y + element.height / 2
+			minX: element.x - half.x,
+			maxX: element.x + half.x,
+			minY: element.y - half.y,
+			maxY: element.y + half.y
 		};
 	}
 

@@ -52,7 +52,9 @@ export function createModalStore(): ModalStore {
 			props: properties,
 			component,
 			resolve: () => promise,
-			resolved
+			get resolved() {
+				return resolved;
+			}
 		};
 
 		modals.push(pushed);

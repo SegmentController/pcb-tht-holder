@@ -2,10 +2,13 @@ import { nanoid } from 'nanoid';
 
 import type { ContextMenuItem } from '$components/base/ContextMenu.svelte';
 import { ELEMENT_DRAGGABLE, ELEMENT_OPACITY, LEG_COLOR } from '$lib/constants';
+import { createElementCollection } from '$lib/elements/collection';
 import { showModalConfirm } from '$stores/modalStore';
-import { getProjectStoreValue, projectStore } from '$stores/projectStore';
+import { getProjectStoreValue } from '$stores/projectStore';
 import { addUndo } from '$stores/undoStore';
 import { LEG_SIZE, type LegData } from '$types/LegData';
+
+const legs = createElementCollection('legs');
 
 export const addNewLeg = () => {
 	const project = getProjectStoreValue();
@@ -46,15 +49,7 @@ export const deleteLegWithConfirm = async (leg: LegData) => {
 	const { confirmed } = await showModalConfirm('Are you sure to delete leg?');
 	if (!confirmed) return;
 
-	const project = getProjectStoreValue();
-	project.legs = project.legs.filter((l) => l !== leg);
-	updateLegChanges(project.legs);
-
-	addUndo('Delete leg', () => {
-		const currentProject = getProjectStoreValue();
-		currentProject.legs.push(leg);
-		updateLegChanges(currentProject.legs);
-	});
+	legs.removeWithUndo(leg, 'Delete leg');
 };
 export const deleteAllLegsWithConfirm = async () => {
 	const { confirmed } = await showModalConfirm('Are you sure to delete all legs?');
@@ -71,11 +66,7 @@ export const deleteAllLegsWithConfirm = async () => {
 		updateLegChanges(currentProject.legs);
 	});
 };
-export const updateLegChanges = (legs?: LegData[]) =>
-	projectStore.update((value) => {
-		if (legs) value.legs = legs;
-		return value;
-	});
+export const updateLegChanges = legs.update;
 
 export const getContextMenuItemForLeg = (id: string): ContextMenuItem[] | undefined => {
 	const project = getProjectStoreValue();

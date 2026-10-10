@@ -3,11 +3,14 @@ import { nanoid } from 'nanoid';
 import type { ContextMenuItem } from '$components/base/ContextMenu.svelte';
 import type { CircleSettings } from '$components/modal/ModalCircleSettings.svelte';
 import { CIRCLE_COLOR, ELEMENT_DRAGGABLE, ELEMENT_OPACITY } from '$lib/constants';
+import { createElementCollection } from '$lib/elements/collection';
 import { getLibraryStoreValue, setLibraryStoreValue } from '$stores/libraryStore';
 import { showModalCircleSettings, showModalConfirm, showModalNameEdit } from '$stores/modalStore';
-import { getProjectStoreValue, projectStore } from '$stores/projectStore';
+import { getProjectStoreValue } from '$stores/projectStore';
 import { addUndo } from '$stores/undoStore';
 import type { CircleData } from '$types/CircleData';
+
+const circles = createElementCollection('circles');
 
 export const addNewCircle = async (source?: CircleSettings) => {
 	const project = getProjectStoreValue();
@@ -32,7 +35,7 @@ export const addNewCircle = async (source?: CircleSettings) => {
 			circle.radius = settings.radius;
 			circle.depth = settings.depth;
 			updateCircleChanges();
-		} else deleteCircle(circle);
+		} else circles.remove(circle); // cancelled add: nothing to undo
 	}
 };
 export const duplicateCircle = (source: CircleData) => addNewCircle(source);
@@ -75,21 +78,8 @@ export const modifyCircle = async (circle: CircleData) => {
 		}
 	}
 };
-export const deleteCircle = (circle: CircleData) => {
-	const project = getProjectStoreValue();
-	project.circles = project.circles.filter((c) => c !== circle);
-	updateCircleChanges();
-	addUndo('Delete circle', () => {
-		const currentProject = getProjectStoreValue();
-		currentProject.circles.push(circle);
-		updateCircleChanges();
-	});
-};
-export const updateCircleChanges = (circles?: CircleData[]) =>
-	projectStore.update((value) => {
-		if (circles) value.circles = circles;
-		return value;
-	});
+export const deleteCircle = (circle: CircleData) => circles.removeWithUndo(circle, 'Delete circle');
+export const updateCircleChanges = circles.update;
 
 export const getContextMenuItemForCircle = (id: string): ContextMenuItem[] | undefined => {
 	const project = getProjectStoreValue();

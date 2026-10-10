@@ -21,8 +21,13 @@
 
 	const MIN_WIDTH = 640;
 	const MAX_WIDTH = 1280;
+	const MAX_HEIGHT = 1024;
 
-	let recentWidth = Math.min(width, MAX_WIDTH);
+	// The offered sizes must satisfy both limits, so tall images do not stay above the max height
+	const maxWidth = Math.max(64, Math.min(MAX_WIDTH, Math.floor((MAX_HEIGHT * width) / height)));
+	const minWidth = Math.min(MIN_WIDTH, maxWidth);
+
+	let recentWidth = Math.min(width, maxWidth);
 </script>
 
 <EscapeClose on:escape={() => resolve(false)}>
@@ -39,7 +44,7 @@
 						>{recentWidth} x {Math.round((height / width) * recentWidth)}px</span
 					></Label
 				>
-				<Range id="resize" max={MAX_WIDTH} min={MIN_WIDTH} step={64} bind:value={recentWidth} />
+				<Range id="resize" max={maxWidth} min={minWidth} step={64} bind:value={recentWidth} />
 			</div>
 			<Button class="me-2" color="green" onclick={() => resolve(true)}>Resize</Button>
 			<Button color="alternative" onclick={() => resolve(false)}>Cancel</Button>

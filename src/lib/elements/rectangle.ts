@@ -3,15 +3,18 @@ import { nanoid } from 'nanoid';
 import type { ContextMenuItem } from '$components/base/ContextMenu.svelte';
 import type { RectangleSettings } from '$components/modal/ModalRectangleSettings.svelte';
 import { ELEMENT_DRAGGABLE, ELEMENT_OPACITY, RECTANGLE_COLOR } from '$lib/constants';
+import { createElementCollection } from '$lib/elements/collection';
 import { getLibraryStoreValue, setLibraryStoreValue } from '$stores/libraryStore';
 import {
 	showModalConfirm,
 	showModalNameEdit,
 	showModalRectangleSettings
 } from '$stores/modalStore';
-import { getProjectStoreValue, projectStore } from '$stores/projectStore';
+import { getProjectStoreValue } from '$stores/projectStore';
 import { addUndo } from '$stores/undoStore';
 import type { RectangleData } from '$types/RectangleData';
+
+const rectangles = createElementCollection('rectangles');
 
 export const addNewRectangle = async (source?: RectangleSettings) => {
 	const project = getProjectStoreValue();
@@ -40,7 +43,7 @@ export const addNewRectangle = async (source?: RectangleSettings) => {
 			rectangle.depth = settings.depth;
 			rectangle.rotation = settings.rotation;
 			updateRectangleChanges();
-		} else deleteRectangle(rectangle);
+		} else rectangles.remove(rectangle); // cancelled add: nothing to undo
 	}
 };
 export const duplicateRectangle = (source: RectangleData) => addNewRectangle(source);
@@ -117,31 +120,31 @@ export const rotateRectangleDegrees = (rectangle: RectangleData, delta: number) 
 	rectangle.rotation = updatedRotation;
 	updateRectangleChanges();
 
-	// Add undo entry
-	addUndo('Rotate rectangle', () => {
+	// Add undo entry (holding the key rotates many times: those share one entry)
+	addUndo(
+		'Rotate rectangle',
+		() => {
+			rectangle.rotation = previousRotation;
+			updateRectangleChanges();
+		},
+		`rotate:${rectangle.id}`
+	);
+};
+export const resetRectangleRotation = (rectangle: RectangleData) => {
+	const previousRotation = rectangle.rotation;
+	if (previousRotation === 0) return;
+
+	rectangle.rotation = 0;
+	updateRectangleChanges();
+
+	addUndo('Reset rotation', () => {
 		rectangle.rotation = previousRotation;
 		updateRectangleChanges();
 	});
 };
-export const resetRectangleRotation = (rectangle: RectangleData) => {
-	rectangle.rotation = 0;
-	updateRectangleChanges();
-};
-export const deleteRectangle = (rectangle: RectangleData) => {
-	const project = getProjectStoreValue();
-	project.rectangles = project.rectangles.filter((r) => r !== rectangle);
-	updateRectangleChanges();
-	addUndo('Delete rectangle', () => {
-		const currentProject = getProjectStoreValue();
-		currentProject.rectangles.push(rectangle);
-		updateRectangleChanges();
-	});
-};
-export const updateRectangleChanges = (rectangles?: RectangleData[]) =>
-	projectStore.update((value) => {
-		if (rectangles) value.rectangles = rectangles;
-		return value;
-	});
+export const deleteRectangle = (rectangle: RectangleData) =>
+	rectangles.removeWithUndo(rectangle, 'Delete rectangle');
+export const updateRectangleChanges = rectangles.update;
 
 export const getContextMenuItemForRectangle = (id: string): ContextMenuItem[] | undefined => {
 	const project = getProjectStoreValue();

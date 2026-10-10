@@ -44,6 +44,12 @@ export const deselectElementByMouseLeave = (
 	setStageCursor(event, getModeBasedCursor(isMeasurementMode, false));
 };
 
+/** Drops selections of elements that no longer exist (deleted without a mouseleave event) */
+export const pruneSelectedElements = (elements: readonly GenericElement[]) => {
+	for (const element of selectedElements)
+		if (!elements.includes(element)) selectedElements.delete(element);
+};
+
 export const getSelectedElementInfo = (): string | undefined => {
 	if (selectedElements.size !== 1) return undefined;
 

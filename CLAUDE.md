@@ -1,6 +1,6 @@
 # CLAUDE.md
 
-This file provides guidance to Claude Code when working with this repository.
+This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
 
 ## Project Overview
 
@@ -17,22 +17,29 @@ npm run dev              # Start dev server with --host (network accessible)
 npm run build            # Production build (outputs to docs/)
 npm run preview          # Preview production build
 
+npm run test             # Unit tests (Vitest, Node env)
+npm run test:watch       # Vitest watch mode
+npx vitest run src/lib/alignment.test.ts   # Single test file
+npx vitest run -t "snaps legs"              # Tests matching a name
 npm run ts:check         # TypeScript checking
 npm run format:check     # Check formatting
 npm run format:fix       # Auto-fix formatting
 npm run lint:check       # ESLint checks
 npm run lint:fix         # Auto-fix linting
-npm run all              # Run format:fix, lint:fix, ts:check, prebuild, build
+npm run all              # Run format:fix, lint:fix, ts:check, test, build
 
 npm run npm:reinstall    # Clean reinstall dependencies
 ```
 
 ## Build Process
 
-Prebuild script:
+The `service-worker` Vite plugin (`vite.config.ts`) emits `service-worker.js` from
+`src/service-worker.template.js`, filling in `__VERSION__` (package version) and `__PRECACHE__`
+(app shell + hashed entry assets). The 3D stack (three, CSG, threlte) is a lazy chunk loaded when the
+3D view opens; the `drop-unused-threlte-assets` plugin removes unreferenced draco/basis files.
 
-1. Copies `src/service-worker.template.js` to `public/service-worker.js`
-2. Replaces `__VERSION__` placeholder with package version
+Tailwind sources are explicit `@source` directives in `src/app.css` — add a flowbite-svelte
+directory there when using a new flowbite component, otherwise its classes are missing.
 
 Outputs to `docs/` directory for GitHub Pages.
 
@@ -47,7 +54,7 @@ Outputs to `docs/` directory for GitHub Pages.
 - **2D Canvas**: Konva.js via svelte-konva
 - **Validation**: Zod for runtime schemas
 - **UI**: Flowbite Svelte + Tailwind CSS 4
-- **State**: svelte-persisted-store (localStorage)
+- **State**: Svelte stores persisted to localStorage (`projectStore` is hand-rolled, `libraryStore` uses svelte-persisted-store)
 
 ### Key Directory Structure
 
@@ -58,36 +65,66 @@ src/
 ├── lib/
 │   ├── constants.ts  # Centralized constants
 │   ├── alignment.ts  # Alignment guide + magnetic snapping
-│   ├── 3d/           # STL generation (stl.ts) + mesh operations (mesh.ts)
-│   ├── elements/     # Circle, rectangle, leg operations
+│   ├── geometry.ts   # Pure 2D helpers (rotated rectangle extents)
+│   ├── format.ts     # File name timestamp
+│   ├── 3d/           # STL generation (stl.ts), CSG meshes (mesh.ts), worker + client, placement.ts (dependency-free constants), leg overlap (legOverlap.ts), watertight repair of CSG output (meshRepair.ts)
+│   ├── elements/     # Circle, rectangle, leg operations; collection.ts (shared store commit/remove/undo)
 │   └── svelteModal/  # Modal utilities
 ├── components/
 │   ├── base/         # Reusable components (ContextMenu, HoverInfo, ToastContainer, PartnerBadge)
 │   ├── modal/        # Modal dialogs
 │   └── (root)        # Main designer components
-└── cards/            # Card components
+└── App*.svelte       # AppDesigner (Konva canvas), AppNavigation (menu, 3D/export), AppDropzone (image/project load)
 ```
+
+Tests are co-located as `*.test.ts` next to the module they cover.
 
 ### Core Data Flow
 
 1. **projectStore** (persisted): PCB image (base64), panel settings, components (`circles[]`, `rectangles[]`, `legs[]`)
+   - Not `svelte-persisted-store`: hand-rolled in `projectStore.ts`. Image lives under its own
+     localStorage key (`project-image`) and is only rewritten when it changed; writes are debounced
+     (250ms) and flushed on `pagehide`/hidden; other tabs are adopted via the `storage` event.
+   - `projectJsonSerializer.parse` and `parseStoredProject` fall back to the empty project when
+     **any** field fails Zod validation (e.g. rectangle `rotation` outside 0–359 wipes the project),
+     so keep schema constraints and the values the UI can produce in sync.
 2. **AppDesigner.svelte**: Konva.js Stage for 2D canvas, pointer/measure modes, context menus, keyboard shortcuts
    - **Alignment guides**: Visual blue lines + magnetic snapping (0.2mm range), toggle via Align switch
 3. **3D Mesh Generation** (`src/lib/3d/mesh.ts`):
-   - Async with progress tracking, yields after each CSG operation
-   - Generates 3 meshes: Main (full-depth), Hollow (material-saving), Positive (PCB visualization)
-   - **Leg collision detection**: Auto-filters overlapping legs before mesh generation
+   - Runs in a Web Worker (`mesh.worker.ts`, via `meshClient.ts`) with progress tracking; falls back to the UI thread
+   - Variants are generated on demand and memoized per project (`createMeshSession`): Main (full-depth),
+     Hollow (material-saving, sliced from the shared base solid), Positive (PCB visualization, display only)
+   - Disjoint cutters/legs/pillars are merged into one CSG operand per batch (`partitionDisjoint`);
+     overlapping ones must stay in separate batches (parity-based inside test)
+   - **Leg collision detection**: Auto-filters overlapping legs before mesh generation (`legOverlap.ts`, pure and unit-tested; `hiddenLegsCount` is reported to the UI)
    - **Print tolerance**: Configurable 0-2mm (enlarges holes, shrinks panel)
    - Optional text label engraving (Three.js TextGeometry, Roboto font)
-4. **STL Export** (`src/lib/3d/stl.ts`): Converts to text/binary STL format
+4. **Mesh repair** (`src/lib/3d/meshRepair.ts`, pure and unit-tested, called from `toMeshInfo`):
+   three-bvh-csg output has float-noise seams, T-junctions, zero-area slivers, fins, flipped patches
+   and small holes, which slicers report as thousands of "open edges". `repairMesh` welds (2e-4 mm),
+   drops degenerate triangles, splits edges at T-junctions, re-orients flipped patches, removes fins and
+   fills small planar holes; `countOpenEdges` matches vertices by exact coordinates like a slicer does.
+   - Larger weld radii (1e-3 and up) make seams _worse_; keep tolerance and weld radius equal.
+   - `mesh.test.ts` asserts zero open edges **and** origin-independent volume (closed, consistently
+     oriented). Raw CSG volumes of the hollow variant were origin-dependent by tens of mm³.
+   - Edges shared by 4 triangles (two parts touching along a line) are left as they are.
+5. **STL Export** (`src/lib/3d/stl.ts`): Binary STL only (the ASCII writer was removed in 1.14.0)
 
 ### Async Mesh Generation
 
-Flow: `AppNavigation.openDisplay()` → `showModalMesh(meshGenerator)` → `ModalMeshDisplay` → `generateMeshLazy()`
+Flow: `AppNavigation.openDisplay()` → `showModalMesh(name, project)` → `ModalMeshDisplay` →
+`createMeshClient(project).generate(kind, onProgress)` → `mesh.worker.ts` → `createMeshSession().generate(kind)`.
 
-Progress tracking via `onProgress(current, total)` callback. `YIELD_DELAY_MS` in mesh.ts (0 for prod, 10+ for testing).
-
-Operation count: 2 base + 2 empty space + 8 cutouts + (components × 2) + (legs × 2) + positive components + 1 label
+- The worker keeps the latest session (keyed by project content without zoom), so reopening the 3D view or
+  toggling Hollow/PCB reuses solids; closing the modal sends a cancel that stops at the next operation.
+- Progress via `onProgress(current, total)`. `YIELD_DELAY_MS` in mesh.ts (0 for prod, 10+ for testing).
+- Operation count per variant is derived from the batches (`solidOperations`, `mainOperations`,
+  `hollowOperations`, `positiveOperations` in `createMeshSession`): keep them in sync when adding CSG steps
+  or the progress bar misreports.
+- Regression tests (`mesh.test.ts`) compare volume and bounds, not triangle counts, and require zero
+  open edges and an origin-independent volume (see Mesh repair above). Positive pillars sink
+  1 mm into the base plate (coplanar contact faces blow up the CSG triangulation).
+- three-bvh-csg 0.0.18 logs a deprecated `maxLeafSize` warning; it is filtered in the worker.
 
 ### Coordinate Systems (CRITICAL)
 
@@ -131,7 +168,7 @@ Saves component specs (dimensions, depth, rotation) for reuse. Persisted to loca
 // Rectangle: { type: 'rectangle', name, width, height, depth, rotation }
 ```
 
-**Default Components**: 14 pre-defined THT components (DIP sockets, capacitors, buzzers, terminals, relays)
+**Default Components**: 13 pre-defined THT components (DIP sockets, capacitors, buzzers, terminals, relays)
 
 - Loaded via `loadDefaultsToLibrary()` with duplicate detection (O(1) Set lookup)
 - UI: "Load defaults", Import, Export, Clear buttons in Library modal
@@ -140,14 +177,14 @@ Saves component specs (dimensions, depth, rotation) for reuse. Persisted to loca
 
 ### Constants (`src/lib/constants.ts`)
 
-```typescript
-ELEMENT_OPACITY = 0.75;
-((CIRCLE_COLOR = 'orange'), (RECTANGLE_COLOR = 'green'), (LEG_COLOR = 'gray'));
-POSITIVE_MESH_COLOR = '#ff8811';
-FINE_MOVEMENT_DELTA = 0.1; // mm, SHIFT multiplier = 5
-((ALIGNMENT_SNAP_THRESHOLD = 0.1), (ALIGNMENT_SNAP_DISTANCE = 0.2));
-((ALIGNMENT_LINE_COLOR = '#0088ff'), (ALIGNMENT_LINE_WIDTH = 0.1));
-ELEMENT_SKIP_JSON_PROPERTIES = ['fill', 'draggable', 'opacity'];
+```text
+ELEMENT_OPACITY = 0.75
+CIRCLE_COLOR = 'orange'; RECTANGLE_COLOR = 'green'; LEG_COLOR = 'gray'
+POSITIVE_MESH_COLOR = '#ff8811'
+FINE_MOVEMENT_DELTA = 0.1 // mm, SHIFT multiplier = 5
+ALIGNMENT_SNAP_THRESHOLD = 0.1; ALIGNMENT_SNAP_DISTANCE = 0.2
+ALIGNMENT_LINE_COLOR = '#0088ff'; ALIGNMENT_LINE_WIDTH = 0.1
+ELEMENT_SKIP_JSON_PROPERTIES = ['fill', 'draggable', 'opacity']
 ```
 
 ### Type Guards (`src/types/typeGuards.ts`)
@@ -212,7 +249,18 @@ Implementation: `shortcut` action in `src/lib/shortcut.ts` checks `modalStore` s
 
 ## Testing Workflow
 
-Manual only:
+### Unit tests (Vitest)
+
+`npm run test` runs `src/**/*.test.ts` in a Node environment (no DOM). Tests are co-located with the
+module they cover. Covered: alignment, STL export, mesh repair, leg overlap (`src/lib/3d/legOverlap.ts`), Zod
+schemas/type guards, project serializer, undo/toast/library/modal stores. Keep logic that must be
+tested free of `three-bvh-csg`, Konva and `.svelte` imports (extract it into a plain `.ts` module);
+tests use explicit `import { describe, it, expect } from 'vitest'` (no globals). CI runs the suite.
+
+`vite.config.ts` aliases `three-bvh-csg` to its ESM source for tests: its UMD `main` would
+`require('three')` and load a second, deprecated copy (`three.cjs`) with a warning.
+
+### Manual checklist (visual / 3D)
 
 1. Upload PCB → verify transparency/flip
 2. Place components → adjust depth/height/rotation

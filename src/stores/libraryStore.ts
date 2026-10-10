@@ -34,7 +34,7 @@
  * - Delete individual items via modal interface
  * - Items are alphabetically sorted in "Add from library" menu
  */
-import { get, type Updater } from 'svelte/store';
+import { get } from 'svelte/store';
 import { persisted } from 'svelte-persisted-store';
 
 import {
@@ -62,12 +62,6 @@ export const getLibraryStoreValue = (): Library => get(libraryStore);
  * @param library - New array of component templates
  */
 export const setLibraryStoreValue = (library: Library) => libraryStore.set(library);
-
-/**
- * Updates library using updater function pattern
- * @param updater - Function that receives current library and returns updated library
- */
-export const updateLibraryStoreValue = (updater: Updater<Library>) => libraryStore.update(updater);
 
 /**
  * Loads default THT components into the library

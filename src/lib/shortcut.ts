@@ -10,9 +10,7 @@ export interface ShortcutAttributes {
 export type ShortcutModifier = 'alt' | 'ctrl' | 'meta' | 'shift';
 
 export type ShortcutModifierDefinition =
-	| ShortcutModifier
-	| ShortcutModifier[]
-	| ShortcutModifier[][];
+	ShortcutModifier | ShortcutModifier[] | ShortcutModifier[][];
 
 export interface ShortcutTrigger {
 	enabled?: boolean;

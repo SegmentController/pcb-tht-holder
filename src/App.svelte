@@ -36,6 +36,7 @@
 
 	import { onMount } from 'svelte';
 
+	import PartnerBadge from '$components/base/PartnerBadge.svelte';
 	import ToastContainer from '$components/base/ToastContainer.svelte';
 	import ModalPortal from '$lib/svelteModal/ModalPortal.svelte';
 	import { modalStore } from '$stores/modalStore';
@@ -88,6 +89,7 @@
 
 <ModalPortal store={modalStore} />
 <ToastContainer />
+<PartnerBadge />
 
 <style>
 	:global(body) {

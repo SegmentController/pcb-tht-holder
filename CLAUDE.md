@@ -62,7 +62,7 @@ src/
 │   ├── elements/     # Circle, rectangle, leg operations
 │   └── svelteModal/  # Modal utilities
 ├── components/
-│   ├── base/         # Reusable components
+│   ├── base/         # Reusable components (ContextMenu, HoverInfo, ToastContainer, PartnerBadge)
 │   ├── modal/        # Modal dialogs
 │   └── (root)        # Main designer components
 └── cards/            # Card components
@@ -184,6 +184,8 @@ See `Mesh3DScene.svelte` for the canonical example.
 - **Globals**: `__PKG_VERSION__`, `__BASE_URL__` injected at build time
 - **Service Worker**: PWA with offline caching, version auto-updated
 - **SEO**: Meta tags, sitemap.xml, Google Search Console verification
+- **Partner Badge** (`PartnerBadge.svelte`): SkipTheCAD listing badge, fixed top-right, auto-hides after 7s; mounted once in `App.svelte`
+- **Vite config**: ESM-native — `node:path`, `import.meta.dirname` (no `__dirname`), `package.json` imported with `with { type: 'json' }`
 - **Environment**: Production base path `/pcb-tht-holder`, dev empty string
 - **ESLint**: unicorn/all config, import sorting, no console/alert/debugger
 - **Requirements**: Node >=24.0.0, npm >=11.0.0

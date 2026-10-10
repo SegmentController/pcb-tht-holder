@@ -1,5 +1,7 @@
 # PCB THT holder
 
+[![Listed on SkipTheCAD](https://skipthecad.com/badge/listed-dark.svg)](https://skipthecad.com/generators/pcb-tht-holder/)
+
 [Changelog](CHANGELOG.md)
 
 3D STL file generator for THT PCB panels, online access: https://segmentcontroller.github.io/pcb-tht-holder/

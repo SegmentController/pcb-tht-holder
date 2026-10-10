@@ -25,6 +25,12 @@
 - Resize image dialog offers only widths that also respect the maximum height (tall images no longer stay above it)
 - Library import reports invalid JSON/schema errors instead of failing silently
 - Shared code extracted into `elements/collection.ts`, `geometry.ts`, `format.ts` (replaces dayjs) and `3d/placement.ts`
+- Tests: `three-bvh-csg` is aliased to its ESM source in `vite.config.ts`, which removes the `THREE_CJS_DEPRECATED` warning (its UMD build loaded a second copy of three); `mesh.test.ts` now also asserts zero open edges and an origin-independent volume
+
+### Fixed
+
+- STL export: generated meshes were not watertight (slicers such as Bambu Studio reported thousands of open edges). Mesh variants now go through a repair pass (`src/lib/3d/meshRepair.ts`) after the CSG operations: near-duplicate vertices are welded, T-junctions are split, zero-area triangles and fins are dropped, flipped patches are re-oriented and small planar holes are filled. `mergeVertices` is no longer used.
+- Hollow holder volumes in the golden tests were re-captured from the repaired meshes: the raw CSG output had small holes, so its signed volume depended on the origin by up to ~35 mm³
 
 ### Removed
 

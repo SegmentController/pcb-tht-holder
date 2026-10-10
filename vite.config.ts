@@ -89,6 +89,11 @@ export default defineConfig({
 	test: {
 		environment: 'node',
 		include: ['src/**/*.test.ts'],
+		// Persist transformed modules between runs (three / three-bvh-csg dominate the transform time)
+		fsModuleCache: true,
+		// three-bvh-csg's UMD `main` would `require('three')`: a deprecated second copy (three.cjs) and a
+		// warning. Its `module` entry is what the production build resolves; use it in tests too
+		alias: { 'three-bvh-csg': 'three-bvh-csg/src/index.js' },
 		// three-bvh-csg 0.0.18 still passes an option three-mesh-bvh deprecated and warns on every
 		// boolean operation; nothing the app can fix (the worker filters it the same way)
 		onConsoleLog: (log) => (log.includes('"maxLeafSize"') ? false : undefined)

@@ -9,10 +9,11 @@ import {
 } from 'three';
 import { TextGeometry } from 'three/addons/geometries/TextGeometry.js';
 import { Font, FontLoader } from 'three/addons/loaders/FontLoader.js';
-import { mergeGeometries, mergeVertices } from 'three/addons/utils/BufferGeometryUtils.js';
+import { mergeGeometries } from 'three/addons/utils/BufferGeometryUtils.js';
 import { ADDITION, Brush, Evaluator, SUBTRACTION } from 'three-bvh-csg';
 
 import { isLegOverlappingCircle, isLegOverlappingRectangle } from '$lib/3d/legOverlap';
+import { repairMesh } from '$lib/3d/meshRepair';
 import { BOTTOM_THICKNESS, POSITIVE_BASE_THICKNESS } from '$lib/3d/placement';
 import { MathMinMax } from '$lib/Math';
 import type { CircleData } from '$types/CircleData';
@@ -476,11 +477,11 @@ export const createMeshSession = (project: RenderableProject, font: Font): MeshS
 	};
 
 	const toMeshInfo = (solid: Brush, dimensions: MeshInfo['dimensions']): MeshInfo => {
-		// Fix non-manifold edges: snap near-duplicate CSG seam vertices to identical values.
-		// mergeVertices: non-indexed → indexed (deduplicates vertices within epsilon)
-		// toNonIndexed: indexed → non-indexed (expands back, but shared edge vertices are now exact)
-		const geometry = mergeVertices(solid.geometry).toNonIndexed();
-		return { vertexArray: geometry.attributes['position'].array as Float32Array, dimensions };
+		// CSG output has near-duplicate seam vertices and T-junctions (open edges for slicers);
+		// the repair welds the former and splits edges at the latter
+		const geometry = solid.geometry.index ? solid.geometry.toNonIndexed() : solid.geometry;
+		const positions = geometry.attributes['position'].array as Float32Array;
+		return { vertexArray: repairMesh(positions), dimensions };
 	};
 
 	const builders: Record<MeshKind, (step: Step) => Promise<MeshInfo>> = {

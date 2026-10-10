@@ -67,7 +67,7 @@ src/
 │   ├── alignment.ts  # Alignment guide + magnetic snapping
 │   ├── geometry.ts   # Pure 2D helpers (rotated rectangle extents)
 │   ├── format.ts     # File name timestamp
-│   ├── 3d/           # STL generation (stl.ts), CSG meshes (mesh.ts), worker + client, placement.ts (dependency-free constants), leg overlap (legOverlap.ts)
+│   ├── 3d/           # STL generation (stl.ts), CSG meshes (mesh.ts), worker + client, placement.ts (dependency-free constants), leg overlap (legOverlap.ts), watertight repair of CSG output (meshRepair.ts)
 │   ├── elements/     # Circle, rectangle, leg operations; collection.ts (shared store commit/remove/undo)
 │   └── svelteModal/  # Modal utilities
 ├── components/
@@ -99,7 +99,16 @@ Tests are co-located as `*.test.ts` next to the module they cover.
    - **Leg collision detection**: Auto-filters overlapping legs before mesh generation (`legOverlap.ts`, pure and unit-tested; `hiddenLegsCount` is reported to the UI)
    - **Print tolerance**: Configurable 0-2mm (enlarges holes, shrinks panel)
    - Optional text label engraving (Three.js TextGeometry, Roboto font)
-4. **STL Export** (`src/lib/3d/stl.ts`): Binary STL only (the ASCII writer was removed in 1.14.0)
+4. **Mesh repair** (`src/lib/3d/meshRepair.ts`, pure and unit-tested, called from `toMeshInfo`):
+   three-bvh-csg output has float-noise seams, T-junctions, zero-area slivers, fins, flipped patches
+   and small holes, which slicers report as thousands of "open edges". `repairMesh` welds (2e-4 mm),
+   drops degenerate triangles, splits edges at T-junctions, re-orients flipped patches, removes fins and
+   fills small planar holes; `countOpenEdges` matches vertices by exact coordinates like a slicer does.
+   - Larger weld radii (1e-3 and up) make seams _worse_; keep tolerance and weld radius equal.
+   - `mesh.test.ts` asserts zero open edges **and** origin-independent volume (closed, consistently
+     oriented). Raw CSG volumes of the hollow variant were origin-dependent by tens of mm³.
+   - Edges shared by 4 triangles (two parts touching along a line) are left as they are.
+5. **STL Export** (`src/lib/3d/stl.ts`): Binary STL only (the ASCII writer was removed in 1.14.0)
 
 ### Async Mesh Generation
 
@@ -112,7 +121,8 @@ Flow: `AppNavigation.openDisplay()` → `showModalMesh(name, project)` → `Moda
 - Operation count per variant is derived from the batches (`solidOperations`, `mainOperations`,
   `hollowOperations`, `positiveOperations` in `createMeshSession`): keep them in sync when adding CSG steps
   or the progress bar misreports.
-- Regression tests (`mesh.test.ts`) compare volume and bounds, not triangle counts. Positive pillars sink
+- Regression tests (`mesh.test.ts`) compare volume and bounds, not triangle counts, and require zero
+  open edges and an origin-independent volume (see Mesh repair above). Positive pillars sink
   1 mm into the base plate (coplanar contact faces blow up the CSG triangulation).
 - three-bvh-csg 0.0.18 logs a deprecated `maxLeafSize` warning; it is filtered in the worker.
 
@@ -242,10 +252,13 @@ Implementation: `shortcut` action in `src/lib/shortcut.ts` checks `modalStore` s
 ### Unit tests (Vitest)
 
 `npm run test` runs `src/**/*.test.ts` in a Node environment (no DOM). Tests are co-located with the
-module they cover. Covered: alignment, STL export, leg overlap (`src/lib/3d/legOverlap.ts`), Zod
+module they cover. Covered: alignment, STL export, mesh repair, leg overlap (`src/lib/3d/legOverlap.ts`), Zod
 schemas/type guards, project serializer, undo/toast/library/modal stores. Keep logic that must be
 tested free of `three-bvh-csg`, Konva and `.svelte` imports (extract it into a plain `.ts` module);
 tests use explicit `import { describe, it, expect } from 'vitest'` (no globals). CI runs the suite.
+
+`vite.config.ts` aliases `three-bvh-csg` to its ESM source for tests: its UMD `main` would
+`require('three')` and load a second, deprecated copy (`three.cjs`) with a warning.
 
 ### Manual checklist (visual / 3D)
 

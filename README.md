@@ -35,6 +35,9 @@ In its current state, it facilitates the installation of circular and oblong com
   - Legs overlapping with components are automatically filtered during mesh generation
   - Warning notification shows count of hidden legs
   - Prevents mesh generation errors and ensures clean STL output
+- **Print-ready STL**: Exported meshes are watertight and consistently oriented
+  - A repair pass after the CSG operations welds seams, splits T-junctions and closes small holes
+  - Slicers such as Bambu Studio import the file without "open edges" warnings or a repair step
 - **Print Tolerance**: Adjustable tolerance setting (0-2mm with 0.1mm precision)
   - Compensates for 3D printer dimensional inaccuracies
   - Enlarges component holes and shrinks holder panel for perfect fit
@@ -180,7 +183,7 @@ npm run all
 
 - `src/` - Source code
   - `components/` - Svelte components
-  - `lib/` - Utility functions and 3D generation logic (`lib/3d/` runs CSG in a Web Worker)
+  - `lib/` - Utility functions and 3D generation logic (`lib/3d/` runs CSG in a Web Worker and repairs the result into a watertight mesh)
   - `stores/` - Svelte stores for state management
   - `types/` - TypeScript type definitions and Zod schemas
 - `public/` - Static assets

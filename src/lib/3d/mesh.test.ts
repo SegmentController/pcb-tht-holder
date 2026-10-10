@@ -6,6 +6,7 @@ import type { RenderableProject } from '$types/Project';
 
 import fontData from '../../../public/roboto_regular.json';
 import { createMeshSession, generateMesh, MeshCancelledError, partitionDisjoint } from './mesh';
+import { countOpenEdges } from './meshRepair';
 import { analyzeVertices, makeProject } from './meshTestUtilities';
 import { POSITIVE_BASE_THICKNESS } from './placement';
 
@@ -19,6 +20,12 @@ import { POSITIVE_BASE_THICKNESS } from './placement';
  * poke into the rim (hole enlarged by the tolerance) are cut there exactly like in the main holder.
  * Pillars of the (display-only) positive mesh sink 1 mm into its base plate, so pillars overhanging
  * the plate edge gain a sliver of volume.
+ *
+ * Meshes must also be watertight (no open edges, see `meshRepair.ts`) and consistently oriented,
+ * checked through the volume being independent of the origin. The three hollow volumes of the
+ * projects with many cut-outs were re-captured from the repaired meshes: the raw CSG output had
+ * small holes there, so its signed volume (and the old golden value) depended on the origin by up to
+ * ~35 mm³ (0.1 %).
  */
 
 const font = new Font(fontData as unknown as ConstructorParameters<typeof Font>[0]);
@@ -27,6 +34,11 @@ type Expected = { volume: number; size: [number, number, number] };
 const expectMesh = (vertices: Float32Array, expected: Expected) => {
 	const actual = analyzeVertices(vertices);
 	expect(vertices.length % 9).toBe(0);
+	// Slicers (Bambu Studio) complain about open edges
+	expect(countOpenEdges(vertices)).toBe(0);
+	// The volume of a closed, consistently oriented mesh does not depend on the origin
+	const shifted = Float32Array.from(vertices, (value, index) => value + [73, -41, 29][index % 3]!);
+	expect(analyzeVertices(shifted).volume).toBeCloseTo(actual.volume, 0);
 	expect(actual.volume).toBeCloseTo(expected.volume, 0);
 	for (const [index, value] of expected.size.entries())
 		expect(actual.size[index]).toBeCloseTo(value, 1);
@@ -62,7 +74,7 @@ const cases: Array<{
 		project: makeProject(7, 4, 6, 4, 'Rot 45', 0.2),
 		hidden: 2,
 		main: { volume: 115_224.52, size: [123.6, 94.1, 14.6] },
-		hollow: { volume: 24_174.37, size: [123.6, 93.6, 6.6] },
+		hollow: { volume: 24_177.14, size: [123.6, 93.6, 6.6] },
 		positive: { volume: 26_926.11, size: [120, 90, 13] }
 	},
 	{
@@ -70,7 +82,7 @@ const cases: Array<{
 		project: makeProject(11, 14, 16, 10, 'Busy panel', 0.2),
 		hidden: 2,
 		main: { volume: 110_573.78, size: [123.6, 94.1, 14.6] },
-		hollow: { volume: 22_344.79, size: [123.6, 93.6, 6.6] },
+		hollow: { volume: 22_329.42, size: [123.6, 93.6, 6.6] },
 		positive: { volume: 34_712.18, size: [120, 90, 13] }
 	},
 	{
@@ -78,7 +90,7 @@ const cases: Array<{
 		project: makeProject(3, 6, 8, 5, '', 0.2),
 		hidden: 2,
 		main: { volume: 114_044.28, size: [123.6, 93.6, 14.6] },
-		hollow: { volume: 24_439.42, size: [123.6, 93.6, 6.6] },
+		hollow: { volume: 24_433.71, size: [123.6, 93.6, 6.6] },
 		positive: { volume: 27_741.83, size: [120, 90, 13] }
 	}
 ];

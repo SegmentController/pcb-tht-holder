@@ -38,7 +38,7 @@
 </script>
 
 <Dropzone
-	class="m-4"
+	class="m-4 w-auto"
 	onchange={handleChange}
 	ondragover={(event) => event.preventDefault()}
 	ondrop={dropHandle}
@@ -51,5 +51,5 @@
 			{errorMessage}
 		</p>
 	{/if}
-	<p class="mb-2 text-sm text-gray-500 dark:text-gray-400">{description}</p>
+	<p class="mb-2 px-4 text-sm text-gray-500 dark:text-gray-400">{description}</p>
 </Dropzone>

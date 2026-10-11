@@ -64,6 +64,7 @@ In its current state, it facilitates the installation of circular and oblong com
 - **Hover Info**: Real-time element information and available shortcuts when hovering
 - **Hollow Option**: Generate top-layer-only coverage for faster printing
 - **Custom Labels**: Print text labels on the side of your holder
+- **Demo Projects**: Three ready-made KiCad boards under the dropzone to try the workflow without a PCB
 - **Auto Image Resize**: Automatically resizes large images (>1280x1024) for easier handling
 - **PWA Support**: Install as a standalone application on your device
 - **Offline Ready**: Works without internet connection after first load (service worker precaches the app shell)
@@ -113,6 +114,8 @@ Click here: https://segmentcontroller.github.io/pcb-tht-holder/
 ### Set up a PCB image
 
 Enter a PCB image with drag and drop or file selection, which will automatically flip and become transparent.
+
+No PCB at hand? Pick one of the three demo boards under the dropzone: it loads a ready-made project with its holes and support legs already placed. Demo credits and licences: [`public/demo/CREDITS.md`](./public/demo/CREDITS.md).
 
 ![alt text](./step1.png)
 

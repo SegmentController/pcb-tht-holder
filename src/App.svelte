@@ -79,6 +79,7 @@
 </script>
 
 <AppNavigation projectLoaded={!!imageSize} bind:mode={designerMode} on:reset={reset} />
+<PartnerBadge />
 <main class="flex flex-col justify-center">
 	{#if !!imageSize}
 		<AppDesigner bind:pcbImage bind:imageSize bind:mode={designerMode} />
@@ -89,7 +90,6 @@
 
 <ModalPortal store={modalStore} />
 <ToastContainer />
-<PartnerBadge />
 
 <style>
 	:global(body) {

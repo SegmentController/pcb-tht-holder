@@ -1,5 +1,26 @@
 # Change log
 
+## [1.14.2] - 2026-10-11
+
+### Added
+
+- Three demo projects under the dropzone (Open555, Servo Controller 555, Arduino ICSP Shield): one click loads a ready-made project with holes and legs placed. Files and thumbnails live in `public/demo/` (credits and licences in `public/demo/CREDITS.md`), the catalogue is `src/lib/demos.ts`, the cards are `DemoPicker.svelte`
+- `formatMm` (`src/lib/format.ts`) for millimetre display, with unit tests
+- Demo thumbnails listed in `sitemap.xml` as image entries
+
+### Changed
+
+- Project loading from a `.tht3d` file and from a demo shares one `loadProjectData()` in `AppDropzone.svelte`
+- A loaded project also restores its print label and zoom (previously only elements and panel settings)
+- The SkipTheCAD partner badge hangs under the header below the `xl` breakpoint instead of overlapping the menu; it stays fixed in the top-right corner from `xl` up
+- Dropzone sizes to its container (`w-auto` inside the margin) and its description has horizontal padding
+- `sitemap.xml` dropped the stale `lastmod`
+
+### Fixed
+
+- The 3D view size line showed floating point noise (e.g. `96.19999999999999 mm`); it now shows at most two decimals
+- File > New and uploading a new PCB image left the previous project's print label in place
+
 ## [1.14.1] - 2026-10-10
 
 ### Added

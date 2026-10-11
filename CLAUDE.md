@@ -69,12 +69,14 @@ src/
 │   ├── alignment.ts  # Alignment guide + magnetic snapping
 │   ├── geometry.ts   # Pure 2D helpers (rotated rectangle extents)
 │   ├── zoom.ts       # Wheel/pinch zoom: pure step helpers (unit-tested) + `wheelZoom` action
-│   ├── format.ts     # File name timestamp
+│   ├── format.ts     # File name timestamp, `formatMm` (display mm, max 2 decimals)
+│   ├── demos.ts      # Demo project catalogue (files in public/demo/, credits + licences in public/demo/CREDITS.md)
 │   ├── 3d/           # STL generation (stl.ts), CSG meshes (mesh.ts), worker + client, placement.ts (dependency-free constants), leg overlap (legOverlap.ts), watertight repair of CSG output (meshRepair.ts)
 │   ├── elements/     # Circle, rectangle, leg operations; collection.ts (shared store commit/remove/undo)
 │   └── svelteModal/  # Modal utilities
 ├── components/
 │   ├── base/         # Reusable components (ContextMenu, HoverInfo, ToastContainer, PartnerBadge)
+│   ├── DemoPicker.svelte  # Demo cards under the dropzone (AppDropzone fetches public/demo/*.tht3d)
 │   ├── modal/        # Modal dialogs
 │   └── (root)        # Main designer components
 └── App*.svelte       # AppDesigner (Konva canvas), AppNavigation (menu, 3D/export), AppDropzone (image/project load)
@@ -225,7 +227,10 @@ See `Mesh3DScene.svelte` for the canonical example.
 - **Globals**: `__PKG_VERSION__`, `__BASE_URL__` injected at build time
 - **Service Worker**: PWA with offline caching, version auto-updated
 - **SEO**: Meta tags, sitemap.xml, Google Search Console verification
-- **Partner Badge** (`PartnerBadge.svelte`): SkipTheCAD listing badge, fixed top-right, auto-hides after 7s; mounted once in `App.svelte`
+- **Project loading** (`AppDropzone.svelte`): `.tht3d` uploads and demos both go through `loadProjectData()`
+  (Zod validation, one store write incl. label and zoom, embedded image via `onFileUpload`); a new image upload
+  and File > New clear the print label
+- **Partner Badge** (`PartnerBadge.svelte`): SkipTheCAD listing badge, fixed top-right from `xl` up and below the header on smaller screens, auto-hides after 7s; mounted once in `App.svelte` right after `AppNavigation`
 - **Vite config**: ESM-native — `node:path`, `import.meta.dirname` (no `__dirname`), `package.json` imported with `with { type: 'json' }`
 - **Environment**: Production base path `/pcb-tht-holder`, dev empty string
 - **ESLint**: unicorn/all config, import sorting, no console/alert/debugger

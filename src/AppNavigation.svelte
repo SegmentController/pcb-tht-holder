@@ -181,7 +181,7 @@
 	 *
 	 * Triggered by File > New menu item. Shows confirmation dialog before:
 	 * - Clearing loaded PCB image
-	 * - Resetting project name
+	 * - Resetting project name and print label
 	 * - Removing all circles, rectangles, and legs
 	 * - Resetting zoom to 100%
 	 * - Dispatching 'reset' event to parent (App.svelte) to return to dropzone view
@@ -199,6 +199,7 @@
 			updateProjectStoreValue((value) => {
 				value.image = '';
 				value.name = '';
+				value.label = '';
 				value.zoom = 100;
 				value.circles = [];
 				value.rectangles = [];

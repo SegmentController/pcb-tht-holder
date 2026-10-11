@@ -11,7 +11,7 @@
 	import { generateBinaryStlFromVertices, getBinaryStlSizeKbFromVertices } from '$lib/3d/stl';
 	import { POSITIVE_MESH_COLOR } from '$lib/constants';
 	import { virtualDownload } from '$lib/download';
-	import { formatFileTimestamp } from '$lib/format';
+	import { formatFileTimestamp, formatMm } from '$lib/format';
 	import { MathMax } from '$lib/Math';
 	import type { MeshInfo } from '$types/MeshInfo';
 	import type { RenderableProject } from '$types/Project';
@@ -142,9 +142,9 @@
 				<span class="text-red-500 text-xl">Error '{errorMessage}' occured while rendering mesh</span
 				>
 			{:else if shownMesh && !pendingProgress}
-				{shownMesh.dimensions.width} x
-				{shownMesh.dimensions.height} x
-				{shownMesh.dimensions.depth} mm |
+				{formatMm(shownMesh.dimensions.width)} x
+				{formatMm(shownMesh.dimensions.height)} x
+				{formatMm(shownMesh.dimensions.depth)} mm |
 				{shownMesh.vertexArray.length / 9} polygons |
 				{getBinaryStlSizeKbFromVertices(shownMesh.vertexArray.length)} kB
 			{:else if pendingKind && pendingProgress}

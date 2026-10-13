@@ -1,5 +1,19 @@
 # Change log
 
+## [1.14.4] - 2026-10-13
+
+### Added
+
+- Redo: `Ctrl+Shift+Z` / `Cmd+Shift+Z` or `Ctrl+Y`, and a "Redo: {name}" item in the Edit menu. Every history entry now carries an undo and a redo closure (`addUndo(name, undo, redo, coalesceKey?)`); a new change after an undo discards the redo history, File > New clears both
+- Moving elements is undoable (and redoable): one step per mouse drag, and arrow-key nudges of one element within 1.5 s share one step. Drag and arrow keys go through `moveWithUndo` of the element collection (`moveCircle` / `moveRectangle` / `moveLeg`); a move to the same position registers nothing
+- The Edit menu always lists Undo and Redo (disabled when empty) with the number of available steps (undo shows `n / 50`)
+
+### Changed
+
+- The Align toggle moved from the header into the Edit menu as a checkbox
+- Undo/redo shortcuts are registered for the upper- and lowercase key and routed by Shift, so Caps Lock cannot turn redo into undo
+- The Edit menu is wider (`w-88`) so the longer undo/redo labels and shortcuts stay on one line
+
 ## [1.14.3] - 2026-10-13
 
 ### Added

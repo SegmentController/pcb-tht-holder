@@ -56,11 +56,19 @@ export const flipRectangleDimensions = (rectangle: RectangleData) => {
 	updateRectangleChanges();
 
 	// Add undo entry
-	addUndo('Flip rectangle', () => {
-		rectangle.width = previousWidth;
-		rectangle.height = previousHeight;
-		updateRectangleChanges();
-	});
+	addUndo(
+		'Flip rectangle',
+		() => {
+			rectangle.width = previousWidth;
+			rectangle.height = previousHeight;
+			updateRectangleChanges();
+		},
+		() => {
+			rectangle.width = previousHeight;
+			rectangle.height = previousWidth;
+			updateRectangleChanges();
+		}
+	);
 };
 export const addRectangleToLibrary = async (source: RectangleData) => {
 	const { confirmed, name } = await showModalNameEdit('rectangle');
@@ -102,14 +110,25 @@ export const modifyRectangle = async (rectangle: RectangleData) => {
 			rectangle.rotation = settings.rotation;
 			updateRectangleChanges();
 
-			// Add undo entry with closure capturing previous values
-			addUndo('Modify rectangle', () => {
-				rectangle.width = previousWidth;
-				rectangle.height = previousHeight;
-				rectangle.depth = previousDepth;
-				rectangle.rotation = previousRotation;
-				updateRectangleChanges();
-			});
+			// Add undo entry with closures capturing previous and new values
+			const { width, height, depth, rotation } = settings;
+			addUndo(
+				'Modify rectangle',
+				() => {
+					rectangle.width = previousWidth;
+					rectangle.height = previousHeight;
+					rectangle.depth = previousDepth;
+					rectangle.rotation = previousRotation;
+					updateRectangleChanges();
+				},
+				() => {
+					rectangle.width = width;
+					rectangle.height = height;
+					rectangle.depth = depth;
+					rectangle.rotation = rotation;
+					updateRectangleChanges();
+				}
+			);
 		}
 	}
 };
@@ -127,6 +146,10 @@ export const rotateRectangleDegrees = (rectangle: RectangleData, delta: number) 
 			rectangle.rotation = previousRotation;
 			updateRectangleChanges();
 		},
+		() => {
+			rectangle.rotation = updatedRotation;
+			updateRectangleChanges();
+		},
 		`rotate:${rectangle.id}`
 	);
 };
@@ -137,13 +160,26 @@ export const resetRectangleRotation = (rectangle: RectangleData) => {
 	rectangle.rotation = 0;
 	updateRectangleChanges();
 
-	addUndo('Reset rotation', () => {
-		rectangle.rotation = previousRotation;
-		updateRectangleChanges();
-	});
+	addUndo(
+		'Reset rotation',
+		() => {
+			rectangle.rotation = previousRotation;
+			updateRectangleChanges();
+		},
+		() => {
+			rectangle.rotation = 0;
+			updateRectangleChanges();
+		}
+	);
 };
 export const deleteRectangle = (rectangle: RectangleData) =>
 	rectangles.removeWithUndo(rectangle, 'Delete rectangle');
+export const moveRectangle = (
+	rectangle: RectangleData,
+	x: number,
+	y: number,
+	coalesceKey?: string
+) => rectangles.moveWithUndo(rectangle, x, y, 'Move rectangle', coalesceKey);
 export const updateRectangleChanges = rectangles.update;
 
 export const getContextMenuItemForRectangle = (id: string): ContextMenuItem[] | undefined => {

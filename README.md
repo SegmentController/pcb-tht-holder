@@ -29,7 +29,7 @@ In its current state, it facilitates the installation of circular and oblong com
 - **Alignment Guides with Magnetic Snapping**: Visual guides and automatic snapping for precise component placement
   - Blue lines appear when elements align with centers or edges of other components
   - Elements automatically snap within 0.2mm of alignment points during drag
-  - Toggle on/off via Align switch in navigation bar
+  - Toggle on/off with the Align checkbox in the Edit menu
   - Works on both X and Y axes independently for accurate positioning
 - **Smart Leg Placement**: Automatic collision detection for support legs
   - Legs overlapping with components are automatically filtered during mesh generation
@@ -49,10 +49,13 @@ In its current state, it facilitates the installation of circular and oblong com
 - **Measurement Tool**: Press `M` to measure distances in 1/10th millimeter precision
 - **Canvas Zoom**: 10-300% with the slider, `+` / `-` / `*` keys, or `Ctrl`/`Cmd` + mouse wheel (trackpad pinch)
   - The point under the cursor stays in place while zooming; scroll to pan a zoomed-in canvas
-- **Comprehensive Undo System**: Press `Ctrl+Z` to undo operations (max 50 actions)
+- **Comprehensive Undo/Redo System**: Press `Ctrl+Z` to undo and `Ctrl+Shift+Z` / `Ctrl+Y` to redo (max 50 actions)
+  - The Edit menu lists Undo and Redo with the number of available steps
+  - A new change after an undo discards the redo history
   - Component deletions (circles, rectangles, legs)
   - Property modifications (radius, depth, width, height, rotation)
   - Rectangle rotation (`R` key) and dimension flip (`F` key)
+  - Element moves: one step per mouse drag, and holding an arrow key counts as one step
   - Visual error notifications for failed undo operations
   - Automatic stack clearing on project reset
 - **Component Library**: Save and reuse your favorite component configurations
@@ -101,7 +104,8 @@ In its current state, it facilitates the installation of circular and oblong com
 
 ### Other
 
-- `Ctrl+Z` / `Cmd+Z` - Undo last operation (deletions, property edits, rotations, flips)
+- `Ctrl+Z` / `Cmd+Z` - Undo last operation (deletions, property edits, rotations, flips, moves)
+- `Ctrl+Shift+Z` / `Cmd+Shift+Z` / `Ctrl+Y` - Redo the last undone operation
 - `Shift+P` - Project settings
 - `D` - Display 3D mesh
 - `ESC` - Close modal dialogs

@@ -117,20 +117,12 @@
 		ZOOM_MIN,
 		ZOOM_STEP
 	} from '$lib/constants';
-	import {
-		getContextMenuItemForCircle,
-		modifyCircle,
-		updateCircleChanges
-	} from '$lib/elements/circle';
-	import {
-		deleteLegWithConfirm,
-		getContextMenuItemForLeg,
-		updateLegChanges
-	} from '$lib/elements/leg';
+	import { getContextMenuItemForCircle, modifyCircle, moveCircle } from '$lib/elements/circle';
+	import { deleteLegWithConfirm, getContextMenuItemForLeg, moveLeg } from '$lib/elements/leg';
 	import {
 		getContextMenuItemForRectangle,
 		modifyRectangle,
-		updateRectangleChanges
+		moveRectangle
 	} from '$lib/elements/rectangle';
 	import {
 		deselectElementByMouseLeave,
@@ -250,18 +242,12 @@
 	};
 
 	/**
-	 * Commits a finished drag with a single store write.
+	 * Commits a finished drag with a single store write and one undo entry.
 	 * Position is read from the Konva node and assigned on the raw element (not through the
 	 * store-bound each item), so persistence happens once instead of once per axis plus once more.
 	 */
-	const commitDragEnd = (
-		event: KonvaDragTransformEvent,
-		element: { x: number; y: number },
-		commit: () => void
-	) => {
-		element.x = event.target.x();
-		element.y = event.target.y();
-		commit();
+	const commitDragEnd = (event: KonvaDragTransformEvent, move: (x: number, y: number) => void) => {
+		move(event.target.x(), event.target.y());
 		clearAlignmentLines();
 	};
 
@@ -609,7 +595,7 @@
 						ondblclick={() => {
 							if (mode === 'pointer') modifyCircle(circle);
 						}}
-						ondragend={(event) => commitDragEnd(event, circle, updateCircleChanges)}
+						ondragend={(event) => commitDragEnd(event, (x, y) => moveCircle(circle, x, y))}
 						ondragmove={(event) => {
 							limitCircle(event, circle);
 							applySnapping(event, circle);
@@ -639,7 +625,7 @@
 						ondblclick={() => {
 							if (mode === 'pointer') modifyRectangle(rectangle);
 						}}
-						ondragend={(event) => commitDragEnd(event, rectangle, updateRectangleChanges)}
+						ondragend={(event) => commitDragEnd(event, (x, y) => moveRectangle(rectangle, x, y))}
 						ondragmove={(event) => {
 							limitBox(event, rectangle);
 							applySnapping(event, rectangle);
@@ -668,7 +654,7 @@
 						ondblclick={() => {
 							if (mode === 'pointer') deleteLegWithConfirm(leg);
 						}}
-						ondragend={(event) => commitDragEnd(event, leg, updateLegChanges)}
+						ondragend={(event) => commitDragEnd(event, (x, y) => moveLeg(leg, x, y))}
 						ondragmove={(event) => {
 							limitBox(event, leg);
 							applySnapping(event, leg);

@@ -148,12 +148,20 @@ All stores export: `get{Store}Value()`, `set{Store}Value()`, `update{Store}Value
 
 Use `projectJsonSerializer` to skip non-serializable Konva properties.
 
-#### Undo System (`undoStore.ts`)
+#### Undo/Redo System (`undoStore.ts`)
 
-- Stack-based LIFO, max 50 operations, non-persistent
-- Tracks: deletions, property edits, rotation, dimension flip
-- Error handling: toast notifications, console logging, retry on failure
-- UI: `Ctrl+Z`, Edit menu shows "Undo: {name}"
+- Two LIFO stacks, max 50 undo operations, non-persistent; the redo stack is bounded by it
+- `addUndo(name, undo, redo, coalesceKey?)`: every entry carries both closures (absolute values / element
+  references, so interleaved moves cannot corrupt them). A new entry clears the redo stack; coalescing
+  (`rotate:<id>`, 1.5 s) keeps the oldest `undo` and replaces `redo` with the newest
+- Tracks: deletions, property edits, rotation, dimension flip, moves (`moveWithUndo` in `collection.ts`: one entry
+  per mouse drag, arrow-key nudges coalesce per element as `nudge:<id>`; a move to the same position adds none)
+- Error handling: toast notifications, console logging, entry stays on its stack for retry
+- UI: `Ctrl+Z`, `Ctrl/Cmd+Shift+Z` and `Ctrl+Y` (redo; `Cmd+Y` is the browser's History and left alone). The Edit
+  menu always lists "Undo: {name}" / "Redo: {name}" (disabled when empty) with the step counts from `undoStoreHistory`;
+  the Align checkbox lives in the same menu
+- The shortcut matches `event.key` exactly and the key case flips with Shift (and can with Caps Lock), so the
+  handler is registered for both `z` and `Z` and routes by `shiftKey`
 
 #### Toast Notifications (`toastStore.ts`)
 
@@ -252,7 +260,7 @@ See `Mesh3DScene.svelte` for the canonical example.
 **Create**: `Shift+C` (circle), `Shift+R` (rectangle), `Shift+L` (leg)
 **Edit**: Arrow keys (0.1mm), Shift+Arrow (0.5mm), `R` (rotate +5°), `Shift+R` (reset rotation), `F` (flip dimensions)
 **View**: `+` / `-` (zoom ±10%), `*` (reset zoom), `Ctrl/Cmd+wheel` or trackpad pinch (zoom at cursor, `wheelZoom` action in `zoom.ts`)
-**Other**: `Ctrl+Z` (undo), `Shift+P` (settings), `D` (display 3D), `ESC` (close modals)
+**Other**: `Ctrl+Z` (undo), `Ctrl/Cmd+Shift+Z` or `Ctrl+Y` (redo), `Shift+P` (settings), `D` (display 3D), `ESC` (close modals)
 
 **Modal Awareness**: All shortcuts disabled when modals open (except ESC). Prevents text input interference.
 

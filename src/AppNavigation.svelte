@@ -14,7 +14,7 @@
 	   - Mode selection: P (pointer), M (measure)
 	   - Element creation: Ctrl+C (circle), Ctrl+R (rectangle), Ctrl+L (leg)
 	   - Element manipulation: Arrow keys (move), F (flip), R (rotate)
-	   - System operations: Ctrl+Z (undo), Ctrl+P (settings), D (display)
+	   - System operations: Ctrl+Z (undo), Ctrl+Shift+Z / Ctrl+Y (redo), Ctrl+P (settings), D (display)
 
 	**Keyboard Shortcuts System:**
 
@@ -42,6 +42,7 @@
 
 	4. **System Operations** (lines 196-207):
 	   - Ctrl+Z / Cmd+Z: Undo last operation
+	   - Ctrl+Shift+Z / Cmd+Shift+Z / Ctrl+Y: Redo last undone operation
 	   - Ctrl+P / Cmd+P: Open project settings
 	   - D: Display 3D mesh preview
 
@@ -52,7 +53,8 @@
 	  - Save project: Download .tht3d file with all project data
 
 	- **Edit Menu:**
-	  - Undo: Restore previous state
+	  - Undo / Redo: Step through the history (always listed, disabled when empty, with step counts)
+	  - Align: Checkbox for alignment guides and magnetic snapping
 	  - Add circle/rectangle/leg: Create new elements with default properties
 	  - Auto legs at corner: Generate support legs at panel corners
 	  - Delete all legs: Remove all support legs
@@ -114,6 +116,7 @@
 	import {
 		Button,
 		ButtonGroup,
+		Checkbox,
 		Dropdown,
 		DropdownDivider,
 		DropdownItem,
@@ -122,7 +125,6 @@
 		NavBrand,
 		NavLi,
 		NavUl,
-		Toggle,
 		Tooltip
 	} from 'flowbite-svelte';
 	import NavContainer from 'flowbite-svelte/NavContainer.svelte';
@@ -138,7 +140,7 @@
 		resetSelectedRectangleRotation,
 		rotateSelectedRectangleDegrees
 	} from '$lib/fineMovement';
-	import { shortcut } from '$lib/shortcut';
+	import { shortcut, type ShortcutEventDetail, type ShortcutModifier } from '$lib/shortcut';
 	import { libraryStore } from '$stores/libraryStore';
 	import {
 		showModalConfirm,
@@ -152,7 +154,14 @@
 		projectStore,
 		updateProjectStoreValue
 	} from '$stores/projectStore';
-	import { clearUndoStack, executeLastUndo, undoStoreLastItem } from '$stores/undoStore';
+	import {
+		clearUndoStack,
+		executeLastRedo,
+		executeLastUndo,
+		redoStoreLastItem,
+		undoStoreHistory,
+		undoStoreLastItem
+	} from '$stores/undoStore';
 	import type { LibraryItem } from '$types/Library';
 	import type { Project } from '$types/Project';
 
@@ -365,7 +374,8 @@
 		 *
 		 * Browser Conflict Avoidance:
 		 * - Shift+C/R/L/P used instead of Ctrl+C/R/L/P to avoid browser shortcuts
-		 * - Ctrl+Z preserved as standard undo shortcut
+		 * - Ctrl+Z / Ctrl+Shift+Z / Ctrl+Y preserved as standard undo/redo shortcuts
+		 * - Cmd+Y is left to the browser (History on macOS), Cmd+Shift+Z redoes there
 		 *
 		 * Modal-Aware Behavior:
 		 * - All shortcuts automatically disabled when modals are open
@@ -401,12 +411,20 @@
 				preventDefault: true
 			},
 			{ key: 'L', modifier: ['shift'], callback: addNewLeg, preventDefault: true },
-			{
-				key: 'z',
-				modifier: ['ctrl', 'meta'],
-				callback: executeLastUndo,
+			// Shift flips the reported key to 'Z' (Caps Lock does the opposite), so route by shiftKey
+			...['z', 'Z'].map((key) => ({
+				key,
+				modifier: ['ctrl', 'meta'] as ShortcutModifier[],
+				callback: ({ originalEvent }: ShortcutEventDetail) =>
+					originalEvent.shiftKey ? executeLastRedo() : executeLastUndo(),
 				preventDefault: true
-			},
+			})),
+			...['y', 'Y'].map((key) => ({
+				key,
+				modifier: 'ctrl' as ShortcutModifier,
+				callback: executeLastRedo,
+				preventDefault: true
+			})),
 			{
 				key: 'P',
 				modifier: ['shift'],
@@ -514,7 +532,6 @@
 						</Button>
 					{/each}
 				</ButtonGroup>
-				<Toggle id="alignment" size="small" bind:checked={$alignmentEnabled}>Align</Toggle>
 			</div>
 			<NavUl class="flex">
 				<NavLi class="cursor-pointer" aria-expanded={fileMenuOpen} aria-haspopup="menu">
@@ -530,14 +547,32 @@
 					Edit
 					<Icon class="inline-flex" icon="mdi:chevron-down" />
 				</NavLi>
-				<Dropdown class="w-72 z-20 -mt-2" simple trigger="hover" bind:isOpen={editMenuOpen}>
-					{#if $undoStoreLastItem}
-						<DropdownItem onclick={executeLastUndo}
-							>Undo: {$undoStoreLastItem}
-							<Kbd class="float-right px-2 py-0">ctrl + Z</Kbd>
-						</DropdownItem>
-						<DropdownDivider />
-					{/if}
+				<Dropdown class="w-88 z-20 -mt-2" simple trigger="hover" bind:isOpen={editMenuOpen}>
+					<DropdownItem
+						class="flex items-center justify-between gap-3 disabled:pointer-events-none disabled:opacity-40"
+						disabled={!$undoStoreHistory.undo}
+						onclick={executeLastUndo}
+					>
+						<span>Undo{$undoStoreLastItem ? `: ${$undoStoreLastItem}` : ''}</span>
+						<span class="flex items-center gap-2">
+							<span class="text-xs tabular-nums text-gray-500">
+								{$undoStoreHistory.undo} / {$undoStoreHistory.max}
+							</span>
+							<Kbd class="px-2 py-0 whitespace-nowrap">ctrl + Z</Kbd>
+						</span>
+					</DropdownItem>
+					<DropdownItem
+						class="flex items-center justify-between gap-3 disabled:pointer-events-none disabled:opacity-40"
+						disabled={!$undoStoreHistory.redo}
+						onclick={executeLastRedo}
+					>
+						<span>Redo{$redoStoreLastItem ? `: ${$redoStoreLastItem}` : ''}</span>
+						<span class="flex items-center gap-2">
+							<span class="text-xs tabular-nums text-gray-500">{$undoStoreHistory.redo}</span>
+							<Kbd class="px-2 py-0 whitespace-nowrap">ctrl + shift + Z</Kbd>
+						</span>
+					</DropdownItem>
+					<DropdownDivider />
 					<DropdownItem onclick={() => addNewCircle()}>
 						Add circle...
 						<Kbd class="float-right px-2 py-0">shift + C</Kbd>
@@ -568,6 +603,20 @@
 						</Dropdown>
 					{/if}
 					<DropdownDivider />
+					<DropdownItem
+						class="flex items-center gap-2"
+						aria-checked={$alignmentEnabled}
+						onclick={() => ($alignmentEnabled = !$alignmentEnabled)}
+						role="menuitemcheckbox"
+					>
+						<Checkbox
+							class="pointer-events-none"
+							aria-hidden="true"
+							checked={$alignmentEnabled}
+							tabindex={-1}
+						/>
+						Align (guides and magnetic snapping)
+					</DropdownItem>
 					<DropdownItem onclick={openProjectSettings}>
 						Project settings...
 						<Kbd class="float-right px-2 py-0">shift + P</Kbd>

@@ -69,16 +69,27 @@ export const modifyCircle = async (circle: CircleData) => {
 			circle.depth = settings.depth;
 			updateCircleChanges();
 
-			// Add undo entry with closure capturing previous values
-			addUndo('Modify circle', () => {
-				circle.radius = previousRadius;
-				circle.depth = previousDepth;
-				updateCircleChanges();
-			});
+			// Add undo entry with closures capturing previous and new values
+			const { radius, depth } = settings;
+			addUndo(
+				'Modify circle',
+				() => {
+					circle.radius = previousRadius;
+					circle.depth = previousDepth;
+					updateCircleChanges();
+				},
+				() => {
+					circle.radius = radius;
+					circle.depth = depth;
+					updateCircleChanges();
+				}
+			);
 		}
 	}
 };
 export const deleteCircle = (circle: CircleData) => circles.removeWithUndo(circle, 'Delete circle');
+export const moveCircle = (circle: CircleData, x: number, y: number, coalesceKey?: string) =>
+	circles.moveWithUndo(circle, x, y, 'Move circle', coalesceKey);
 export const updateCircleChanges = circles.update;
 
 export const getContextMenuItemForCircle = (id: string): ContextMenuItem[] | undefined => {

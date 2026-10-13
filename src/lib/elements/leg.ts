@@ -60,12 +60,18 @@ export const deleteAllLegsWithConfirm = async () => {
 	project.legs = [];
 	updateLegChanges(project.legs);
 
-	addUndo('Delete all legs', () => {
-		const currentProject = getProjectStoreValue();
-		currentProject.legs.push(...legsBackup);
-		updateLegChanges(currentProject.legs);
-	});
+	addUndo(
+		'Delete all legs',
+		() => {
+			const currentProject = getProjectStoreValue();
+			currentProject.legs.push(...legsBackup);
+			updateLegChanges(currentProject.legs);
+		},
+		() => updateLegChanges(getProjectStoreValue().legs.filter((leg) => !legsBackup.includes(leg)))
+	);
 };
+export const moveLeg = (leg: LegData, x: number, y: number, coalesceKey?: string) =>
+	legs.moveWithUndo(leg, x, y, 'Move leg', coalesceKey);
 export const updateLegChanges = legs.update;
 
 export const getContextMenuItemForLeg = (id: string): ContextMenuItem[] | undefined => {

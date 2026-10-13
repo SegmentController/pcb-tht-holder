@@ -6,7 +6,7 @@ type ElementKey = 'circles' | 'rectangles' | 'legs';
 
 /**
  * Shared bookkeeping of one kind of project element (circles, rectangles, legs): committing
- * changes to the store, and removing elements with or without an undo entry.
+ * changes to the store, and removing or moving elements with or without an undo entry.
  */
 export const createElementCollection = <K extends ElementKey>(key: K) => {
 	type Element = Project[K][number];
@@ -24,14 +24,47 @@ export const createElementCollection = <K extends ElementKey>(key: K) => {
 	const remove = (element: Element) =>
 		update(getElements().filter((candidate) => candidate !== element));
 
-	/** Removes the element and registers an undo entry that puts it back */
+	/** Removes the element and registers an undo entry that puts it back (redo removes it again) */
 	const removeWithUndo = (element: Element, undoName: string) => {
 		remove(element);
-		addUndo(undoName, () => {
-			getElements().push(element);
-			update();
-		});
+		addUndo(
+			undoName,
+			() => {
+				getElements().push(element);
+				update();
+			},
+			() => remove(element)
+		);
 	};
 
-	return { update, remove, removeWithUndo };
+	/**
+	 * Moves the element and registers an undo entry that puts it back (redo moves it again).
+	 * A move to the same position registers nothing; moves with the same `coalesceKey` in quick
+	 * succession (holding an arrow key) share one entry.
+	 */
+	const moveWithUndo = (
+		element: Element,
+		x: number,
+		y: number,
+		undoName: string,
+		coalesceKey?: string
+	) => {
+		const { x: previousX, y: previousY } = element;
+		if (x === previousX && y === previousY) return;
+
+		const place = (placeX: number, placeY: number) => {
+			element.x = placeX;
+			element.y = placeY;
+			update();
+		};
+		place(x, y);
+		addUndo(
+			undoName,
+			() => place(previousX, previousY),
+			() => place(x, y),
+			coalesceKey
+		);
+	};
+
+	return { update, remove, removeWithUndo, moveWithUndo };
 };

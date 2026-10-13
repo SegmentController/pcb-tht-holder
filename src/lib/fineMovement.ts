@@ -1,12 +1,14 @@
 import type { KonvaMouseEvent } from 'svelte-konva';
 
 import { FINE_MOVEMENT_DELTA } from '$lib/constants';
+import { moveCircle } from '$lib/elements/circle';
+import { moveLeg } from '$lib/elements/leg';
 import {
 	flipRectangleDimensions,
+	moveRectangle,
 	resetRectangleRotation,
 	rotateRectangleDegrees
 } from '$lib/elements/rectangle';
-import { projectStore } from '$stores/projectStore';
 import { type GenericElement, isCircle, isRectangle } from '$types/typeGuards';
 
 export type FinemoveDirection = 'left' | 'up' | 'right' | 'down';
@@ -71,33 +73,32 @@ export const finemoveSelectedElement = (direction: FinemoveDirection, multiplier
 	if (!element) return;
 
 	const delta = FINE_MOVEMENT_DELTA * multiplier;
+	let x = element.x;
+	let y = element.y;
 	switch (direction) {
 		case 'left': {
-			element.x -= delta;
+			x -= delta;
 			break;
 		}
 		case 'right': {
-			element.x += delta;
+			x += delta;
 			break;
 		}
 		case 'up': {
-			element.y -= delta;
+			y -= delta;
 			break;
 		}
 		case 'down': {
-			element.y += delta;
+			y += delta;
 			break;
 		}
 	}
 
-	// Trigger reactivity by reassigning only the specific array
-	projectStore.update((v) => {
-		if (isCircle(element)) v.circles = [...v.circles];
-		else if (isRectangle(element)) v.rectangles = [...v.rectangles];
-		else v.legs = [...v.legs];
-
-		return v;
-	});
+	// Holding an arrow key moves many times: those share one undo entry
+	const coalesceKey = `nudge:${element.id}`;
+	if (isCircle(element)) moveCircle(element, x, y, coalesceKey);
+	else if (isRectangle(element)) moveRectangle(element, x, y, coalesceKey);
+	else moveLeg(element, x, y, coalesceKey);
 };
 
 export const flipSelectedRectangleDimensions = () => {

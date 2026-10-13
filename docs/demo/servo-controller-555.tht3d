@@ -7,7 +7,7 @@
     "width": 60.0,
     "height": 50.0,
     "pcbThickness": 1.6,
-    "smdHeight": 3,
+    "smdHeight": 1.5,
     "printTolerance": 0.2
   },
   "circles": [
@@ -25,8 +25,8 @@
       "depth": 9,
       "x": 53.38,
       "y": 27.0,
-      "width": 2.94,
-      "height": 8.02,
+      "width": 3,
+      "height": 8.1,
       "rotation": 0
     },
     {

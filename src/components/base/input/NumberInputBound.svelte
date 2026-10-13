@@ -9,7 +9,8 @@
 		step?: number;
 	}
 
-	let { id, value = $bindable(), min, max, step }: Properties = $props();
+	// step 1 (the browser default) would reject every value with a decimal digit
+	let { id, value = $bindable(), min, max, step = 0.1 }: Properties = $props();
 
 	// Clamp on change as well as blur: Enter submits a form without blurring the input
 	const clamp = () => {

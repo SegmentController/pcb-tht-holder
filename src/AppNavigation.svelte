@@ -484,7 +484,10 @@
 />
 
 <Navbar class="bg-gray-100">
-	<NavContainer class="border border-gray-200 w-3/5 px-5 py-2 rounded-lg bg-gray-50">
+	<NavContainer
+		class="border border-gray-200 w-[960px] max-w-full px-5 py-2 rounded-lg bg-gray-50"
+		fluid
+	>
 		<NavBrand href="#">
 			<img class="me-3 h-6 sm:h-9" alt="PCB THT Holder Logo" src="{BASE_URL}/pcb-board-32.png" />
 			<span class="self-center whitespace-nowrap font-semibold">

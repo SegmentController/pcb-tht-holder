@@ -1,4 +1,5 @@
 <script lang="ts">
+	import Icon from '@iconify/svelte/dist/OfflineIcon.svelte';
 	import { Button, Input, Label, Modal } from 'flowbite-svelte';
 	import { createEventDispatcher } from 'svelte';
 
@@ -81,7 +82,19 @@
 					</div>
 					<div class="col-span-2">
 						<Label class="mb-2" for="label">Print label</Label>
-						<Input id="label" bind:value={label} />
+						<div class="flex gap-2">
+							<Input id="label" bind:value={label} />
+							<Button
+								class="shrink-0 px-3"
+								aria-label="Copy project name to label"
+								color="alternative"
+								disabled={!!label.trim() || !name.trim()}
+								onclick={() => (label = name)}
+								title="Copy the project name to the label (only while the label is empty)"
+							>
+								<Icon icon="mdi:content-copy" width={20} />
+							</Button>
+						</div>
 					</div>
 				</div>
 			</div>

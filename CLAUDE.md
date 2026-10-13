@@ -75,7 +75,7 @@ src/
 │   ├── elements/     # Circle, rectangle, leg operations; collection.ts (shared store commit/remove/undo)
 │   └── svelteModal/  # Modal utilities
 ├── components/
-│   ├── base/         # Reusable components (ContextMenu, HoverInfo, ToastContainer, PartnerBadge)
+│   ├── base/         # Reusable components (ContextMenu, HoverInfo, ToastContainer, PartnerBadge), `input/NumberInputBound.svelte` (min/max clamped number field, `step` 0.1)
 │   ├── DemoPicker.svelte  # Demo cards under the dropzone (AppDropzone fetches public/demo/*.tht3d)
 │   ├── modal/        # Modal dialogs
 │   └── (root)        # Main designer components
@@ -231,6 +231,15 @@ See `Mesh3DScene.svelte` for the canonical example.
   (Zod validation, one store write incl. label and zoom, embedded image via `onFileUpload`); a new image upload
   and File > New clear the print label
 - **Partner Badge** (`PartnerBadge.svelte`): SkipTheCAD listing badge, fixed top-right from `xl` up and below the header on smaller screens, auto-hides after 7s; mounted once in `App.svelte` right after `AppNavigation`
+- **Number fields** (`NumberInputBound.svelte`): `step` defaults to 0.1 so one decimal digit is valid (the browser
+  default of 1 rejects decimals and blocks the dialog's submit); all dialogs use it. Values with two or more
+  decimals fail native validation, so keep demo/library sizes at one decimal
+- **Header** (`AppNavigation.svelte`): `NavContainer` is `fluid` with a fixed `w-[960px] max-w-full` (px, not %), so it
+  only shrinks below 960 px viewports
+- **Project settings**: the Print label row has an icon-only button that copies the project name into the label
+  (enabled only while the label is empty)
+- **Icons** (`src/lib/icons.ts`): MDI icons are bundled offline (`addCollection`); a new `mdi:` icon must be added
+  there or it will not render
 - **Vite config**: ESM-native — `node:path`, `import.meta.dirname` (no `__dirname`), `package.json` imported with `with { type: 'json' }`
 - **Environment**: Production base path `/pcb-tht-holder`, dev empty string
 - **ESLint**: unicorn/all config, import sorting, no console/alert/debugger

@@ -1,5 +1,20 @@
 # Change log
 
+## [1.14.3] - 2026-10-13
+
+### Added
+
+- Project settings: icon-only button next to the print label that copies the project name into the label while the label is empty (`mdi:content-copy` added to the bundled icons)
+
+### Changed
+
+- Demo projects: every element size has at most one decimal digit (the 2.94/8.02/5.48/15.68 mm rectangles are now 3/8.1/5.5/15.7 mm), and the SMD height is 1.5 mm (was 3 mm) so hollow mode shows more
+- The header keeps a fixed width of 960 px (it was 60% of the viewport and collapsed too early on narrow windows); below 960 px it uses the full width
+
+### Fixed
+
+- Dialogs accepted only whole numbers: number fields had the browser default `step=1`, so a value such as `1.5` was rejected on submit. `NumberInputBound` now defaults to `step=0.1`
+
 ## [1.14.2] - 2026-10-11
 
 ### Added

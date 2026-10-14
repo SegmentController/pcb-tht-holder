@@ -298,7 +298,9 @@ Implementation: `shortcut` action in `src/lib/shortcut.ts` checks `modalStore` s
 
 `npm run test` runs `src/**/*.test.ts` in a Node environment (no DOM). Tests are co-located with the
 module they cover. Covered: alignment, STL export, mesh repair, leg overlap (`src/lib/3d/legOverlap.ts`), Zod
-schemas/type guards, project serializer, undo/toast/library/modal stores. Keep logic that must be
+schemas/type guards, project serializer, undo/toast/library/modal stores, gerber macros and drills, element
+operations (`lib/elements/*`, with `$stores/modalStore` mocked via `vi.mock`), fine movement, measurement, the
+`shortcut` action (DOM stubbed by hand), `meshClient` (fake `Worker`). Keep logic that must be
 tested free of `three-bvh-csg`, Konva and `.svelte` imports (extract it into a plain `.ts` module);
 tests use explicit `import { describe, it, expect } from 'vitest'` (no globals). CI runs the suite.
 

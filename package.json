@@ -50,6 +50,7 @@
 		"@iconify/svelte": "^5.2.2",
 		"@threlte/core": "^8.6.1",
 		"@threlte/extras": "^9.22.1",
+		"fflate": "^0.8.3",
 		"flowbite-svelte": "^1.33.1",
 		"konva": "^10.8.0",
 		"nanoid": "^5.1.7",

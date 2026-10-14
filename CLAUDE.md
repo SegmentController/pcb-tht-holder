@@ -70,6 +70,7 @@ src/
 │   ├── geometry.ts   # Pure 2D helpers (rotated rectangle extents)
 │   ├── zoom.ts       # Wheel/pinch zoom: pure step helpers (unit-tested) + `wheelZoom` action
 │   ├── format.ts     # File name timestamp, `formatMm` (display mm, max 2 decimals)
+│   ├── gerber/       # Fabrication file import (pure, tested): excellon.ts, gerberOutline.ts, package.ts, unzip.ts (fflate, lazy), plan.ts (clustering → circles/rectangles), boardSvg.ts (top-view SVG used as the project picture)
 │   ├── demos.ts      # Demo project catalogue (files in public/demo/, credits + licences in public/demo/CREDITS.md)
 │   ├── 3d/           # STL generation (stl.ts), CSG meshes (mesh.ts), worker + client, placement.ts (dependency-free constants), leg overlap (legOverlap.ts), watertight repair of CSG output (meshRepair.ts)
 │   ├── elements/     # Circle, rectangle, leg operations; collection.ts (shared store commit/remove/undo)
@@ -238,6 +239,12 @@ See `Mesh3DScene.svelte` for the canonical example.
 - **Project loading** (`AppDropzone.svelte`): `.tht3d` uploads and demos both go through `loadProjectData()`
   (Zod validation, one store write incl. label and zoom, embedded image via `onFileUpload`); a new image upload
   and File > New clear the print label
+- **Gerber import** (`AppDropzone.svelte` → `importFabFiles`, review dialog `ModalGerberImport.svelte`): routed by file
+  name extension (`isFabFileName`), before the MIME check. Stored y is plain CAM Y-up (`y = gerberY - outlineMinY`,
+  the designer flips the picture itself); the board outline bbox (rounded up to 0.1) is the panel, clamped to the 10–999 mm
+  limits of the settings dialog. Holes of the same diameter within `groupDistance` form one part: lone hole → circle,
+  several → min-area oriented rectangle padded by half the pitch (rotation = CCW angle in CAM coordinates). The project
+  image is a generated SVG data URL (no image-less projects), so restore, `.tht3d` and 3D work unchanged
 - **Partner Badge** (`PartnerBadge.svelte`): SkipTheCAD listing badge, fixed top-right from `xl` up and below the header on smaller screens, auto-hides after 7s; mounted once in `App.svelte` right after `AppNavigation`
 - **Number fields** (`NumberInputBound.svelte`): `step` defaults to 0.1 so one decimal digit is valid (the browser
   default of 1 rejects decimals and blocks the dialog's submit); all dialogs use it. Values with two or more

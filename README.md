@@ -68,6 +68,7 @@ In its current state, it facilitates the installation of circular and oblong com
 - **Hollow Option**: Generate top-layer-only coverage for faster printing
 - **Custom Labels**: Print text labels on the side of your holder
 - **Demo Projects**: Three ready-made KiCad boards under the dropzone to try the workflow without a PCB
+- **Gerber / Excellon Import**: Drop a fabrication zip (or `.drl` + outline files): THT holes are placed at exact coordinates and grouped into parts, no photo needed
 - **Auto Image Resize**: Automatically resizes large images (>1280x1024) for easier handling
 - **PWA Support**: Install as a standalone application on your device
 - **Offline Ready**: Works without internet connection after first load (service worker precaches the app shell)
@@ -118,6 +119,8 @@ Click here: https://segmentcontroller.github.io/pcb-tht-holder/
 ### Set up a PCB image
 
 Enter a PCB image with drag and drop or file selection, which will automatically flip and become transparent.
+
+Have the Gerber files? Drop the fabrication `.zip` (or the `.drl` drill files together with the `Edge.Cuts` layer) instead of a photo. The import dialog lists the drill tools (vias and mounting holes are off by default), groups neighbouring holes (default: closer than 2.6 mm, e.g. a pin header becomes one rectangle) and shows a preview. The panel takes the size of the board outline and all elements sit at their exact positions; THT parts that are missing from the BOM/pick-and-place files are fine, only the drill files matter.
 
 No PCB at hand? Pick one of the three demo boards under the dropzone: it loads a ready-made project with its holes and support legs already placed. Demo credits and licences: [`public/demo/CREDITS.md`](./public/demo/CREDITS.md).
 

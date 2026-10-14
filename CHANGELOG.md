@@ -1,5 +1,12 @@
 # Change log
 
+## [Unreleased]
+
+### Added
+
+- Import from fabrication files: drop a Gerber package (`.zip`) or loose Excellon drill files (`.drl`, `.xln`, ...) plus the outline layer on the dropzone. A review dialog lists the drill tools (plated lead-size holes on by default, vias and mounting holes off), groups neighbouring holes of the same diameter into one rotated rectangle (lone holes become circles) and previews the board. The panel gets the size of the board outline (`Edge.Cuts`), elements land at exact mm positions (pure translation, no Y flip), and a rendered SVG top view of the board replaces the photo
+- `src/lib/gerber/` (pure, unit-tested): Excellon parser (metric/inch, zero suppression, X2 tool attributes, slots skipped with a warning), RS-274X outline parser (arcs flattened), package reader, zip extraction with size limits (`fflate`, lazy chunk), element planner and SVG board renderer
+
 ## [1.14.4] - 2026-10-13
 
 ### Added

@@ -557,7 +557,7 @@
 			>
 		{:else}
 			<span
-				class="ms-4 self-center whitespace-nowrap rounded-full bg-amber-100 px-3 py-1 text-xs font-medium text-amber-800"
+				class="ms-4 self-center whitespace-nowrap rounded-full bg-blue-100 px-3 py-1 text-xs font-medium text-blue-800"
 				title="Photo overlay at 25 % opacity, stretched to the panel size of the project settings"
 				>Photo overlay · scale from settings</span
 			>

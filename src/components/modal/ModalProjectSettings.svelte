@@ -60,7 +60,7 @@
 							millimetres; changing the size only stretches the picture.
 						</p>
 					{:else if source === 'photo'}
-						<p class="col-span-2 -mt-3 text-xs text-amber-700">
+						<p class="col-span-2 -mt-3 text-xs text-blue-700">
 							<strong>Photo has no scale.</strong> Enter the real size of the board: the picture is stretched
 							to fit and all elements are placed in these millimetres.
 						</p>

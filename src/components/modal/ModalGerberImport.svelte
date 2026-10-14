@@ -7,6 +7,7 @@
 	import EscapeClose from '$components/modal/util/EscapeClose.svelte';
 	import { formatMm } from '$lib/format';
 	import { renderBoardSvg, svgToDataUrl } from '$lib/gerber/boardSvg';
+	import { suggestLegs } from '$lib/gerber/legs';
 	import {
 		DEFAULT_GROUP_DISTANCE,
 		DEFAULT_MARGIN,
@@ -15,9 +16,15 @@
 		planElements
 	} from '$lib/gerber/plan';
 	import type { DrillTool, FabPackage } from '$lib/gerber/types';
+	import { LEG_SIZE } from '$types/LegData';
 
 	const dispatch = createEventDispatcher<{
-		resolve: { confirmed: boolean; plan: ElementPlan | undefined };
+		resolve: {
+			confirmed: boolean;
+			plan: ElementPlan | undefined;
+			/** Top-left corners of the support legs to add */
+			legs: { x: number; y: number }[];
+		};
 	}>();
 
 	interface Properties {
@@ -36,6 +43,7 @@
 	let minMargin = $state(DEFAULT_MARGIN);
 	let circleDepth = $state(5);
 	let rectangleDepth = $state(5);
+	let addLegs = $state(true);
 
 	const plan = $derived(
 		planElements(fabPackage.holes, fabPackage.outline, {
@@ -46,10 +54,18 @@
 			rectangleDepth
 		})
 	);
+	// Legs keep clear of pads, silkscreen, every hole and the planned elements
+	const legs = $derived(
+		addLegs ? suggestLegs(plan, fabPackage.holes, fabPackage.partKeepouts ?? []) : []
+	);
 	const preview = $derived(
 		svgToDataUrl(
 			renderBoardSvg(plan, {
-				shapes: { circles: plan.circles, rectangles: plan.rectangles },
+				shapes: {
+					circles: plan.circles,
+					rectangles: plan.rectangles,
+					legs: legs.map((leg) => ({ ...leg, width: LEG_SIZE, height: LEG_SIZE }))
+				},
 				layout: fabPackage.layout
 			})
 		)
@@ -69,7 +85,11 @@
 		return `${labels[tool.role] ?? 'drill'}${tool.plated ? '' : ', non-plated'}`;
 	};
 	const resolve = (confirmed: boolean) =>
-		dispatch('resolve', { confirmed, plan: confirmed ? plan : undefined });
+		dispatch('resolve', {
+			confirmed,
+			plan: confirmed ? plan : undefined,
+			legs: confirmed ? legs : []
+		});
 </script>
 
 <EscapeClose on:escape={() => resolve(false)}>
@@ -112,6 +132,9 @@
 							</table>
 						{/if}
 					</div>
+					<Checkbox bind:checked={addLegs}
+						>Add support legs ({legs.length}), clear of parts and holes</Checkbox
+					>
 					<div class="grid grid-cols-2 gap-4">
 						<div>
 							<Label class="mb-2" for="groupDistance">Group holes closer than (mm)</Label>
@@ -144,7 +167,9 @@
 					/>
 					<p class="text-sm text-gray-700">
 						{holeCount} hole(s) &rarr; {plan.rectangles.length} rectangle(s), {plan.circles.length}
-						circle(s). Board {formatMm(plan.panel.width)} x {formatMm(plan.panel.height)} mm{fabPackage.outlineFile
+						circle(s){addLegs ? `, ${legs.length} support leg(s)` : ''}. Board {formatMm(
+							plan.panel.width
+						)} x {formatMm(plan.panel.height)} mm{fabPackage.outlineFile
 							? ` (${fabPackage.outlineFile})`
 							: ''}.
 					</p>

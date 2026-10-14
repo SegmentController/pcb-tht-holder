@@ -12,14 +12,15 @@ The third, **NE555 from Gerbers**, was started straight from a Gerber package (s
 
 ## Started from Gerber files
 
-| Demo               | File          | Gerber package      | Design                                                                  |
-| ------------------ | ------------- | ------------------- | ----------------------------------------------------------------------- |
-| NE555 from Gerbers | `ne555.tht3d` | `ne555-gerbers.zip` | Small NE555 example board of this project's author, made with tscircuit |
+| Demo               | Gerber package      | Design                                                                  |
+| ------------------ | ------------------- | ----------------------------------------------------------------------- |
+| NE555 from Gerbers | `ne555-gerbers.zip` | Small NE555 example board of this project's author, made with tscircuit |
 
-The project was created by dropping `ne555-gerbers.zip` on the dropzone with the default import settings:
-the panel size (23.6 × 16.2 mm) comes from the board outline, the two-pin header holes became one rectangle,
-and the picture is rendered from the top copper, solder mask and silkscreen layers. The package is offered
-on the demo card so the drag and drop import can be tried with a real file.
+This demo has no project file: the card fetches `ne555-gerbers.zip` and runs it through the same import as a
+dropped `gerbers.zip`. The panel size (23.6 × 16.2 mm) comes from the board outline, the two-pin header holes
+become one rectangle, support legs are placed clear of parts and holes, and the picture is rendered from the top
+copper, solder mask and silkscreen layers. The package is also offered for download on the card so the drag and
+drop can be tried by hand.
 
 ## Notes
 

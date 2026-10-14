@@ -153,12 +153,16 @@ export const showModalProjectSettings = async (
  *
  * @param fabPackage - Parsed drill files and board outline
  * @param name - Project name shown in the title
- * @returns Promise resolving to { confirmed, plan } (plan only when confirmed)
+ * @returns Promise resolving to { confirmed, plan, legs } (plan and legs only when confirmed)
  */
 export const showModalGerberImport = async (
 	fabPackage: FabPackage,
 	name: string
-): Promise<{ confirmed: boolean; plan: ElementPlan | undefined }> =>
+): Promise<{
+	confirmed: boolean;
+	plan: ElementPlan | undefined;
+	legs: { x: number; y: number }[];
+}> =>
 	await modalStore
 		.push({
 			component: ModalGerberImport,

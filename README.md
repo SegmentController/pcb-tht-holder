@@ -125,8 +125,8 @@ The project starts either way, and the app shows which one you have:
 | Picture                   | Your photo, drawn at 25 % opacity                                     | Rendered top view (copper, solder mask openings, silkscreen), opaque |
 | Panel size                | Unknown scale: you enter the real width, the photo is stretched to it | Exact, taken from the board outline                                  |
 | Holes                     | You place and size every element by hand                              | Placed at exact coordinates, neighbours grouped into parts           |
-| Indicator in the designer | Amber badge _Photo overlay · scale from settings_                     | Green badge _Gerber layout · exact size_                             |
-| Project settings          | Amber note: _Photo has no scale_                                      | Green note: _Exact size from the Gerber board outline_               |
+| Indicator in the designer | Blue badge _Photo overlay · scale from settings_                      | Green badge _Gerber layout · exact size_                             |
+| Project settings          | Blue note: _Photo has no scale_                                       | Green note: _Exact size from the Gerber board outline_               |
 
 ### Set up a PCB image
 

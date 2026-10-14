@@ -7,6 +7,7 @@ import {
 } from './excellon';
 import { drillsFromGerber, isGerberDrillLayer } from './gerberDrill';
 import { boundingBox, looksLikeOutlineName, outlineFromRecords } from './gerberOutline';
+import { keepoutsFromRecords } from './legs';
 import { plotLayer } from './plotter';
 import {
 	type BoardOutline,
@@ -229,11 +230,13 @@ export const readFabPackage = (files: readonly FabFile[]): FabPackage => {
 	// Top layers for the picture; copper also tells the component pads when there is no drill data
 	const layout: PcbLayout = {};
 	let copperPlot: PlotResult | undefined;
+	let silkPlot: PlotResult | undefined;
 	for (const key of ['copper', 'mask', 'silk'] as const) {
 		const entry = chosen[key];
 		if (!entry) continue;
 		const plot = plotLayer(entry.file.text, LAYOUT_PREFIX[key]);
 		if (key === 'copper') copperPlot = plot;
+		if (key === 'silk') silkPlot = plot;
 		if (!plot.objects) continue;
 		const { records, attributes, ...layer } = plot;
 		void records;
@@ -280,10 +283,20 @@ export const readFabPackage = (files: readonly FabFile[]): FabPackage => {
 		}
 	}
 
+	// SMD pads (through-hole pads are holes already) and the silkscreen outlines of the parts
+	const partKeepouts = [
+		...keepoutsFromRecords(
+			(copperPlot?.records ?? []).filter((record) => record.type === 'flash'),
+			(record) => /componentpad/i.test(record.type === 'region' ? '' : (record.function ?? ''))
+		),
+		...keepoutsFromRecords(silkPlot?.records ?? [])
+	];
+
 	return {
 		holes,
 		tools,
 		outline,
+		partKeepouts: partKeepouts.length > 0 ? partKeepouts : undefined,
 		outlineFile: outlineFileName,
 		layout: Object.keys(layout).length > 0 ? layout : undefined,
 		warnings: [...warnings]

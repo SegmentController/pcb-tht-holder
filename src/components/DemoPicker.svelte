@@ -56,9 +56,9 @@
 				</p>
 				{#if demo.gerbers}
 					<p class="mb-3 text-xs text-gray-700">
-						<strong>Try the drag and drop:</strong>
+						<strong>Loads the Gerber import.</strong> Drag and drop
 						<a class="underline" download href={demoUrl(BASE_URL, demo.gerbers)}>{demo.gerbers}</a>
-						onto the dropzone above.
+						onto the dropzone to do it yourself.
 					</p>
 				{/if}
 				<Button

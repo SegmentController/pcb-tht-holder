@@ -55,6 +55,8 @@
 	- JSON parsing errors are caught and reported
 -->
 <script lang="ts">
+	import { nanoid } from 'nanoid';
+
 	import Dropzone from '$components/base/input/Dropzone.svelte';
 	import DemoPicker from '$components/DemoPicker.svelte';
 	import { type Demo, demoUrl } from '$lib/demos';
@@ -66,6 +68,7 @@
 	import { getProjectStoreValue, projectStore } from '$stores/projectStore';
 	import { toastStore } from '$stores/toastStore';
 	import type { ImageSize } from '$types/ImageSize';
+	import { LEG_SIZE, LegData } from '$types/LegData';
 	import { Project } from '$types/Project';
 
 	import { openProjectSettings } from './AppNavigation.svelte';
@@ -117,7 +120,7 @@
 	 * become circles and rectangles at exact positions, the panel gets the size of the board outline.
 	 * A rendered top view of the board (copper, mask openings, silkscreen) replaces the photo (it can be swapped for a real photo later).
 	 */
-	const importFabFiles = async (files: File[]) => {
+	const importFabFiles = async (files: File[], projectName?: string) => {
 		errorMessage = '';
 		try {
 			const fabFiles: FabFile[] = [];
@@ -132,8 +135,10 @@
 				return;
 			}
 
-			const name = files[0].name.slice(0, Math.max(0, files[0].name.lastIndexOf('.'))) || 'Board';
-			const { confirmed, plan } = await showModalGerberImport(fabPackage, name);
+			const name =
+				projectName ??
+				(files[0].name.slice(0, Math.max(0, files[0].name.lastIndexOf('.'))) || 'Board');
+			const { confirmed, plan, legs } = await showModalGerberImport(fabPackage, name);
 			if (!confirmed || !plan) return;
 
 			// Settings (name, thickness, ...) are confirmed before anything is loaded: cancel restores the project
@@ -141,7 +146,9 @@
 			projectStore.update((value) => {
 				value.circles = plan.circles;
 				value.rectangles = plan.rectangles;
-				value.legs = [];
+				value.legs = legs.map((leg) =>
+					LegData.parse({ id: nanoid(), x: leg.x, y: leg.y, width: LEG_SIZE, height: LEG_SIZE })
+				);
 				value.label = '';
 				value.zoom = IMPORT_ZOOM;
 				value.name = name;
@@ -181,14 +188,19 @@
 	/** Id of the demo being fetched, empty when idle */
 	let loadingDemoId = '';
 
-	/** Fetches a demo project from `public/demo/` and loads it like an uploaded project file */
+	/**
+	 * Loads a demo: a `.tht3d` project like an uploaded project file, or a Gerber package through the
+	 * very import a dropped `gerbers.zip` goes through (the dialog opens, the user confirms).
+	 */
 	const loadDemo = async (demo: Demo) => {
 		if (loadingDemoId) return;
 		loadingDemoId = demo.id;
 		try {
-			const response = await fetch(demoUrl(BASE_URL, demo.file));
+			const response = await fetch(demoUrl(BASE_URL, demo.gerbers ?? demo.file ?? ''));
 			if (!response.ok) throw new Error(`HTTP ${response.status}`);
-			loadProjectData(await response.json());
+			if (demo.gerbers)
+				await importFabFiles([new File([await response.blob()], demo.gerbers)], demo.title);
+			else loadProjectData(await response.json());
 		} catch (error) {
 			errorMessage = `Cannot load demo: ${error instanceof Error ? error.message : error}`;
 		} finally {

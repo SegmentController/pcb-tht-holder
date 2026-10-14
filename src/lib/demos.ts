@@ -1,11 +1,11 @@
 /**
  * Demo projects offered under the dropzone when no project is loaded.
  *
- * Each demo is a regular `.tht3d` project file (PCB image embedded as a data URL) served from
- * `public/demo/`, so the browser just fetches it and feeds it through the normal project loader.
- * Most boards are open-source KiCad designs started from a photo; one is started straight from Gerber
- * files (`gerbers` is its package, which can be dropped on the dropzone to try the import). Credits and
- * licence texts live in `public/demo/` (`CREDITS.md`, `licenses/`).
+ * A demo is either a regular `.tht3d` project file (PCB image embedded as a data URL) served from
+ * `public/demo/`, which the browser fetches and feeds through the normal project loader, or a Gerber
+ * package (`gerbers`) that goes through the import dialog like a dropped `gerbers.zip`.
+ * Most boards are open-source KiCad designs started from a photo. Credits and licence texts live in
+ * `public/demo/` (`CREDITS.md`, `licenses/`).
  */
 export interface Demo {
 	id: string;
@@ -14,8 +14,8 @@ export interface Demo {
 	description: string;
 	/** Board size in mm, as shown on the card */
 	size: string;
-	/** Project file name inside `public/demo/` */
-	file: string;
+	/** Project file name inside `public/demo/` (not for Gerber demos) */
+	file?: string;
 	/** Small preview image inside `public/demo/` */
 	thumbnail: string;
 	author: string;
@@ -23,7 +23,7 @@ export interface Demo {
 	licence?: string;
 	/** Upstream repository of the board design */
 	sourceUrl?: string;
-	/** Demo started straight from Gerber files: the package inside `public/demo/` */
+	/** Gerber demo: the package inside `public/demo/`, imported with the dialog (and offered for download) */
 	gerbers?: string;
 }
 
@@ -32,9 +32,8 @@ export const DEMOS: readonly Demo[] = [
 		id: 'ne555-gerbers',
 		title: 'NE555 from Gerbers',
 		description:
-			'Started from a gerbers.zip instead of a photo: exact board size, copper and silkscreen picture, header hole placed automatically.',
+			'Imports a gerbers.zip instead of a photo: exact board size, copper and silkscreen picture, header and support legs placed automatically.',
 		size: '23.6 × 16.2 mm',
-		file: 'ne555.tht3d',
 		thumbnail: 'ne555-thumb.jpg',
 		author: 'the project author (tscircuit example)',
 		gerbers: 'ne555-gerbers.zip'

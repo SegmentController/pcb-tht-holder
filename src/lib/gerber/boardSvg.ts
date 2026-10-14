@@ -26,7 +26,12 @@ export const isGeneratedImage = (dataUrl: string) => dataUrl.startsWith('data:im
 
 export interface BoardSvgOptions {
 	/** Also draw the planned circles and rectangles (import preview); the designer draws those itself */
-	shapes?: { circles: readonly CircleData[]; rectangles: readonly RectangleData[] };
+	shapes?: {
+		circles: readonly CircleData[];
+		rectangles: readonly RectangleData[];
+		/** Support legs by top-left corner */
+		legs?: readonly { x: number; y: number; width: number; height: number }[];
+	};
 	/** Top copper, solder mask openings and silkscreen drawn under the holes */
 	layout?: PcbLayout;
 }
@@ -134,6 +139,10 @@ export const renderBoardSvg = (
 				`<rect x="${number(cx - rectWidth / 2)}" y="${number(cy - rectHeight / 2)}" width="${number(rectWidth)}" height="${number(rectHeight)}" transform="rotate(${-rectangle.rotation} ${number(cx)} ${number(cy)})" fill="#16a34a" fill-opacity="0.35" stroke="#15803d" stroke-width="2"/>`
 			);
 		}
+		for (const leg of shapes.legs ?? [])
+			parts.push(
+				`<rect x="${px(leg.x)}" y="${py(leg.y + leg.height)}" width="${number(leg.width * scale)}" height="${number(leg.height * scale)}" fill="#6b7280" fill-opacity="0.5" stroke="#374151" stroke-width="2"/>`
+			);
 		for (const circle of shapes.circles)
 			parts.push(
 				`<circle cx="${px(circle.x)}" cy="${py(circle.y)}" r="${number(circle.radius * scale)}" fill="#f97316" fill-opacity="0.35" stroke="#c2410c" stroke-width="2"/>`

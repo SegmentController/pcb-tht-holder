@@ -117,6 +117,8 @@ export interface FabPackage {
 	/** File that gave the outline, for display */
 	outlineFile?: string;
 	layout?: PcbLayout;
+	/** Areas of SMD pads and silkscreen (CAM coordinates): where support legs must not stand */
+	partKeepouts?: { minX: number; minY: number; maxX: number; maxY: number }[];
 	warnings: string[];
 }
 

@@ -138,17 +138,17 @@
 	import NavContainer from 'flowbite-svelte/NavContainer.svelte';
 	import { createEventDispatcher } from 'svelte';
 
-	import { virtualDownload } from '$lib/download';
-	import { addNewCircle } from '$lib/elements/circle';
-	import { addCornerLegs, addNewLeg, deleteAllLegsWithConfirm } from '$lib/elements/leg';
-	import { addNewRectangle } from '$lib/elements/rectangle';
+	import { addNewCircle } from '$lib/designer/elements/circle';
+	import { addCornerLegs, addNewLeg, deleteAllLegsWithConfirm } from '$lib/designer/elements/leg';
+	import { addNewRectangle } from '$lib/designer/elements/rectangle';
 	import {
 		finemoveSelectedElement,
 		flipSelectedRectangleDimensions,
 		resetSelectedRectangleRotation,
 		rotateSelectedRectangleDegrees
-	} from '$lib/fineMovement';
+	} from '$lib/designer/fineMovement';
 	import { shortcut, type ShortcutEventDetail, type ShortcutModifier } from '$lib/shortcut';
+	import { virtualDownload } from '$lib/util/download';
 	import { libraryStore } from '$stores/libraryStore';
 	import {
 		showModalConfirm,

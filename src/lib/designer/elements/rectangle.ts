@@ -3,7 +3,7 @@ import { nanoid } from 'nanoid';
 import type { ContextMenuItem } from '$components/base/ContextMenu.svelte';
 import type { RectangleSettings } from '$components/modal/ModalRectangleSettings.svelte';
 import { ELEMENT_DRAGGABLE, ELEMENT_OPACITY, RECTANGLE_COLOR } from '$lib/constants';
-import { createElementCollection } from '$lib/elements/collection';
+import { createElementCollection } from '$lib/designer/elements/collection';
 import { getLibraryStoreValue, setLibraryStoreValue } from '$stores/libraryStore';
 import {
 	showModalConfirm,

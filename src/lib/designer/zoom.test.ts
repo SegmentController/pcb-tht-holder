@@ -1,6 +1,7 @@
 import { describe, expect, it } from 'vitest';
 
-import { ZOOM_MAX, ZOOM_MIN, ZOOM_STEP } from './constants';
+import { ZOOM_MAX, ZOOM_MIN, ZOOM_STEP } from '$lib/constants';
+
 import { accumulateWheel, applyZoomSteps, WHEEL_STEP_DELTA } from './zoom';
 
 describe('accumulateWheel', () => {

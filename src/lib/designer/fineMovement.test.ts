@@ -2,7 +2,12 @@ import { get } from 'svelte/store';
 import type { KonvaMouseEvent } from 'svelte-konva';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
-import { circleOf, legOf, rectangleOf, resetProject } from '$lib/elements/elementTestUtilities';
+import {
+	circleOf,
+	legOf,
+	rectangleOf,
+	resetProject
+} from '$lib/designer/elements/elementTestUtilities';
 import { getProjectStoreValue } from '$stores/projectStore';
 import { clearUndoStack, executeLastUndo, undoStoreLastItem } from '$stores/undoStore';
 import type { GenericElement } from '$types/typeGuards';

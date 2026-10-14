@@ -1,7 +1,7 @@
 import { tick } from 'svelte';
 
-import { ZOOM_MAX, ZOOM_MIN, ZOOM_STEP } from './constants';
-import { MathMinMax } from './Math';
+import { ZOOM_MAX, ZOOM_MIN, ZOOM_STEP } from '$lib/constants';
+import { MathMinMax } from '$lib/util/math';
 
 /** Wheel delta (px) that makes up one zoom step: one mouse-wheel notch, a short trackpad pinch */
 export const WHEEL_STEP_DELTA = 100;

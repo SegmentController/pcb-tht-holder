@@ -37,11 +37,8 @@
 import { get } from 'svelte/store';
 import { persisted } from 'svelte-persisted-store';
 
-import {
-	convertDefaultComponentToLibraryItem,
-	DEFAULT_COMPONENTS,
-	type Library
-} from '$types/Library';
+import { convertDefaultComponentToLibraryItem, DEFAULT_COMPONENTS } from '$lib/libraryDefaults';
+import type { Library } from '$types/Library';
 
 /**
  * Persisted store holding array of saved component templates
@@ -80,7 +77,7 @@ export const setLibraryStoreValue = (library: Library) => libraryStore.set(libra
  * Called when user clicks "Load defaults" button in Library modal to quickly
  * populate their library with standard component footprints.
  *
- * @see DEFAULT_COMPONENTS in Library.ts for the list of default components
+ * @see DEFAULT_COMPONENTS in lib/libraryDefaults.ts for the list of default components
  * @see convertDefaultComponentToLibraryItem for dimension mapping logic
  */
 export const loadDefaultsToLibrary = () => {

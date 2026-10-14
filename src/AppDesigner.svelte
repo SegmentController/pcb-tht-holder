@@ -106,9 +106,8 @@
 	import ContextMenu from '$components/base/ContextMenu.svelte';
 	import HoverInfo from '$components/base/HoverInfo.svelte';
 	import ZoomRange from '$components/base/input/ZoomRange.svelte';
-	import DesignerCrosshair from '$components/DesignerCrosshair.svelte';
-	import DesignerGrid from '$components/DesignerGrid.svelte';
-	import { type AlignmentLine, calculateSnapPosition, detectAlignments } from '$lib/alignment';
+	import DesignerCrosshair from '$components/designer/DesignerCrosshair.svelte';
+	import DesignerGrid from '$components/designer/DesignerGrid.svelte';
 	import {
 		ALIGNMENT_LINE_COLOR,
 		ALIGNMENT_LINE_WIDTH,
@@ -118,21 +117,32 @@
 		ZOOM_MIN,
 		ZOOM_STEP
 	} from '$lib/constants';
-	import { getContextMenuItemForCircle, modifyCircle, moveCircle } from '$lib/elements/circle';
-	import { deleteLegWithConfirm, getContextMenuItemForLeg, moveLeg } from '$lib/elements/leg';
+	import {
+		type AlignmentLine,
+		calculateSnapPosition,
+		detectAlignments
+	} from '$lib/designer/alignment';
+	import {
+		getContextMenuItemForCircle,
+		modifyCircle,
+		moveCircle
+	} from '$lib/designer/elements/circle';
+	import {
+		deleteLegWithConfirm,
+		getContextMenuItemForLeg,
+		moveLeg
+	} from '$lib/designer/elements/leg';
 	import {
 		getContextMenuItemForRectangle,
 		modifyRectangle,
 		moveRectangle
-	} from '$lib/elements/rectangle';
+	} from '$lib/designer/elements/rectangle';
 	import {
 		deselectElementByMouseLeave,
 		getSelectedElementInfo,
 		pruneSelectedElements,
 		selectElementByMouseEnter
-	} from '$lib/fineMovement';
-	import { rotatedHalfExtents } from '$lib/geometry';
-	import { isGeneratedImage } from '$lib/gerber/boardSvg';
+	} from '$lib/designer/fineMovement';
 	import {
 		cleanupMeasurement,
 		emptyMeasurementInfo,
@@ -140,8 +150,10 @@
 		stageMeasureModeMouseDown,
 		stageMeasureModeMouseUp,
 		stageMouseMove
-	} from '$lib/measurement';
-	import { wheelZoom } from '$lib/zoom';
+	} from '$lib/designer/measurement';
+	import { wheelZoom } from '$lib/designer/zoom';
+	import { isGeneratedImage } from '$lib/gerber/boardSvg';
+	import { rotatedHalfExtents } from '$lib/util/geometry';
 	import { projectStore } from '$stores/projectStore';
 	import type { CircleData } from '$types/CircleData';
 	import type { ImageSize } from '$types/ImageSize';

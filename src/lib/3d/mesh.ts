@@ -15,13 +15,13 @@ import { ADDITION, Brush, Evaluator, SUBTRACTION } from 'three-bvh-csg';
 import { isLegOverlappingCircle, isLegOverlappingRectangle } from '$lib/3d/legOverlap';
 import { repairMesh } from '$lib/3d/meshRepair';
 import { BOTTOM_THICKNESS, POSITIVE_BASE_THICKNESS } from '$lib/3d/placement';
-import { MathMinMax } from '$lib/Math';
+import { switchType } from '$lib/3d/switchType';
+import { MathMinMax } from '$lib/util/math';
 import type { CircleData } from '$types/CircleData';
 import type { LegData } from '$types/LegData';
 import type { MeshInfo, MeshInfoTuple } from '$types/MeshInfo';
 import type { RenderableProject } from '$types/Project';
 import type { RectangleData } from '$types/RectangleData';
-import { switchType } from '$types/switchType';
 
 const EDGE_THICKNESS = 2;
 const TEXT_THICKNESS = 1;

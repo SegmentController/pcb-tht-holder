@@ -1,4 +1,4 @@
-import { MathMinMax } from '$lib/Math';
+import { MathMinMax } from '$lib/util/math';
 import type { CircleData } from '$types/CircleData';
 import type { LegData } from '$types/LegData';
 import type { RectangleData } from '$types/RectangleData';

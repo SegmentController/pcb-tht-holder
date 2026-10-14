@@ -3,7 +3,7 @@ import { nanoid } from 'nanoid';
 import type { ContextMenuItem } from '$components/base/ContextMenu.svelte';
 import type { CircleSettings } from '$components/modal/ModalCircleSettings.svelte';
 import { CIRCLE_COLOR, ELEMENT_DRAGGABLE, ELEMENT_OPACITY } from '$lib/constants';
-import { createElementCollection } from '$lib/elements/collection';
+import { createElementCollection } from '$lib/designer/elements/collection';
 import { getLibraryStoreValue, setLibraryStoreValue } from '$stores/libraryStore';
 import { showModalCircleSettings, showModalConfirm, showModalNameEdit } from '$stores/modalStore';
 import { getProjectStoreValue } from '$stores/projectStore';

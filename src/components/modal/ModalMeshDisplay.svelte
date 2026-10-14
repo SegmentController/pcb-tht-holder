@@ -5,19 +5,19 @@
 	import { createEventDispatcher, onDestroy, onMount, untrack } from 'svelte';
 	import { persisted } from 'svelte-persisted-store';
 
+	import Mesh3DScene from '$components/mesh/Mesh3DScene.svelte';
 	import type { MeshKind } from '$lib/3d/mesh';
 	import { createMeshClient, MeshClientCancelledError } from '$lib/3d/meshClient';
 	import { positivePlacementOffset } from '$lib/3d/placement';
 	import { generateBinaryStlFromVertices, getBinaryStlSizeKbFromVertices } from '$lib/3d/stl';
 	import { POSITIVE_MESH_COLOR } from '$lib/constants';
-	import { virtualDownload } from '$lib/download';
-	import { formatFileTimestamp, formatMm } from '$lib/format';
-	import { MathMax } from '$lib/Math';
+	import { virtualDownload } from '$lib/util/download';
+	import { formatFileTimestamp, formatMm } from '$lib/util/format';
+	import { MathMax } from '$lib/util/math';
 	import type { MeshInfo } from '$types/MeshInfo';
 	import type { RenderableProject } from '$types/Project';
 	import type { SceneMesh } from '$types/SceneMesh';
 
-	import Mesh3DScene from '../Mesh3DScene.svelte';
 	import EscapeClose from './util/EscapeClose.svelte';
 
 	const dispatch = createEventDispatcher<{ resolve: object }>();

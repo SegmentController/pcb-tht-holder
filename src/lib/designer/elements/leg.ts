@@ -2,7 +2,7 @@ import { nanoid } from 'nanoid';
 
 import type { ContextMenuItem } from '$components/base/ContextMenu.svelte';
 import { ELEMENT_DRAGGABLE, ELEMENT_OPACITY, LEG_COLOR } from '$lib/constants';
-import { createElementCollection } from '$lib/elements/collection';
+import { createElementCollection } from '$lib/designer/elements/collection';
 import { showModalConfirm } from '$stores/modalStore';
 import { getProjectStoreValue } from '$stores/projectStore';
 import { addUndo } from '$stores/undoStore';

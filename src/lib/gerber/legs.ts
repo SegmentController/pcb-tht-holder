@@ -1,4 +1,4 @@
-import { rotatedHalfExtents } from '$lib/geometry';
+import { rotatedHalfExtents } from '$lib/util/geometry';
 import { LEG_SIZE } from '$types/LegData';
 
 import type { ElementPlan } from './plan';

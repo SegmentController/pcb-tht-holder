@@ -28,7 +28,7 @@
  */
 
 import { ALIGNMENT_SNAP_DISTANCE, ALIGNMENT_SNAP_THRESHOLD } from '$lib/constants';
-import { rotatedHalfExtents } from '$lib/geometry';
+import { rotatedHalfExtents } from '$lib/util/geometry';
 import type { CircleData } from '$types/CircleData';
 import type { LegData } from '$types/LegData';
 import type { RectangleData } from '$types/RectangleData';

@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 
-import { MathMax, MathMinMax } from './Math';
+import { MathMax, MathMinMax } from './math';
 
 describe('MathMax', () => {
 	it('returns 0 for an empty array', () => {

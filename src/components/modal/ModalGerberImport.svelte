@@ -5,7 +5,6 @@
 	import NumberInputBound from '$components/base/input/NumberInputBound.svelte';
 	import AutoFocus from '$components/modal/util/AutoFocus.svelte';
 	import EscapeClose from '$components/modal/util/EscapeClose.svelte';
-	import { formatMm } from '$lib/format';
 	import { renderBoardSvg, svgToDataUrl } from '$lib/gerber/boardSvg';
 	import { suggestLegs } from '$lib/gerber/legs';
 	import {
@@ -16,6 +15,7 @@
 		planElements
 	} from '$lib/gerber/plan';
 	import type { DrillTool, FabPackage } from '$lib/gerber/types';
+	import { formatMm } from '$lib/util/format';
 	import { LEG_SIZE } from '$types/LegData';
 
 	const dispatch = createEventDispatcher<{

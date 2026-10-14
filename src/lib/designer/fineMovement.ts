@@ -1,14 +1,14 @@
 import type { KonvaMouseEvent } from 'svelte-konva';
 
 import { FINE_MOVEMENT_DELTA } from '$lib/constants';
-import { moveCircle } from '$lib/elements/circle';
-import { moveLeg } from '$lib/elements/leg';
+import { moveCircle } from '$lib/designer/elements/circle';
+import { moveLeg } from '$lib/designer/elements/leg';
 import {
 	flipRectangleDimensions,
 	moveRectangle,
 	resetRectangleRotation,
 	rotateRectangleDegrees
-} from '$lib/elements/rectangle';
+} from '$lib/designer/elements/rectangle';
 import { type GenericElement, isCircle, isRectangle } from '$types/typeGuards';
 
 export type FinemoveDirection = 'left' | 'up' | 'right' | 'down';

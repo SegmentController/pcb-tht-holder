@@ -1,11 +1,11 @@
 import { describe, expect, it } from 'vitest';
 
 import { isLegOverlappingCircle, isLegOverlappingRectangle } from '$lib/3d/legOverlap';
-import { rotatedHalfExtents } from '$lib/geometry';
 import { suggestLegs } from '$lib/gerber/legs';
 import { readFabPackage } from '$lib/gerber/package';
 import { defaultToolKeys, planElements } from '$lib/gerber/plan';
 import { unzipFabFiles } from '$lib/gerber/unzip';
+import { rotatedHalfExtents } from '$lib/util/geometry';
 import { LegData } from '$types/LegData';
 import { Project } from '$types/Project';
 

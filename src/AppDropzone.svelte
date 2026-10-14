@@ -55,12 +55,20 @@
 	- JSON parsing errors are caught and reported
 -->
 <script lang="ts">
+	import { nanoid } from 'nanoid';
+
 	import Dropzone from '$components/base/input/Dropzone.svelte';
 	import DemoPicker from '$components/DemoPicker.svelte';
 	import { type Demo, demoUrl } from '$lib/demos';
-	import { showModalResizeImage } from '$stores/modalStore';
-	import { projectStore } from '$stores/projectStore';
+	import { renderProjectImage, svgToDataUrl } from '$lib/gerber/boardSvg';
+	import { isFabFileName, readFabPackage } from '$lib/gerber/package';
+	import type { FabFile } from '$lib/gerber/types';
+	import { unzipFabFiles } from '$lib/gerber/unzip';
+	import { showModalGerberImport, showModalResizeImage } from '$stores/modalStore';
+	import { getProjectStoreValue, projectStore } from '$stores/projectStore';
+	import { toastStore } from '$stores/toastStore';
 	import type { ImageSize } from '$types/ImageSize';
+	import { LEG_SIZE, LegData } from '$types/LegData';
 	import { Project } from '$types/Project';
 
 	import { openProjectSettings } from './AppNavigation.svelte';
@@ -104,17 +112,95 @@
 		errorMessage = '';
 	};
 
+	/** Zoom of an imported board: its picture is 1000 px wide at 100 % */
+	const IMPORT_ZOOM = 70;
+
+	/**
+	 * Imports fabrication files (a zipped Gerber package, or loose Excellon / Gerber files): THT holes
+	 * become circles and rectangles at exact positions, the panel gets the size of the board outline.
+	 * A rendered top view of the board (copper, mask openings, silkscreen) replaces the photo (it can be swapped for a real photo later).
+	 */
+	const importFabFiles = async (files: File[], projectName?: string) => {
+		errorMessage = '';
+		try {
+			const fabFiles: FabFile[] = [];
+			for (const file of files)
+				if (/\.zip$/i.test(file.name))
+					fabFiles.push(...(await unzipFabFiles(new Uint8Array(await file.arrayBuffer()))));
+				else fabFiles.push({ name: file.name, text: await file.text() });
+
+			const fabPackage = readFabPackage(fabFiles);
+			if (fabPackage.holes.length === 0 && !fabPackage.outline) {
+				errorMessage = 'No drill file or board outline found in the selected files';
+				return;
+			}
+
+			const name =
+				projectName ??
+				(files[0].name.slice(0, Math.max(0, files[0].name.lastIndexOf('.'))) || 'Board');
+			const { confirmed, plan, legs } = await showModalGerberImport(fabPackage, name);
+			if (!confirmed || !plan) return;
+
+			// Settings (name, thickness, ...) are confirmed before anything is loaded: cancel restores the project
+			const previous = { ...getProjectStoreValue() };
+			projectStore.update((value) => {
+				value.circles = plan.circles;
+				value.rectangles = plan.rectangles;
+				value.legs = legs.map((leg) =>
+					LegData.parse({ id: nanoid(), x: leg.x, y: leg.y, width: LEG_SIZE, height: LEG_SIZE })
+				);
+				value.label = '';
+				value.zoom = IMPORT_ZOOM;
+				value.name = name;
+				value.panelSettings = { ...value.panelSettings, ...plan.panel };
+				return value;
+			});
+			if (!(await openProjectSettings('gerber'))) {
+				projectStore.update((value) => Object.assign(value, previous));
+				return;
+			}
+
+			const { svg, simplified } = renderProjectImage(plan, fabPackage.layout);
+			if (simplified)
+				toastStore.push(
+					'warning',
+					'Board picture is too detailed: only outline and holes are drawn',
+					8000
+				);
+			onFileUpload(svgToDataUrl(svg), getProjectStoreValue().name, false, true);
+		} catch (error) {
+			errorMessage = `Cannot import fabrication files: ${error instanceof Error ? error.message : error}`;
+		}
+	};
+
+	/** Takes the drop when it contains fabrication data, images and `.tht3d` files keep their path */
+	const claimFabFiles = (files: File[]) => {
+		// Several files that are no pictures or projects are a loose fabrication set whatever their extensions
+		const isFabrication =
+			files.some((file) => isFabFileName(file.name)) ||
+			(files.length > 1 &&
+				files.every((file) => !/\.(png|jpe?g|gif|webp|bmp|tht3d)$/i.test(file.name)));
+		if (!isFabrication) return false;
+		void importFabFiles(files);
+		return true;
+	};
+
 	/** Id of the demo being fetched, empty when idle */
 	let loadingDemoId = '';
 
-	/** Fetches a demo project from `public/demo/` and loads it like an uploaded project file */
+	/**
+	 * Loads a demo: a `.tht3d` project like an uploaded project file, or a Gerber package through the
+	 * very import a dropped `gerbers.zip` goes through (the dialog opens, the user confirms).
+	 */
 	const loadDemo = async (demo: Demo) => {
 		if (loadingDemoId) return;
 		loadingDemoId = demo.id;
 		try {
-			const response = await fetch(demoUrl(BASE_URL, demo.file));
+			const response = await fetch(demoUrl(BASE_URL, demo.gerbers ?? demo.file ?? ''));
 			if (!response.ok) throw new Error(`HTTP ${response.status}`);
-			loadProjectData(await response.json());
+			if (demo.gerbers)
+				await importFabFiles([new File([await response.blob()], demo.gerbers)], demo.title);
+			else loadProjectData(await response.json());
 		} catch (error) {
 			errorMessage = `Cannot load demo: ${error instanceof Error ? error.message : error}`;
 		} finally {
@@ -255,10 +341,16 @@
 </script>
 
 <Dropzone
-	description="Click to upload or drag and drop a file. Image file (png, jpg) begins a new project, a .tht3d file restores a previously saved project."
+	claimFiles={claimFabFiles}
 	{errorMessage}
 	onUpload={(imgData, filename) =>
 		onFileUpload(imgData, filename.slice(0, Math.max(0, filename.lastIndexOf('.'))), true, false)}
-	title="Top view of PCB image or a project file"
-/>
+	title="Drop your Gerber package, a PCB photo or a project file"
+>
+	<strong class="font-bold text-gray-900"
+		>Drag and drop a Gerber package (gerbers.zip, or .drl + outline files)</strong
+	>
+	to place the THT holes at exact positions, no photo needed. An image file (png, jpg) begins a new project
+	from a photo, a .tht3d file restores a previously saved project.
+</Dropzone>
 <DemoPicker loadingId={loadingDemoId} onSelect={loadDemo} />

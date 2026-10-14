@@ -57,6 +57,7 @@ import ModalCircleSettings, {
 	type CircleSettings
 } from '$components/modal/ModalCircleSettings.svelte';
 import ModalConfirm from '$components/modal/ModalConfirm.svelte';
+import ModalGerberImport from '$components/modal/ModalGerberImport.svelte';
 import ModalLibrary from '$components/modal/ModalLibrary.svelte';
 import ModalNameEdit from '$components/modal/ModalNameEdit.svelte';
 import ModalProjectSettings from '$components/modal/ModalProjectSettings.svelte';
@@ -64,6 +65,8 @@ import ModalRectangleSettings, {
 	type RectangleSettings
 } from '$components/modal/ModalRectangleSettings.svelte';
 import ModalResizeImage from '$components/modal/ModalResizeImage.svelte';
+import type { ElementPlan } from '$lib/gerber/plan';
+import type { FabPackage } from '$lib/gerber/types';
 import { createModalStore } from '$lib/svelteModal/modal';
 import type { PanelSettings } from '$types/PanelSettings';
 import type { RenderableProject } from '$types/Project';
@@ -128,7 +131,8 @@ export const showModalNameEdit = async (
 export const showModalProjectSettings = async (
 	panelSettings: PanelSettings,
 	name: string,
-	label: string
+	label: string,
+	source?: 'gerber' | 'photo'
 ): Promise<{ confirmed: boolean; panelSettings: PanelSettings; name: string; label: string }> =>
 	await modalStore
 		.push({
@@ -136,7 +140,35 @@ export const showModalProjectSettings = async (
 			props: {
 				panelSettings: { ...panelSettings },
 				name,
-				label
+				label,
+				source
+			}
+		})
+		.resolve();
+
+/**
+ * Shows the review dialog of a Gerber / Excellon import
+ *
+ * Lists the drill tools to import, groups holes into parts and previews the result on the board.
+ *
+ * @param fabPackage - Parsed drill files and board outline
+ * @param name - Project name shown in the title
+ * @returns Promise resolving to { confirmed, plan, legs } (plan and legs only when confirmed)
+ */
+export const showModalGerberImport = async (
+	fabPackage: FabPackage,
+	name: string
+): Promise<{
+	confirmed: boolean;
+	plan: ElementPlan | undefined;
+	legs: { x: number; y: number }[];
+}> =>
+	await modalStore
+		.push({
+			component: ModalGerberImport,
+			props: {
+				fabPackage,
+				name
 			}
 		})
 		.resolve();

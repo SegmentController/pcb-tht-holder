@@ -2,8 +2,8 @@
 	import { Label, Range } from 'flowbite-svelte';
 
 	import { ZOOM_DEFAULT, ZOOM_STEP } from '$lib/constants';
-	import { MathMinMax } from '$lib/Math';
 	import { shortcut } from '$lib/shortcut';
+	import { MathMinMax } from '$lib/util/math';
 
 	let aClass = '';
 	export { aClass as class };

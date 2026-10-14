@@ -128,7 +128,8 @@ export function shortcut(node: HTMLElement, parameter: ShortcutParameter) {
 
 			if (enabled && (!currentEnabled || type !== currentType))
 				node.removeEventListener(type, handler);
-			else if (!enabled && currentEnabled) node.addEventListener(currentType, handler);
+			if (currentEnabled && (!enabled || type !== currentType))
+				node.addEventListener(currentType, handler);
 
 			enabled = currentEnabled;
 			type = currentType;

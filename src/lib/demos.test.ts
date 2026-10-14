@@ -1,7 +1,12 @@
 import { describe, expect, it } from 'vitest';
 
 import { isLegOverlappingCircle, isLegOverlappingRectangle } from '$lib/3d/legOverlap';
-import { rotatedHalfExtents } from '$lib/geometry';
+import { suggestLegs } from '$lib/gerber/legs';
+import { readFabPackage } from '$lib/gerber/package';
+import { defaultToolKeys, planElements } from '$lib/gerber/plan';
+import { unzipFabFiles } from '$lib/gerber/unzip';
+import { rotatedHalfExtents } from '$lib/util/geometry';
+import { LegData } from '$types/LegData';
 import { Project } from '$types/Project';
 
 import { DEMOS, demoUrl } from './demos';
@@ -14,7 +19,8 @@ const projectFiles = import.meta.glob<string>('../../public/demo/*.tht3d', {
 /** Only the keys are used: they tell which files exist next to the demo projects */
 const otherFiles = Object.keys({
 	...import.meta.glob('../../public/demo/*.{jpg,md}', { query: '?url' }),
-	...import.meta.glob('../../public/demo/licenses/*.txt', { query: '?url' })
+	...import.meta.glob('../../public/demo/licenses/*.txt', { query: '?url' }),
+	...import.meta.glob('../../public/demo/*.zip', { query: '?url' })
 });
 
 const loadProject = (file: string) => {
@@ -54,17 +60,32 @@ describe('demo catalogue', () => {
 	it('lists three demos with unique ids and files', () => {
 		expect(DEMOS).toHaveLength(3);
 		expect(new Set(DEMOS.map((demo) => demo.id)).size).toBe(DEMOS.length);
-		expect(new Set(DEMOS.map((demo) => demo.file)).size).toBe(DEMOS.length);
+		const files = DEMOS.map((demo) => demo.file ?? demo.gerbers);
+		expect(files.every((file) => file !== undefined)).toBe(true);
+		expect(new Set(files).size).toBe(DEMOS.length);
 	});
 
-	it('ships the credits and the licence text of every board', () => {
+	it('ships the credits and the licence text of every board that declares a licence', () => {
 		expect(hasFile('CREDITS.md')).toBe(true);
-		for (const demo of DEMOS) expect(hasFile(`licenses/${demo.id}-LICENSE.txt`)).toBe(true);
+		for (const demo of DEMOS)
+			if (demo.licence) expect(hasFile(`licenses/${demo.id}-LICENSE.txt`)).toBe(true);
+	});
+
+	it('has one demo that is a Gerber package and the others projects', () => {
+		const fromGerbers = DEMOS.filter((demo) => demo.gerbers);
+		expect(fromGerbers).toHaveLength(1);
+		for (const demo of fromGerbers) {
+			expect(demo.file).toBeUndefined();
+			expect(hasFile(demo.gerbers!)).toBe(true);
+			expect(hasFile(demo.thumbnail)).toBe(true);
+		}
+		for (const demo of DEMOS.filter((candidate) => !candidate.gerbers))
+			expect(demo.file).toMatch(/\.tht3d$/);
 	});
 });
 
-describe.each(DEMOS)('demo $id', (demo) => {
-	const project = loadProject(demo.file);
+describe.each(DEMOS.filter((demo) => demo.file))('demo $id', (demo) => {
+	const project = loadProject(demo.file!);
 	const { width, height } = project.panelSettings;
 
 	it('has its thumbnail', () => {
@@ -80,7 +101,16 @@ describe.each(DEMOS)('demo $id', (demo) => {
 		expect(project.legs.length).toBeGreaterThan(0);
 	});
 
-	it('embeds a JPEG whose aspect ratio matches the panel', () => {
+	it('embeds a picture whose aspect ratio matches the panel', () => {
+		const generated = project.image.startsWith('data:image/svg+xml;base64,');
+		if (generated) {
+			// Rendered from Gerber files: the SVG declares its pixel size
+			const svg = atob(project.image.slice(project.image.indexOf(',') + 1));
+			const size = /width="(\d+)" height="(\d+)"/.exec(svg);
+			expect(size).not.toBeNull();
+			expect(Number(size![1]) / Number(size![2]) / (width / height)).toBeCloseTo(1, 1);
+			return;
+		}
 		expect(project.image.startsWith('data:image/jpeg;base64,')).toBe(true);
 		const size = jpegSize(project.image);
 		expect(size.width / size.height / (width / height)).toBeCloseTo(1, 1);
@@ -154,5 +184,46 @@ describe.each(DEMOS)('demo $id', (demo) => {
 				const dy = Math.max(box.top - circle.y, 0, circle.y - box.bottom);
 				expect(Math.hypot(dx, dy) >= circle.radius, `${circle.id} overlaps ${box.id}`).toBe(true);
 			}
+	});
+});
+
+describe('Gerber demo import', () => {
+	const demo = DEMOS.find((candidate) => candidate.gerbers)!;
+
+	it('imports into elements and support legs like a dropped package', async () => {
+		// Binary file: read it with Node (tests run in Node; the module name is built to keep it out of the browser types)
+		const nodeFs = 'node:fs';
+		const { readFileSync } = (await import(/* @vite-ignore */ nodeFs)) as {
+			readFileSync: (path: URL) => Uint8Array;
+		};
+		const bytes = readFileSync(new URL(`../../public/demo/${demo.gerbers}`, import.meta.url));
+		const pkg = readFabPackage(await unzipFabFiles(new Uint8Array(bytes)));
+		const plan = planElements(pkg.holes, pkg.outline, {
+			toolKeys: defaultToolKeys(pkg.tools),
+			groupDistance: 2.6,
+			minMargin: 0.3,
+			circleDepth: 5,
+			rectangleDepth: 5
+		});
+		expect(plan.panel).toEqual({ width: 23.6, height: 16.2 });
+		expect(plan.circles.length + plan.rectangles.length).toBeGreaterThan(0);
+		expect(pkg.layout).toBeDefined();
+
+		const legs = suggestLegs(plan, pkg.holes, pkg.partKeepouts ?? []);
+		expect(legs.length).toBeGreaterThanOrEqual(3);
+		for (const leg of legs)
+			expect(
+				[
+					...plan.circles.map((circle) =>
+						isLegOverlappingCircle(LegData.parse({ id: 'l', ...leg, width: 2, height: 2 }), circle)
+					),
+					...plan.rectangles.map((rectangle) =>
+						isLegOverlappingRectangle(
+							LegData.parse({ id: 'l', ...leg, width: 2, height: 2 }),
+							rectangle
+						)
+					)
+				].some(Boolean)
+			).toBe(false);
 	});
 });

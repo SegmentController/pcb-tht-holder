@@ -1,6 +1,7 @@
 import { beforeEach, describe, expect, it } from 'vitest';
 
-import { DEFAULT_COMPONENTS, type Library } from '$types/Library';
+import { DEFAULT_COMPONENTS } from '$lib/libraryDefaults';
+import type { Library } from '$types/Library';
 
 import { getLibraryStoreValue, loadDefaultsToLibrary, setLibraryStoreValue } from './libraryStore';
 

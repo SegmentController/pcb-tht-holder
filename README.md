@@ -15,14 +15,47 @@ I make almost all of my printed circuit boards with online design software and e
 
 ## That's why I created an **online tool** that:
 
-- Based on the photo of the PCB, it helps to leave the place of the protruding (THT) parts empty.
+- **Reads your Gerber / Excellon fabrication files** (`gerbers.zip`): the THT holes land at exact coordinates on a board of exact size, no photo, no measuring.
+- Or, based on the photo of the PCB, it helps to leave the place of the protruding (THT) parts empty.
 - It creates a 3D format (STL) output that, if you print, will keep the parts straight during soldering.
 - It can work without registration and without uploading (and storing) a photo of the PCB.
 
 In its current state, it facilitates the installation of circular and oblong components. This is sufficient in the following cases: **relays, capacitors, resistors, terminals and pin-headers.** It automatically calculates the required area and volume based on the height of the parts. But it doesn't mean that there aren't any mistakes in it: if you experience anything, I welcome your comments.
 
+## Start from your Gerber files
+
+> **Drag and drop the `gerbers.zip` you send to the PCB manufacturer** onto the page. That is the whole setup.
+
+Every CAD tool produces this package for the board house, so the holder can be derived from data you already have:
+
+- **Exact size**: the panel takes the size of the board outline (`Edge.Cuts` / board outline layer).
+- **Exact holes**: every drilled hole sits at its real coordinates; neighbouring holes of the same diameter are grouped into one part (a pin header becomes one rotated rectangle, a lone hole becomes a circle).
+- **Review dialog**: lists the drill tools (plated lead-size holes on by default, vias and mounting holes off), the grouping distance, **optional support legs** placed clear of SMD pads, silkscreen and holes, and a preview of the board.
+- **A rendered board as the picture**: top copper, exposed solder-mask pads, silkscreen, outline and holes, drawn opaque instead of a semi-transparent photo.
+- **Loose files work too**: `.drl` / `.xln` Excellon or Gerber drill files plus the outline layer.
+- **Any CAD**: KiCad, Altium/Protel, Eagle, OrCAD, gEDA, DipTrace, EasyEDA/JLC, OSH Park and others; Gerber X2 attributes are used when present, file naming otherwise. Follows the Ucamco Gerber Layer Format and XNC drill specifications (apertures and macros, step and repeat, arcs, regions, polarity, slots, inch/metric).
+- **Private**: parsing, rendering and the 3D generation run in your browser; your fabrication files never leave it.
+
+![Gerber import dialog: drill tools, grouping, support legs and a board preview](./step-gerber.png)
+
+No Gerber files at hand? The **NE555 from Gerbers** demo under the dropzone runs a sample package through exactly the same import, and its `gerbers.zip` can be downloaded from the card so you can try the drag and drop yourself.
+
+### Photo or Gerber project?
+
+The project starts either way, and the app shows which one you have:
+
+|                           | Started from Gerber files                                            | Started from a photo                                                  |
+| ------------------------- | -------------------------------------------------------------------- | --------------------------------------------------------------------- |
+| Picture                   | Rendered top view (copper, solder mask openings, silkscreen), opaque | Your photo, drawn at 25 % opacity                                     |
+| Panel size                | Exact, taken from the board outline                                  | Unknown scale: you enter the real width, the photo is stretched to it |
+| Holes                     | Placed at exact coordinates, neighbours grouped into parts           | You place and size every element by hand                              |
+| Support legs              | Suggested automatically in the import dialog                         | You add them by hand                                                  |
+| Indicator in the designer | Green badge _Gerber layout · exact size_                             | Blue badge _Photo overlay · scale from settings_                      |
+| Project settings          | Green note: _Exact size from the Gerber board outline_               | Blue note: _Photo has no scale_                                       |
+
 ## Features
 
+- **Gerber / Excellon Import**: **Drag and drop your `gerbers.zip`** (or `.drl` + outline files): THT holes are placed at exact coordinates and grouped into parts, the panel gets its exact size from the board outline, support legs are suggested, no photo needed (see [Start from your Gerber files](#start-from-your-gerber-files))
 - **Component Shapes**: Support for circular and rectangular components
   - Rectangles support full 360° rotation (0-359 degrees)
   - Flip dimensions to swap width/height instantly
@@ -67,7 +100,7 @@ In its current state, it facilitates the installation of circular and oblong com
 - **Hover Info**: Real-time element information and available shortcuts when hovering
 - **Hollow Option**: Generate top-layer-only coverage for faster printing
 - **Custom Labels**: Print text labels on the side of your holder
-- **Demo Projects**: Three ready-made KiCad boards under the dropzone to try the workflow without a PCB
+- **Demo Projects**: Three ready-made boards under the dropzone to try the workflow without a PCB, one of them started straight from a `gerbers.zip`
 - **Auto Image Resize**: Automatically resizes large images (>1280x1024) for easier handling
 - **PWA Support**: Install as a standalone application on your device
 - **Offline Ready**: Works without internet connection after first load (service worker precaches the app shell)
@@ -115,31 +148,33 @@ In its current state, it facilitates the installation of circular and oblong com
 
 Click here: https://segmentcontroller.github.io/pcb-tht-holder/
 
-### Set up a PCB image
+### Set up the project
 
-Enter a PCB image with drag and drop or file selection, which will automatically flip and become transparent.
+**Best: drag and drop the fabrication `gerbers.zip`** (or the `.drl` drill files together with the `Edge.Cuts` layer). The import dialog lists the drill tools (vias and mounting holes are off by default), groups neighbouring holes (default: closer than 2.6 mm, e.g. a pin header becomes one rectangle), offers support legs and shows a preview. The panel takes the size of the board outline and all elements sit at their exact positions; THT parts that are missing from the BOM/pick-and-place files are fine, only the drill files matter.
 
-No PCB at hand? Pick one of the three demo boards under the dropzone: it loads a ready-made project with its holes and support legs already placed. Demo credits and licences: [`public/demo/CREDITS.md`](./public/demo/CREDITS.md).
+**No Gerber files, only a picture?** Enter a PCB image with drag and drop or file selection, which will automatically flip and become transparent; you set the real width and place the elements yourself.
 
-![alt text](./step1.png)
+No PCB at hand? Pick one of the three demo boards under the dropzone: it loads a ready-made project with its holes and support legs already placed. _NE555 from Gerbers_ was started from a `gerbers.zip`; its package is offered on the card so you can try the drag and drop yourself. Demo credits and licences: [`public/demo/CREDITS.md`](./public/demo/CREDITS.md).
+
+![The dropzone accepts a gerbers.zip, a photo or a project file; demo boards below](./step1.png)
 
 ### Place the components
 
-Place the THT parts by placing circles or squares. Adjust their height/depth exactly so that they are flush with the PCB. At the end, if necessary, add legs to support the PCB.
+Gerber projects arrive with the holes already placed: check the depths and heights so that they are flush with the PCB. With a photo, place the THT parts by placing circles or squares and adjust their height/depth exactly. At the end, if necessary, add (or adjust) legs to support the PCB.
 
-![alt text](./step2.png)
+![Designer with the holes and support legs of a Gerber project placed on the rendered board](./step2.png)
 
 ### Generate a 3D design in STL format
 
 Click the Display 3D button and see the generated mesh. Rotate it, check that all components are in place. At the end, download the STL file (binary format).
 
-![alt text](./step3.png)
+![3D view of the generated holder](./step3.png)
 
 ### Check as a wireframe if necessary
 
 If you want to analyze the location of the components, you can also see how things fit in the wireframe view.
 
-![alt text](./step4.png)
+![Wireframe view of the holder](./step4.png)
 
 ### Print it with a 3D printer...
 
@@ -154,6 +189,7 @@ Use a PLA printer to save time and money. Practice shows that it is enough to pr
 - **3D Rendering**: Three.js with @threlte/core
 - **3D Operations**: three-bvh-csg for CSG boolean operations
 - **2D Canvas**: Konva.js for component placement
+- **Fabrication files**: own pure TypeScript Gerber (RS-274X / X2) and Excellon/XNC parsers in `src/lib/gerber/`, zip extraction with `fflate`
 - **UI**: Flowbite Svelte with Tailwind CSS 4
 - **State**: Svelte stores persisted to local storage
 - **Testing**: Vitest (unit tests run in Node, co-located as `*.test.ts`)
@@ -198,7 +234,11 @@ npm run all
 
 - `src/` - Source code
   - `components/` - Svelte components
-  - `lib/` - Utility functions and 3D generation logic (`lib/3d/` runs CSG in a Web Worker and repairs the result into a watertight mesh)
+  - `lib/` - Application logic
+    - `lib/gerber/` - Gerber / Excellon import: parsers, plotter, hole grouping, support leg placement, board SVG renderer
+    - `lib/3d/` - runs CSG in a Web Worker and repairs the result into a watertight mesh
+    - `lib/designer/` - 2D canvas logic: alignment, fine movement, measurement, zoom, element operations
+    - `lib/util/` - pure helpers (math, geometry, formatting, download)
   - `stores/` - Svelte stores for state management
   - `types/` - TypeScript type definitions and Zod schemas
 - `public/` - Static assets

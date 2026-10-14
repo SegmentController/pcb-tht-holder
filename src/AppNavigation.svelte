@@ -71,6 +71,8 @@
 <script lang="ts" module>
 	import { persisted } from 'svelte-persisted-store';
 
+	import { isGeneratedImage } from '$lib/gerber/boardSvg';
+
 	/**
 	 * Persisted alignment toggle state
 	 * Stored in localStorage to remember user preference across sessions
@@ -93,12 +95,18 @@
 	 *
 	 * @returns Promise that resolves to true if user confirmed, false if cancelled
 	 */
-	export const openProjectSettings = async () => {
+	export const openProjectSettings = async (source?: unknown) => {
 		const projectStore = getProjectStoreValue();
+		// The picture tells how the project was started unless the caller knows better (import in progress).
+		// Menu items and shortcuts pass the DOM event as first argument: only the two names count.
+		let origin: 'gerber' | 'photo' | undefined;
+		if (source === 'gerber' || source === 'photo') origin = source;
+		else if (projectStore.image) origin = isGeneratedImage(projectStore.image) ? 'gerber' : 'photo';
 		const { confirmed, panelSettings, name, label } = await showModalProjectSettings(
 			projectStore.panelSettings,
 			projectStore.name,
-			projectStore.label
+			projectStore.label,
+			origin
 		);
 		if (confirmed)
 			updateProjectStoreValue((value) => {
@@ -130,17 +138,17 @@
 	import NavContainer from 'flowbite-svelte/NavContainer.svelte';
 	import { createEventDispatcher } from 'svelte';
 
-	import { virtualDownload } from '$lib/download';
-	import { addNewCircle } from '$lib/elements/circle';
-	import { addCornerLegs, addNewLeg, deleteAllLegsWithConfirm } from '$lib/elements/leg';
-	import { addNewRectangle } from '$lib/elements/rectangle';
+	import { addNewCircle } from '$lib/designer/elements/circle';
+	import { addCornerLegs, addNewLeg, deleteAllLegsWithConfirm } from '$lib/designer/elements/leg';
+	import { addNewRectangle } from '$lib/designer/elements/rectangle';
 	import {
 		finemoveSelectedElement,
 		flipSelectedRectangleDimensions,
 		resetSelectedRectangleRotation,
 		rotateSelectedRectangleDegrees
-	} from '$lib/fineMovement';
+	} from '$lib/designer/fineMovement';
 	import { shortcut, type ShortcutEventDetail, type ShortcutModifier } from '$lib/shortcut';
+	import { virtualDownload } from '$lib/util/download';
 	import { libraryStore } from '$stores/libraryStore';
 	import {
 		showModalConfirm,

@@ -33,15 +33,34 @@
 					loading="lazy"
 					src={demoUrl(BASE_URL, demo.thumbnail)}
 				/>
-				<h3 class="text-md font-bold tracking-tight text-gray-900">{demo.title}</h3>
+				<h3 class="text-md font-bold tracking-tight text-gray-900">
+					{demo.title}
+					{#if demo.gerbers}
+						<span
+							class="ms-1 rounded-full bg-green-100 px-2 py-0.5 align-middle text-xs font-medium text-green-800"
+							>Gerber</span
+						>
+					{/if}
+				</h3>
 				<p class="mb-1 text-sm text-gray-500">{demo.size}</p>
 				<p class="mb-3 grow text-sm text-gray-700">{demo.description}</p>
 				<p class="mb-3 text-xs text-gray-500">
 					Design by
-					<a class="underline" href={demo.sourceUrl} rel="noopener noreferrer" target="_blank"
-						>{demo.author}</a
-					>, {demo.licence}
+					{#if demo.sourceUrl}
+						<a class="underline" href={demo.sourceUrl} rel="noopener noreferrer" target="_blank"
+							>{demo.author}</a
+						>
+					{:else}
+						{demo.author}
+					{/if}{demo.licence ? `, ${demo.licence}` : ''}
 				</p>
+				{#if demo.gerbers}
+					<p class="mb-3 text-xs text-gray-700">
+						<strong>Loads the Gerber import.</strong> Drag and drop
+						<a class="underline" download href={demoUrl(BASE_URL, demo.gerbers)}>{demo.gerbers}</a>
+						onto the dropzone to do it yourself.
+					</p>
+				{/if}
 				<Button
 					aria-label="Load demo {demo.title}"
 					disabled={!!loadingId}

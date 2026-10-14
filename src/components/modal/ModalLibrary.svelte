@@ -4,7 +4,7 @@
 	import { createEventDispatcher } from 'svelte';
 
 	import FileInput from '$components/base/input/FileInput.svelte';
-	import { virtualDownload } from '$lib/download';
+	import { virtualDownload } from '$lib/util/download';
 	import { libraryStore, loadDefaultsToLibrary } from '$stores/libraryStore';
 	import { showModalConfirm, showModalNameEdit } from '$stores/modalStore';
 	import { toastStore } from '$stores/toastStore';

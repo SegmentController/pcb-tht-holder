@@ -52,6 +52,7 @@
 	```
 
 	**Image Rendering:**
+	- Photos are drawn at 25 % opacity, generated board pictures (SVG from a Gerber import) opaque
 	- Image is flipped on Y-axis (scaleY negative) for correct PCB top-view
 	- Opacity set to 0.25 for visibility of overlaid components
 	- offsetY applied to account for Y-flip transformation
@@ -105,9 +106,8 @@
 	import ContextMenu from '$components/base/ContextMenu.svelte';
 	import HoverInfo from '$components/base/HoverInfo.svelte';
 	import ZoomRange from '$components/base/input/ZoomRange.svelte';
-	import DesignerCrosshair from '$components/DesignerCrosshair.svelte';
-	import DesignerGrid from '$components/DesignerGrid.svelte';
-	import { type AlignmentLine, calculateSnapPosition, detectAlignments } from '$lib/alignment';
+	import DesignerCrosshair from '$components/designer/DesignerCrosshair.svelte';
+	import DesignerGrid from '$components/designer/DesignerGrid.svelte';
 	import {
 		ALIGNMENT_LINE_COLOR,
 		ALIGNMENT_LINE_WIDTH,
@@ -117,20 +117,32 @@
 		ZOOM_MIN,
 		ZOOM_STEP
 	} from '$lib/constants';
-	import { getContextMenuItemForCircle, modifyCircle, moveCircle } from '$lib/elements/circle';
-	import { deleteLegWithConfirm, getContextMenuItemForLeg, moveLeg } from '$lib/elements/leg';
+	import {
+		type AlignmentLine,
+		calculateSnapPosition,
+		detectAlignments
+	} from '$lib/designer/alignment';
+	import {
+		getContextMenuItemForCircle,
+		modifyCircle,
+		moveCircle
+	} from '$lib/designer/elements/circle';
+	import {
+		deleteLegWithConfirm,
+		getContextMenuItemForLeg,
+		moveLeg
+	} from '$lib/designer/elements/leg';
 	import {
 		getContextMenuItemForRectangle,
 		modifyRectangle,
 		moveRectangle
-	} from '$lib/elements/rectangle';
+	} from '$lib/designer/elements/rectangle';
 	import {
 		deselectElementByMouseLeave,
 		getSelectedElementInfo,
 		pruneSelectedElements,
 		selectElementByMouseEnter
-	} from '$lib/fineMovement';
-	import { rotatedHalfExtents } from '$lib/geometry';
+	} from '$lib/designer/fineMovement';
 	import {
 		cleanupMeasurement,
 		emptyMeasurementInfo,
@@ -138,8 +150,10 @@
 		stageMeasureModeMouseDown,
 		stageMeasureModeMouseUp,
 		stageMouseMove
-	} from '$lib/measurement';
-	import { wheelZoom } from '$lib/zoom';
+	} from '$lib/designer/measurement';
+	import { wheelZoom } from '$lib/designer/zoom';
+	import { isGeneratedImage } from '$lib/gerber/boardSvg';
+	import { rotatedHalfExtents } from '$lib/util/geometry';
 	import { projectStore } from '$stores/projectStore';
 	import type { CircleData } from '$types/CircleData';
 	import type { ImageSize } from '$types/ImageSize';
@@ -547,6 +561,19 @@
 			step={ZOOM_STEP}
 			bind:value={$projectStore.zoom}
 		/>
+		{#if isGeneratedImage($projectStore.image)}
+			<span
+				class="ms-4 self-center whitespace-nowrap rounded-full bg-green-100 px-3 py-1 text-xs font-medium text-green-800"
+				title="Picture and holes come from Gerber files: exact millimetres, no photo scale"
+				>Gerber layout · exact size</span
+			>
+		{:else}
+			<span
+				class="ms-4 self-center whitespace-nowrap rounded-full bg-blue-100 px-3 py-1 text-xs font-medium text-blue-800"
+				title="Photo overlay at 25 % opacity, stretched to the panel size of the project settings"
+				>Photo overlay · scale from settings</span
+			>
+		{/if}
 	</div>
 	<!-- justify-center-safe: centered while it fits, scrollable from the left edge once wider than the viewport -->
 	<div
@@ -580,7 +607,7 @@
 					image={pcbImage}
 					listening={false}
 					offsetY={imageSize.height}
-					opacity={0.25}
+					opacity={isGeneratedImage($projectStore.image) ? 1 : 0.25}
 					scaleX={$projectStore.panelSettings.width / imageSize.width}
 					scaleY={(-1 * $projectStore.panelSettings.height) / imageSize.height}
 				/>

@@ -19,14 +19,14 @@ npm run preview          # Preview production build
 
 npm run test             # Unit tests (Vitest, Node env)
 npm run test:watch       # Vitest watch mode
-npx vitest run src/lib/alignment.test.ts   # Single test file
+npx vitest run src/lib/designer/alignment.test.ts   # Single test file
 npx vitest run -t "snaps legs"              # Tests matching a name
 npm run ts:check         # TypeScript checking
 npm run format:check     # Check formatting
 npm run format:fix       # Auto-fix formatting
 npm run lint:check       # ESLint checks
 npm run lint:fix         # Auto-fix linting
-npm run all              # Run format:fix, lint:fix, ts:check, test, build
+npm run all              # Run format:fix, lint:fix, ts:check, test, build (rewrites files and docs/)
 
 npm run npm:reinstall    # Clean reinstall dependencies
 ```
@@ -43,7 +43,15 @@ emitted CSS with `postcss`; the app has no dark mode. Remove the plugin before a
 Tailwind sources are explicit `@source` directives in `src/app.css` — add a flowbite-svelte
 directory there when using a new flowbite component, otherwise its classes are missing.
 
-Outputs to `docs/` directory for GitHub Pages.
+Outputs to `docs/` directory for GitHub Pages. `docs/` is committed build output that the maintainer
+regenerates with `npm run all` before a release: never `git checkout`/`git clean` it or rebuild it on your own
+to "verify" something (use `ts:check`, `test`, `lint:check`), and expect it to differ from `public/`
+(e.g. `docs/demo/CREDITS.md`) until the next release build.
+
+CI (`.github/workflows/ci-dev.yaml`, every non-`main` push): `npm ci`, then `format:check`, `lint:check`,
+`ts:check`, `test`, `build` on Node 24. A release bumps the version in `package.json` (the service worker cache name
+and the header version come from it), moves `[Unreleased]` in `CHANGELOG.md` to a dated version and refreshes the
+README screenshots (`step*.png`, repo root) when the UI changed.
 
 ## Architecture
 
@@ -66,19 +74,22 @@ src/
 ├── types/            # Zod schemas, TypeScript types, type guards (typeGuards.ts)
 ├── lib/
 │   ├── constants.ts  # Centralized constants
-│   ├── alignment.ts  # Alignment guide + magnetic snapping
-│   ├── geometry.ts   # Pure 2D helpers (rotated rectangle extents)
-│   ├── zoom.ts       # Wheel/pinch zoom: pure step helpers (unit-tested) + `wheelZoom` action
-│   ├── format.ts     # File name timestamp, `formatMm` (display mm, max 2 decimals)
+│   ├── shortcut.ts   # `shortcut` Svelte action (keyboard shortcuts, modal-aware)
+│   ├── icons.ts      # Bundled MDI icons
+│   ├── libraryDefaults.ts  # DEFAULT_COMPONENTS + `convertDefaultComponentToLibraryItem`
 │   ├── demos.ts      # Demo project catalogue (files in public/demo/, credits + licences in public/demo/CREDITS.md)
-│   ├── 3d/           # STL generation (stl.ts), CSG meshes (mesh.ts), worker + client, placement.ts (dependency-free constants), leg overlap (legOverlap.ts), watertight repair of CSG output (meshRepair.ts)
-│   ├── elements/     # Circle, rectangle, leg operations; collection.ts (shared store commit/remove/undo)
+│   ├── util/         # Pure helpers: math.ts, geometry.ts (rotated rectangle extents), format.ts (file name timestamp, `formatMm`), download.ts
+│   ├── designer/     # 2D canvas logic: alignment.ts (guides + magnetic snapping), fineMovement.ts, measurement.ts, zoom.ts (wheel/pinch zoom: pure step helpers + `wheelZoom` action)
+│   │   └── elements/ # Circle, rectangle, leg operations; collection.ts (shared store commit/remove/undo)
+│   ├── gerber/       # Fabrication file import (pure, tested): excellon.ts + gerberDrill.ts (drills), gerberOutline.ts, package.ts (layer roles, tools), unzip.ts (fflate, lazy), plan.ts (clustering → circles/rectangles), plotter.ts + macro.ts (RS-274X layer → SVG, aperture macros), legs.ts (`placeLegs` / `suggestLegs`: support legs clear of pads, silkscreen and holes), boardSvg.ts (top-view SVG with copper/mask/silk used as the project picture), types.ts, `fixtures/` (real KiCad output for tests)
+│   ├── 3d/           # STL generation (stl.ts), CSG meshes (mesh.ts), worker + client, placement.ts (dependency-free constants), leg overlap (legOverlap.ts), watertight repair of CSG output (meshRepair.ts), `switchType` instance matcher
 │   └── svelteModal/  # Modal utilities
 ├── components/
 │   ├── base/         # Reusable components (ContextMenu, HoverInfo, ToastContainer, PartnerBadge), `input/NumberInputBound.svelte` (min/max clamped number field, `step` 0.1)
-│   ├── DemoPicker.svelte  # Demo cards under the dropzone (AppDropzone fetches public/demo/*.tht3d)
-│   ├── modal/        # Modal dialogs
-│   └── (root)        # Main designer components
+│   ├── designer/     # DesignerGrid, DesignerCrosshair (canvas overlays)
+│   ├── mesh/         # Mesh3DScene, MeshObject (Threlte scene of the 3D view)
+│   ├── DemoPicker.svelte  # Demo cards under the dropzone (AppDropzone fetches public/demo/*.tht3d, or runs a demo's `gerbers` zip through the Gerber import)
+│   └── modal/        # Modal dialogs
 └── App*.svelte       # AppDesigner (Konva canvas), AppNavigation (menu, 3D/export), AppDropzone (image/project load)
 ```
 
@@ -154,7 +165,7 @@ Use `projectJsonSerializer` to skip non-serializable Konva properties.
 - `addUndo(name, undo, redo, coalesceKey?)`: every entry carries both closures (absolute values / element
   references, so interleaved moves cannot corrupt them). A new entry clears the redo stack; coalescing
   (`rotate:<id>`, 1.5 s) keeps the oldest `undo` and replaces `redo` with the newest
-- Tracks: deletions, property edits, rotation, dimension flip, moves (`moveWithUndo` in `collection.ts`: one entry
+- Tracks: deletions, property edits, rotation, dimension flip, moves (`moveWithUndo` in `lib/designer/elements/collection.ts`: one entry
   per mouse drag, arrow-key nudges coalesce per element as `nudge:<id>`; a move to the same position adds none)
 - Error handling: toast notifications, console logging, entry stays on its stack for retry
 - UI: `Ctrl+Z`, `Ctrl/Cmd+Shift+Z` and `Ctrl+Y` (redo; `Cmd+Y` is the browser's History and left alone). The Edit
@@ -228,7 +239,7 @@ const setupGeometry = (geo: BufferGeometry) => {
 <T.BufferGeometry oncreate={setupGeometry} />
 ```
 
-See `Mesh3DScene.svelte` for the canonical example.
+See `components/mesh/Mesh3DScene.svelte` for the canonical example.
 
 ### Implementation Details
 
@@ -238,6 +249,18 @@ See `Mesh3DScene.svelte` for the canonical example.
 - **Project loading** (`AppDropzone.svelte`): `.tht3d` uploads and demos both go through `loadProjectData()`
   (Zod validation, one store write incl. label and zoom, embedded image via `onFileUpload`); a new image upload
   and File > New clear the print label
+- **Gerber import** (`AppDropzone.svelte` → `importFabFiles`, review dialog `ModalGerberImport.svelte`): routed by file
+  name extension (`isFabFileName`), before the MIME check. Stored y is plain CAM Y-up (`y = gerberY - outlineMinY`,
+  the designer flips the picture itself); the board outline bbox (rounded up to 0.1) is the panel, clamped to the 10–999 mm
+  limits of the settings dialog. The review dialog's _Add support legs_ option (on by default) calls `suggestLegs`. Holes of the same diameter within `groupDistance` form one part: lone hole → circle,
+  several → min-area oriented rectangle padded by half the pitch (rotation = CCW angle in CAM coordinates). The project
+  image is a generated SVG data URL (no image-less projects), so restore, `.tht3d` and 3D work unchanged. The designer draws generated (SVG) pictures opaque and photos at 25 % (`isGeneratedImage`). Layers are SVG `<mask>`s in CAM coordinates (dark = white, clear = black, so clear polarity needs no special case); mask-layer dark objects are the openings. Pictures above 1.5 MB fall back to outline + holes (`renderProjectImage`)
+- **Standards followed by the gerber library** (`src/lib/gerber/`): Ucamco Gerber Layer Format (plotter, rev. 2026.05) and
+  XNC (drills, rev. 2021.11) plus the dialects of real CAD output. Layer role: X2 `FileFunction` first, then names
+  (`roleOf`); polarity: `.FilePolarity`/`IPNEG` (mask dark = openings unless declared Positive). Excellon without a
+  declared layout is parsed with the defaults and re-parsed with candidate layouts when the holes miss the outline
+  (`refineLayout`). Tool defaults (`defaultToolKeys`): component role or plated >= 0.7 mm, never vias, non-plated or blind.
+  When adding syntax support add a case to `plotter.test.ts` / `excellon.test.ts` that cites the spec section
 - **Partner Badge** (`PartnerBadge.svelte`): SkipTheCAD listing badge, fixed top-right from `xl` up and below the header on smaller screens, auto-hides after 7s; mounted once in `App.svelte` right after `AppNavigation`
 - **Number fields** (`NumberInputBound.svelte`): `step` defaults to 0.1 so one decimal digit is valid (the browser
   default of 1 rejects decimals and blocks the dialog's submit); all dialogs use it. Values with two or more
@@ -250,7 +273,10 @@ See `Mesh3DScene.svelte` for the canonical example.
   there or it will not render
 - **Vite config**: ESM-native — `node:path`, `import.meta.dirname` (no `__dirname`), `package.json` imported with `with { type: 'json' }`
 - **Environment**: Production base path `/pcb-tht-holder`, dev empty string
-- **ESLint**: unicorn/all config, import sorting, no console/alert/debugger
+- **ESLint**: unicorn/all config, import sorting, no console/alert/debugger. Naming that trips
+  `unicorn/prevent-abbreviations`: loop variables are `index` (not `i`), `separatorIndex` (not `sepIndex`),
+  `length_` for a local that would clash with `.length`; single-statement `if`/`else` take no braces
+  (`curly: multi`); vector components `nx, ny, nz, ex, ey, ez, fx, fy, fz` are allowed
 - **Requirements**: Node >=24.0.0, npm >=11.0.0
 - **Svelte 5 rune syntax**: all components use `$props()`, `$state()`, `$derived()` — no `export let` props
 
@@ -259,7 +285,7 @@ See `Mesh3DScene.svelte` for the canonical example.
 **Mode**: `P` (Pointer), `M` (Measure)
 **Create**: `Shift+C` (circle), `Shift+R` (rectangle), `Shift+L` (leg)
 **Edit**: Arrow keys (0.1mm), Shift+Arrow (0.5mm), `R` (rotate +5°), `Shift+R` (reset rotation), `F` (flip dimensions)
-**View**: `+` / `-` (zoom ±10%), `*` (reset zoom), `Ctrl/Cmd+wheel` or trackpad pinch (zoom at cursor, `wheelZoom` action in `zoom.ts`)
+**View**: `+` / `-` (zoom ±10%), `*` (reset zoom), `Ctrl/Cmd+wheel` or trackpad pinch (zoom at cursor, `wheelZoom` action in `lib/designer/zoom.ts`)
 **Other**: `Ctrl+Z` (undo), `Ctrl/Cmd+Shift+Z` or `Ctrl+Y` (redo), `Shift+P` (settings), `D` (display 3D), `ESC` (close modals)
 
 **Modal Awareness**: All shortcuts disabled when modals open (except ESC). Prevents text input interference.
@@ -270,7 +296,7 @@ Implementation: `shortcut` action in `src/lib/shortcut.ts` checks `modalStore` s
 
 ## Element Operations
 
-- **Fine Movement** (`fineMovement.ts`): Tracks via `Set<GenericElement>`, provides move/rotate/flip functions
+- **Fine Movement** (`lib/designer/fineMovement.ts`): Tracks via `Set<GenericElement>`, provides move/rotate/flip functions
 - **Context Menus**: Per-element generators return `ContextMenuItem[]`; `ContextMenu.svelte` moves focus into the
   menu on open, handles Arrow/Home/End (stopping propagation so fine movement does not fire) and restores focus on ESC
 - **Canvas wrapper** (`AppDesigner.svelte`): `justify-center-safe overflow-x-auto` keeps a zoomed-in canvas
@@ -285,7 +311,9 @@ Implementation: `shortcut` action in `src/lib/shortcut.ts` checks `modalStore` s
 
 `npm run test` runs `src/**/*.test.ts` in a Node environment (no DOM). Tests are co-located with the
 module they cover. Covered: alignment, STL export, mesh repair, leg overlap (`src/lib/3d/legOverlap.ts`), Zod
-schemas/type guards, project serializer, undo/toast/library/modal stores. Keep logic that must be
+schemas/type guards, project serializer, undo/toast/library/modal stores, gerber macros and drills, element
+operations (`lib/designer/elements/*`, with `$stores/modalStore` mocked via `vi.mock`), fine movement, measurement, the
+`shortcut` action (DOM stubbed by hand), `meshClient` (fake `Worker`). Keep logic that must be
 tested free of `three-bvh-csg`, Konva and `.svelte` imports (extract it into a plain `.ts` module);
 tests use explicit `import { describe, it, expect } from 'vitest'` (no globals). CI runs the suite.
 

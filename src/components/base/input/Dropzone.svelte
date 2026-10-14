@@ -3,9 +3,19 @@
 	import { Dropzone } from 'flowbite-svelte';
 
 	export let title: string;
-	export let description: string;
+	export let description: string = '';
 	export let errorMessage: string = '';
 	export let onUpload: (data: string, filename: string) => void;
+	/**
+	 * Gets every dropped / selected file first; returning true consumes them. Otherwise only the
+	 * first file goes through `onUpload` (as a data URL).
+	 */
+	export let claimFiles: ((files: File[]) => boolean) | undefined;
+
+	const handleFiles = (files: File[]) => {
+		if (files.length === 0 || claimFiles?.(files)) return;
+		loadFile(files[0]);
+	};
 
 	const loadFile = (file: File) => {
 		const reader = new FileReader();
@@ -16,29 +26,20 @@
 		reader.readAsDataURL(file);
 	};
 
-	const dropHandleItem = (items: DataTransferItemList) => {
-		if (items[0].kind === 'file') {
-			const file = items[0].getAsFile();
-			if (file) loadFile(file);
-		}
-	};
 	const dropHandle = (event: DragEvent) => {
 		event.preventDefault();
-		if (event.dataTransfer)
-			if (event.dataTransfer.items && event.dataTransfer.items.length > 0)
-				dropHandleItem(event.dataTransfer.items);
-			else if (event.dataTransfer.files && event.dataTransfer.files.length > 0)
-				loadFile(event.dataTransfer.files[0]);
+		if (event.dataTransfer?.files) handleFiles([...event.dataTransfer.files]);
 	};
 
 	const handleChange = (event: Event) => {
 		const files = (event.target as HTMLInputElement).files;
-		if (files && files.length > 0) loadFile(files[0]);
+		if (files) handleFiles([...files]);
 	};
 </script>
 
 <Dropzone
 	class="m-4 w-auto"
+	multiple={!!claimFiles}
 	onchange={handleChange}
 	ondragover={(event) => event.preventDefault()}
 	ondrop={dropHandle}
@@ -51,5 +52,5 @@
 			{errorMessage}
 		</p>
 	{/if}
-	<p class="mb-2 px-4 text-sm text-gray-500 dark:text-gray-400">{description}</p>
+	<p class="mb-2 px-4 text-sm text-gray-500 dark:text-gray-400"><slot>{description}</slot></p>
 </Dropzone>

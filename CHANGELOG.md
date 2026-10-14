@@ -1,9 +1,11 @@
 # Change log
 
-## [Unreleased]
+## [1.15.0] - 2026-10-14
 
 ### Added
 
+- Import from fabrication files: drop a Gerber package (`.zip`) or loose Excellon drill files (`.drl`, `.xln`, ...) plus the outline layer on the dropzone. A review dialog lists the drill tools (plated lead-size holes on by default, vias and mounting holes off), groups neighbouring holes of the same diameter into one rotated rectangle (lone holes become circles) and previews the board. The panel gets the size of the board outline (`Edge.Cuts`), elements land at exact mm positions (pure translation, no Y flip), and an opaque rendered SVG top view of the board replaces the photo: top copper (traces, SMD and THT pads), exposed pads where the solder mask is open, silkscreen, outline and drilled holes. Photos stay at 25 % opacity
+- `src/lib/gerber/` (pure, unit-tested): RS-274X plotter (`plotter.ts`: apertures C/R/O/P, aperture macros, strokes and arcs, regions, dark/clear polarity; step-and-repeat not supported) that turns the top copper, mask and silkscreen layers into SVG masks, Excellon parser (metric/inch, zero suppression, X2 tool attributes, slots skipped with a warning), RS-274X outline parser (arcs flattened), package reader, zip extraction with size limits (`fflate`, lazy chunk), element planner and SVG board renderer
 - The import dialog offers **Add support legs** (on by default): legs are placed clear of SMD pads, silkscreen, every hole and the planned elements (`suggestLegs`), shown in the preview and counted in the summary
 - `placeLegs` / `suggestLegs` (`src/lib/gerber/legs.ts`): support leg positions chosen by clearance to SMD pads, silkscreen, every drilled hole (vias and mounting holes too) and the planned elements, spread apart for stability. The _NE555 from Gerbers_ demo uses it (four legs, 0.6 – 2.2 mm from parts, 1.1 – 3.1 mm from holes on a crowded 23.6 × 16.2 mm board); `FabPackage.partKeepouts` carries the pad and silkscreen areas
 - The demo _Open555_ is replaced by **NE555 from Gerbers**: its card loads `public/demo/ne555-gerbers.zip` through the very import a dropped `gerbers.zip` goes through (review dialog, project settings), so it demonstrates the Gerber workflow itself; there is no project file. The package is also linked on the card for download. Demo cards can show a _Gerber_ badge and have no source/licence (both optional), `Demo.file` is optional
@@ -14,8 +16,23 @@
 - `.FilePolarity` is honoured for copper, mask and legend layers; layer detection by X2 attributes first, then by the naming of KiCad, Altium/Protel, Eagle (old and new), OrCAD, gEDA, DipTrace, EasyEDA/JLC and OSH Park (checked against the tracespace fixture catalogue and eight real boards)
 - Slots become rotated rectangles; dense boards produce smaller pictures (batched strokes and flashes, micrometre precision)
 
-- Import from fabrication files: drop a Gerber package (`.zip`) or loose Excellon drill files (`.drl`, `.xln`, ...) plus the outline layer on the dropzone. A review dialog lists the drill tools (plated lead-size holes on by default, vias and mounting holes off), groups neighbouring holes of the same diameter into one rotated rectangle (lone holes become circles) and previews the board. The panel gets the size of the board outline (`Edge.Cuts`), elements land at exact mm positions (pure translation, no Y flip), and an opaque rendered SVG top view of the board replaces the photo: top copper (traces, SMD and THT pads), exposed pads where the solder mask is open, silkscreen, outline and drilled holes. Photos stay at 25 % opacity
-- `src/lib/gerber/` (pure, unit-tested): RS-274X plotter (`plotter.ts`: apertures C/R/O/P, aperture macros, strokes and arcs, regions, dark/clear polarity; step-and-repeat not supported) that turns the top copper, mask and silkscreen layers into SVG masks, Excellon parser (metric/inch, zero suppression, X2 tool attributes, slots skipped with a warning), RS-274X outline parser (arcs flattened), package reader, zip extraction with size limits (`fflate`, lazy chunk), element planner and SVG board renderer
+### Changed
+
+- The README leads with the Gerber import (a "Start from your Gerber files" section with the photo/Gerber comparison); the feature list, demo description and the project structure follow the new folders
+- Source layout: pure helpers moved to `src/lib/util/` (`math`, `geometry`, `format`, `download`), 2D canvas logic to `src/lib/designer/` (`alignment`, `fineMovement`, `measurement`, `zoom`, `elements/`), `switchType` to `src/lib/3d/`, canvas overlays to `src/components/designer/` and the Threlte scene to `src/components/mesh/`
+- `DEFAULT_COMPONENTS` and `convertDefaultComponentToLibraryItem` moved from `src/types/Library.ts` to `src/lib/libraryDefaults.ts` (the type and schema stay in `types/Library.ts`)
+- README screenshots (`step1.png` – `step4.png`) are retaken from v1.15.0 with the NE555 Gerber demo; new `step-gerber.png` shows the import dialog
+- `ModalProjectSettings` takes the project `source` (`gerber` | `photo`) to show the matching note
+- New runtime dependency: `fflate` (zip extraction, loaded lazily with the first import)
+
+### Removed
+
+- The _Open555_ demo (project file, thumbnail and licence text): replaced by _NE555 from Gerbers_
+- Unused `src/app.d.ts`
+
+### Tests
+
+- New unit tests for element operations (`circle`, `rectangle`, `leg`), fine movement, measurement, the `shortcut` action, `meshClient`, the worker protocol, download, library defaults and the whole `src/lib/gerber/` library (plotter, macros, Excellon, Gerber drills, outline, package, planner, legs, board SVG), with real KiCad fixtures
 
 ## [1.14.4] - 2026-10-13
 

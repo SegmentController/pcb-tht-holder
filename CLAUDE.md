@@ -26,7 +26,7 @@ npm run format:check     # Check formatting
 npm run format:fix       # Auto-fix formatting
 npm run lint:check       # ESLint checks
 npm run lint:fix         # Auto-fix linting
-npm run all              # Run format:fix, lint:fix, ts:check, test, build
+npm run all              # Run format:fix, lint:fix, ts:check, test, build (rewrites files and docs/)
 
 npm run npm:reinstall    # Clean reinstall dependencies
 ```
@@ -43,7 +43,15 @@ emitted CSS with `postcss`; the app has no dark mode. Remove the plugin before a
 Tailwind sources are explicit `@source` directives in `src/app.css` — add a flowbite-svelte
 directory there when using a new flowbite component, otherwise its classes are missing.
 
-Outputs to `docs/` directory for GitHub Pages.
+Outputs to `docs/` directory for GitHub Pages. `docs/` is committed build output that the maintainer
+regenerates with `npm run all` before a release: never `git checkout`/`git clean` it or rebuild it on your own
+to "verify" something (use `ts:check`, `test`, `lint:check`), and expect it to differ from `public/`
+(e.g. `docs/demo/CREDITS.md`) until the next release build.
+
+CI (`.github/workflows/ci-dev.yaml`, every non-`main` push): `npm ci`, then `format:check`, `lint:check`,
+`ts:check`, `test`, `build` on Node 24. A release bumps the version in `package.json` (the service worker cache name
+and the header version come from it), moves `[Unreleased]` in `CHANGELOG.md` to a dated version and refreshes the
+README screenshots (`step*.png`, repo root) when the UI changed.
 
 ## Architecture
 
@@ -73,14 +81,14 @@ src/
 │   ├── util/         # Pure helpers: math.ts, geometry.ts (rotated rectangle extents), format.ts (file name timestamp, `formatMm`), download.ts
 │   ├── designer/     # 2D canvas logic: alignment.ts (guides + magnetic snapping), fineMovement.ts, measurement.ts, zoom.ts (wheel/pinch zoom: pure step helpers + `wheelZoom` action)
 │   │   └── elements/ # Circle, rectangle, leg operations; collection.ts (shared store commit/remove/undo)
-│   ├── gerber/       # Fabrication file import (pure, tested): excellon.ts, gerberOutline.ts, package.ts, unzip.ts (fflate, lazy), plan.ts (clustering → circles/rectangles), plotter.ts (RS-274X layer → SVG), boardSvg.ts (top-view SVG with copper/mask/silk used as the project picture)
+│   ├── gerber/       # Fabrication file import (pure, tested): excellon.ts + gerberDrill.ts (drills), gerberOutline.ts, package.ts (layer roles, tools), unzip.ts (fflate, lazy), plan.ts (clustering → circles/rectangles), plotter.ts + macro.ts (RS-274X layer → SVG, aperture macros), legs.ts (`placeLegs` / `suggestLegs`: support legs clear of pads, silkscreen and holes), boardSvg.ts (top-view SVG with copper/mask/silk used as the project picture), types.ts, `fixtures/` (real KiCad output for tests)
 │   ├── 3d/           # STL generation (stl.ts), CSG meshes (mesh.ts), worker + client, placement.ts (dependency-free constants), leg overlap (legOverlap.ts), watertight repair of CSG output (meshRepair.ts), `switchType` instance matcher
 │   └── svelteModal/  # Modal utilities
 ├── components/
 │   ├── base/         # Reusable components (ContextMenu, HoverInfo, ToastContainer, PartnerBadge), `input/NumberInputBound.svelte` (min/max clamped number field, `step` 0.1)
 │   ├── designer/     # DesignerGrid, DesignerCrosshair (canvas overlays)
 │   ├── mesh/         # Mesh3DScene, MeshObject (Threlte scene of the 3D view)
-│   ├── DemoPicker.svelte  # Demo cards under the dropzone (AppDropzone fetches public/demo/*.tht3d)
+│   ├── DemoPicker.svelte  # Demo cards under the dropzone (AppDropzone fetches public/demo/*.tht3d, or runs a demo's `gerbers` zip through the Gerber import)
 │   └── modal/        # Modal dialogs
 └── App*.svelte       # AppDesigner (Konva canvas), AppNavigation (menu, 3D/export), AppDropzone (image/project load)
 ```
@@ -244,7 +252,7 @@ See `components/mesh/Mesh3DScene.svelte` for the canonical example.
 - **Gerber import** (`AppDropzone.svelte` → `importFabFiles`, review dialog `ModalGerberImport.svelte`): routed by file
   name extension (`isFabFileName`), before the MIME check. Stored y is plain CAM Y-up (`y = gerberY - outlineMinY`,
   the designer flips the picture itself); the board outline bbox (rounded up to 0.1) is the panel, clamped to the 10–999 mm
-  limits of the settings dialog. Holes of the same diameter within `groupDistance` form one part: lone hole → circle,
+  limits of the settings dialog. The review dialog's _Add support legs_ option (on by default) calls `suggestLegs`. Holes of the same diameter within `groupDistance` form one part: lone hole → circle,
   several → min-area oriented rectangle padded by half the pitch (rotation = CCW angle in CAM coordinates). The project
   image is a generated SVG data URL (no image-less projects), so restore, `.tht3d` and 3D work unchanged. The designer draws generated (SVG) pictures opaque and photos at 25 % (`isGeneratedImage`). Layers are SVG `<mask>`s in CAM coordinates (dark = white, clear = black, so clear polarity needs no special case); mask-layer dark objects are the openings. Pictures above 1.5 MB fall back to outline + holes (`renderProjectImage`)
 - **Standards followed by the gerber library** (`src/lib/gerber/`): Ucamco Gerber Layer Format (plotter, rev. 2026.05) and
@@ -265,7 +273,10 @@ See `components/mesh/Mesh3DScene.svelte` for the canonical example.
   there or it will not render
 - **Vite config**: ESM-native — `node:path`, `import.meta.dirname` (no `__dirname`), `package.json` imported with `with { type: 'json' }`
 - **Environment**: Production base path `/pcb-tht-holder`, dev empty string
-- **ESLint**: unicorn/all config, import sorting, no console/alert/debugger
+- **ESLint**: unicorn/all config, import sorting, no console/alert/debugger. Naming that trips
+  `unicorn/prevent-abbreviations`: loop variables are `index` (not `i`), `separatorIndex` (not `sepIndex`),
+  `length_` for a local that would clash with `.length`; single-statement `if`/`else` take no braces
+  (`curly: multi`); vector components `nx, ny, nz, ex, ey, ez, fx, fy, fz` are allowed
 - **Requirements**: Node >=24.0.0, npm >=11.0.0
 - **Svelte 5 rune syntax**: all components use `$props()`, `$state()`, `$derived()` — no `export let` props
 

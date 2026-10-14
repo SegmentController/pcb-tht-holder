@@ -1,22 +1,34 @@
 # Demo projects: credits and licences
 
-The demo projects under the dropzone are ready-made `.tht3d` files built from three open-source KiCad
-boards. Each file embeds a cropped top-view picture of the board and hole/leg placements derived from the
+The demo projects under the dropzone are ready-made `.tht3d` files. Two are built from open-source KiCad
+boards: each file embeds a cropped top-view picture of the board and hole/leg placements derived from the
 footprints of the original design. The full licence text of each board is in [`licenses/`](./licenses).
+The third, **NE555 from Gerbers**, was started straight from a Gerber package (see below).
 
-| Demo                 | File                         | Design by                                              | Source                                                                            | Licence        | Licence text                                                                               |
-| -------------------- | ---------------------------- | ------------------------------------------------------ | --------------------------------------------------------------------------------- | -------------- | ------------------------------------------------------------------------------------------ |
-| Open555              | `open555.tht3d`              | [cheyao](https://github.com/cheyao) (Hack Club Solder) | [cheyao/Open555](https://github.com/cheyao/Open555)                               | Zlib           | [`licenses/open555-LICENSE.txt`](./licenses/open555-LICENSE.txt)                           |
-| Servo Controller 555 | `servo-controller-555.tht3d` | [Shlok Chorge](https://github.com/shlok-ac)            | [shlok-ac/Servo-Controller-555](https://github.com/shlok-ac/Servo-Controller-555) | CERN-OHL-S-2.0 | [`licenses/servo-controller-555-LICENSE.txt`](./licenses/servo-controller-555-LICENSE.txt) |
-| Arduino ICSP Shield  | `arduino-icsp-shield.tht3d`  | [mprosk](https://github.com/mprosk)                    | [mprosk/arduino_icsp_shield](https://github.com/mprosk/arduino_icsp_shield)       | MIT            | [`licenses/arduino-icsp-shield-LICENSE.txt`](./licenses/arduino-icsp-shield-LICENSE.txt)   |
+| Demo                 | File                         | Design by                                   | Source                                                                            | Licence        | Licence text                                                                               |
+| -------------------- | ---------------------------- | ------------------------------------------- | --------------------------------------------------------------------------------- | -------------- | ------------------------------------------------------------------------------------------ |
+| Servo Controller 555 | `servo-controller-555.tht3d` | [Shlok Chorge](https://github.com/shlok-ac) | [shlok-ac/Servo-Controller-555](https://github.com/shlok-ac/Servo-Controller-555) | CERN-OHL-S-2.0 | [`licenses/servo-controller-555-LICENSE.txt`](./licenses/servo-controller-555-LICENSE.txt) |
+| Arduino ICSP Shield  | `arduino-icsp-shield.tht3d`  | [mprosk](https://github.com/mprosk)         | [mprosk/arduino_icsp_shield](https://github.com/mprosk/arduino_icsp_shield)       | MIT            | [`licenses/arduino-icsp-shield-LICENSE.txt`](./licenses/arduino-icsp-shield-LICENSE.txt)   |
+
+## Started from Gerber files
+
+| Demo               | Gerber package      | Design                                                                  |
+| ------------------ | ------------------- | ----------------------------------------------------------------------- |
+| NE555 from Gerbers | `ne555-gerbers.zip` | Small NE555 example board of this project's author, made with tscircuit |
+
+This demo has no project file: the card fetches `ne555-gerbers.zip` and runs it through the same import as a
+dropped `gerbers.zip`. The panel size (23.6 × 16.2 mm) comes from the board outline, the two-pin header holes
+become one rectangle, support legs are placed clear of parts and holes, and the picture is rendered from the top
+copper, solder mask and silkscreen layers. The package is also offered for download on the card so the drag and
+drop can be tried by hand.
 
 ## Notes
 
-- Pictures: `assets/pcb-front.png` (Open555), `assets/pcb-layout.png` (Servo Controller 555) and
+- Pictures: `assets/pcb-layout.png` (Servo Controller 555) and
   `img/render.png` (Arduino ICSP Shield) of the upstream repositories, cropped to the board outline,
   re-encoded as JPEG and scaled down. They are modified copies.
 - Placement data (circles, rectangles, support legs) was generated from the upstream `.kicad_pcb` files and
   are part of this project's demo content, not of the upstream designs.
 - **Servo Controller 555** is licensed under CERN-OHL-S-2.0 (strongly reciprocal). The original design files
   are available at the source repository above; the licence text is shipped in `licenses/`.
-- **Open555** and **Arduino ICSP Shield**: the copyright and permission notices are kept in `licenses/`.
+- **Arduino ICSP Shield**: the copyright and permission notices are kept in `licenses/`.

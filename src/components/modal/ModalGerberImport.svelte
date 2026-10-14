@@ -14,7 +14,7 @@
 		type ElementPlan,
 		planElements
 	} from '$lib/gerber/plan';
-	import type { FabPackage } from '$lib/gerber/types';
+	import type { DrillTool, FabPackage } from '$lib/gerber/types';
 
 	const dispatch = createEventDispatcher<{
 		resolve: { confirmed: boolean; plan: ElementPlan | undefined };
@@ -48,16 +48,25 @@
 	);
 	const preview = $derived(
 		svgToDataUrl(
-			renderBoardSvg(plan, { shapes: { circles: plan.circles, rectangles: plan.rectangles } })
+			renderBoardSvg(plan, {
+				shapes: { circles: plan.circles, rectangles: plan.rectangles },
+				layout: fabPackage.layout
+			})
 		)
 	);
 	const warnings = $derived([...fabPackage.warnings, ...plan.warnings]);
 	const holeCount = $derived(plan.holes.filter((hole) => hole.selected).length);
 	const isEmpty = $derived(plan.circles.length + plan.rectangles.length === 0);
 
-	const kindLabel = (plated: boolean, via: boolean) => {
-		if (via) return 'via';
-		return plated ? 'plated' : 'non-plated';
+	const kindLabel = (tool: DrillTool) => {
+		const labels: Partial<Record<DrillTool['role'], string>> = {
+			component: 'component',
+			via: 'via',
+			mechanical: 'mechanical',
+			blind: 'blind/buried',
+			pad: 'component pad'
+		};
+		return `${labels[tool.role] ?? 'drill'}${tool.plated ? '' : ', non-plated'}`;
 	};
 	const resolve = (confirmed: boolean) =>
 		dispatch('resolve', { confirmed, plan: confirmed ? plan : undefined });
@@ -95,7 +104,7 @@
 											<td class="py-0.5"><Checkbox bind:checked={selection[tool.key]} /></td>
 											<td class="py-0.5">{formatMm(tool.diameter)} mm</td>
 											<td class="py-0.5">{tool.count}</td>
-											<td class="py-0.5">{kindLabel(tool.plated, tool.via)}</td>
+											<td class="py-0.5">{kindLabel(tool)}</td>
 											<td class="py-0.5 truncate max-w-32" title={tool.file}>{tool.file}</td>
 										</tr>
 									{/each}

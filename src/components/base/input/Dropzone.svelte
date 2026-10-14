@@ -3,7 +3,7 @@
 	import { Dropzone } from 'flowbite-svelte';
 
 	export let title: string;
-	export let description: string;
+	export let description: string = '';
 	export let errorMessage: string = '';
 	export let onUpload: (data: string, filename: string) => void;
 	/**
@@ -52,5 +52,5 @@
 			{errorMessage}
 		</p>
 	{/if}
-	<p class="mb-2 px-4 text-sm text-gray-500 dark:text-gray-400">{description}</p>
+	<p class="mb-2 px-4 text-sm text-gray-500 dark:text-gray-400"><slot>{description}</slot></p>
 </Dropzone>

@@ -3,8 +3,9 @@
  *
  * Each demo is a regular `.tht3d` project file (PCB image embedded as a data URL) served from
  * `public/demo/`, so the browser just fetches it and feeds it through the normal project loader.
- * The boards are open-source KiCad designs; credits and licence texts live in `public/demo/`
- * (`CREDITS.md`, `licenses/`).
+ * Most boards are open-source KiCad designs started from a photo; one is started straight from Gerber
+ * files (`gerbers` is its package, which can be dropped on the dropzone to try the import). Credits and
+ * licence texts live in `public/demo/` (`CREDITS.md`, `licenses/`).
  */
 export interface Demo {
 	id: string;
@@ -18,23 +19,25 @@ export interface Demo {
 	/** Small preview image inside `public/demo/` */
 	thumbnail: string;
 	author: string;
-	licence: string;
+	/** Licence of the design; its text is in `licenses/<id>-LICENSE.txt` */
+	licence?: string;
 	/** Upstream repository of the board design */
-	sourceUrl: string;
+	sourceUrl?: string;
+	/** Demo started straight from Gerber files: the package inside `public/demo/` */
+	gerbers?: string;
 }
 
 export const DEMOS: readonly Demo[] = [
 	{
-		id: 'open555',
-		title: 'Open555',
+		id: 'ne555-gerbers',
+		title: 'NE555 from Gerbers',
 		description:
-			'A 555 timer built from discrete transistors: lots of round and rectangular parts.',
-		size: '92.6 × 46.8 mm',
-		file: 'open555.tht3d',
-		thumbnail: 'open555-thumb.jpg',
-		author: 'cheyao',
-		licence: 'Zlib',
-		sourceUrl: 'https://github.com/cheyao/Open555'
+			'Started from a gerbers.zip instead of a photo: exact board size, copper and silkscreen picture, header hole placed automatically.',
+		size: '23.6 × 16.2 mm',
+		file: 'ne555.tht3d',
+		thumbnail: 'ne555-thumb.jpg',
+		author: 'the project author (tscircuit example)',
+		gerbers: 'ne555-gerbers.zip'
 	},
 	{
 		id: 'servo-controller-555',

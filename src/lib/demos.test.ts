@@ -14,7 +14,8 @@ const projectFiles = import.meta.glob<string>('../../public/demo/*.tht3d', {
 /** Only the keys are used: they tell which files exist next to the demo projects */
 const otherFiles = Object.keys({
 	...import.meta.glob('../../public/demo/*.{jpg,md}', { query: '?url' }),
-	...import.meta.glob('../../public/demo/licenses/*.txt', { query: '?url' })
+	...import.meta.glob('../../public/demo/licenses/*.txt', { query: '?url' }),
+	...import.meta.glob('../../public/demo/*.zip', { query: '?url' })
 });
 
 const loadProject = (file: string) => {
@@ -57,9 +58,16 @@ describe('demo catalogue', () => {
 		expect(new Set(DEMOS.map((demo) => demo.file)).size).toBe(DEMOS.length);
 	});
 
-	it('ships the credits and the licence text of every board', () => {
+	it('ships the credits and the licence text of every board that declares a licence', () => {
 		expect(hasFile('CREDITS.md')).toBe(true);
-		for (const demo of DEMOS) expect(hasFile(`licenses/${demo.id}-LICENSE.txt`)).toBe(true);
+		for (const demo of DEMOS)
+			if (demo.licence) expect(hasFile(`licenses/${demo.id}-LICENSE.txt`)).toBe(true);
+	});
+
+	it('offers the Gerber package of a demo started from Gerber files', () => {
+		const fromGerbers = DEMOS.filter((demo) => demo.gerbers);
+		expect(fromGerbers).toHaveLength(1);
+		for (const demo of fromGerbers) expect(hasFile(demo.gerbers!)).toBe(true);
 	});
 });
 
@@ -80,7 +88,16 @@ describe.each(DEMOS)('demo $id', (demo) => {
 		expect(project.legs.length).toBeGreaterThan(0);
 	});
 
-	it('embeds a JPEG whose aspect ratio matches the panel', () => {
+	it('embeds a picture whose aspect ratio matches the panel', () => {
+		const generated = project.image.startsWith('data:image/svg+xml;base64,');
+		if (generated) {
+			// Rendered from Gerber files: the SVG declares its pixel size
+			const svg = atob(project.image.slice(project.image.indexOf(',') + 1));
+			const size = /width="(\d+)" height="(\d+)"/.exec(svg);
+			expect(size).not.toBeNull();
+			expect(Number(size![1]) / Number(size![2]) / (width / height)).toBeCloseTo(1, 1);
+			return;
+		}
 		expect(project.image.startsWith('data:image/jpeg;base64,')).toBe(true);
 		const size = jpegSize(project.image);
 		expect(size.width / size.height / (width / height)).toBeCloseTo(1, 1);

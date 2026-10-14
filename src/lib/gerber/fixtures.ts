@@ -10,3 +10,6 @@ const fixture = (name: string) => files[`./fixtures/${name}`];
 export const drillPth = fixture('drill-L1-L2.drl');
 export const drillNpth = fixture('drill_npth.drl');
 export const edgeCuts = fixture('Edge_Cuts.gbr');
+export const copperTop = fixture('F_Cu.gbr');
+export const maskTop = fixture('F_Mask.gbr');
+export const silkTop = fixture('F_SilkScreen.gbr');

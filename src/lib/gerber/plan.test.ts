@@ -198,3 +198,39 @@ describe('readFabPackage', () => {
 		expect(result.warnings.join(',')).toContain('No board outline');
 	});
 });
+
+describe('planElements with slots', () => {
+	const slot = (x: number, y: number, x2: number, y2: number, diameter = 1): DrillHole => ({
+		x,
+		y,
+		diameter,
+		toolKey: 'a#T1',
+		slot: { x: x2, y: y2 }
+	});
+
+	it('turns a horizontal slot into a rectangle along it', () => {
+		const plan = planHoles([slot(10, 10, 14, 10, 1), hole(30, 30)]);
+		expect(plan.rectangles).toHaveLength(1);
+		// the end caps add the diameter: 4 + 1 + 2 x 0.3 wall, 1 + 0.6 across
+		expect(plan.rectangles[0]).toMatchObject({ width: 5.6, height: 1.6, rotation: 0 });
+		// no outline: the panel starts 2 mm before the lowest hole (x = 10)
+		expect(plan.rectangles[0].x).toBeCloseTo(4, 1);
+	});
+
+	it('rotates diagonal and vertical slots counter-clockwise like the input angle', () => {
+		const vertical = planHoles([slot(10, 10, 10, 15)]);
+		expect(vertical.rectangles[0].rotation).toBe(90);
+		const diagonal = planHoles([slot(10, 10, 13, 13)]);
+		expect(diagonal.rectangles[0].rotation).toBe(45);
+		// reversed direction describes the same slot
+		const reversed = planHoles([slot(13, 13, 10, 10)]);
+		expect(reversed.rectangles[0].rotation).toBe(45);
+	});
+
+	it('keeps slots out of the hole clusters and in the preview', () => {
+		const plan = planHoles([slot(10, 10, 12, 10), hole(10, 12.5), hole(12.54, 12.5)]);
+		expect(plan.rectangles).toHaveLength(2);
+		const preview = plan.holes.find((candidate) => candidate.slot);
+		expect(preview?.slot).toBeDefined();
+	});
+});

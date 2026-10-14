@@ -131,7 +131,8 @@ export const showModalNameEdit = async (
 export const showModalProjectSettings = async (
 	panelSettings: PanelSettings,
 	name: string,
-	label: string
+	label: string,
+	source?: 'gerber' | 'photo'
 ): Promise<{ confirmed: boolean; panelSettings: PanelSettings; name: string; label: string }> =>
 	await modalStore
 		.push({
@@ -139,7 +140,8 @@ export const showModalProjectSettings = async (
 			props: {
 				panelSettings: { ...panelSettings },
 				name,
-				label
+				label,
+				source
 			}
 		})
 		.resolve();

@@ -25,8 +25,8 @@ export interface PlanOptions {
 
 export const DEFAULT_GROUP_DISTANCE = 2.6;
 export const DEFAULT_MARGIN = 0.3;
-/** Smallest drill that is considered a through-hole component lead by default (vias are 0.2 - 0.4 mm) */
-export const MIN_THT_DIAMETER = 0.6;
+/** Smallest drill that is considered a through-hole component lead by default (vias are 0.2 - 0.6 mm, Eagle's default is 0.61) */
+export const MIN_THT_DIAMETER = 0.7;
 
 /** Same limits as the project settings dialog */
 const PANEL_MIN = 10;
@@ -43,22 +43,46 @@ export interface PlannedHole {
 	y: number;
 	diameter: number;
 	selected: boolean;
+	/** Slot end point in panel coordinates */
+	slot?: Point;
 }
 
 export interface ElementPlan {
 	circles: CircleData[];
 	rectangles: RectangleData[];
 	panel: { width: number; height: number };
+	/** CAM coordinates of the panel's lower-left corner (subtract to get panel coordinates) */
+	origin: Point;
 	/** Board outline contours in panel coordinates */
 	contours: Point[][];
 	holes: PlannedHole[];
 	warnings: string[];
 }
 
-/** Plated, non-via drills of lead size: what a through-hole part needs */
+/**
+ * Tools that are likely through-hole component leads: what the CAD declares (`ComponentDrill`, component
+ * pads) when it does, otherwise plated drills of lead size. Vias, mechanical and blind/buried holes
+ * are off, so are drills too small to be a lead whatever they are called (some CADs tag vias as
+ * component drills).
+ */
 export const defaultToolKeys = (tools: readonly DrillTool[]) =>
 	tools
-		.filter((tool) => tool.plated && !tool.via && tool.diameter >= MIN_THT_DIAMETER)
+		.filter((tool) => {
+			switch (tool.role) {
+				case 'component': {
+					return tool.plated && tool.diameter >= 0.4;
+				}
+				case 'pad': {
+					return true;
+				}
+				case 'unknown': {
+					return tool.plated && tool.diameter >= MIN_THT_DIAMETER;
+				}
+				default: {
+					return false;
+				}
+			}
+		})
 		.map((tool) => tool.key);
 
 /** Rounds up to 0.1 mm (the precision of the number fields), ignoring float noise */
@@ -152,7 +176,9 @@ export const planElements = (
 	if (outline) bbox = outline.bbox;
 	else {
 		const source = boundingBox(
-			(selected.length > 0 ? selected : holes).map(({ x, y }) => ({ x, y }))
+			(selected.length > 0 ? selected : holes).flatMap((hole) =>
+				hole.slot ? [hole, hole.slot] : [hole]
+			)
 		);
 		bbox = Number.isFinite(source.minX)
 			? {
@@ -180,7 +206,10 @@ export const planElements = (
 		y: roundHundredth(point.y - bbox.minY)
 	});
 
-	const local = selected.map((hole) => ({ ...hole, ...toPanel(hole) }));
+	const local = selected
+		.filter((hole) => !hole.slot)
+		.map((hole) => ({ ...hole, ...toPanel(hole) }));
+	const slots = selected.filter((hole) => hole.slot);
 	if (
 		outline &&
 		selected.some(
@@ -254,6 +283,37 @@ export const planElements = (
 		if (x - half.x < 0 || y - half.y < 0 || x + half.x > panel.width || y + half.y > panel.height)
 			outside++;
 	}
+	for (const hole of slots) {
+		// A slot becomes a rectangle along it: stroke length plus the end caps, with the same wall as a circle
+		const start = toPanel(hole);
+		const end = toPanel(hole.slot!);
+		const dx = end.x - start.x;
+		const dy = end.y - start.y;
+		const length = Math.hypot(dx, dy);
+		const height = ceilTenth(hole.diameter + 2 * options.minMargin);
+		const width = ceilTenth(length + hole.diameter + 2 * options.minMargin);
+		let angle = (Math.atan2(dy, dx) * 180) / Math.PI;
+		angle = ((angle % 180) + 180) % 180;
+		const rotation = Math.round(angle * 10) / 10 === 180 ? 0 : Math.round(angle * 10) / 10;
+		const x = roundHundredth((start.x + end.x) / 2);
+		const y = roundHundredth((start.y + end.y) / 2);
+		rectangles.push(
+			RectangleData.parse({
+				id: nanoid(),
+				x,
+				y,
+				width,
+				height: Math.max(height, RADIUS_MIN * 2),
+				depth: options.rectangleDepth,
+				rotation
+			})
+		);
+		const radians = (rotation * Math.PI) / 180;
+		const halfX = (Math.abs(Math.cos(radians)) * width + Math.abs(Math.sin(radians)) * height) / 2;
+		const halfY = (Math.abs(Math.sin(radians)) * width + Math.abs(Math.cos(radians)) * height) / 2;
+		if (x - halfX < 0 || y - halfY < 0 || x + halfX > panel.width || y + halfY > panel.height)
+			outside++;
+	}
 	if (outside > 0)
 		warnings.push(`${outside} shape(s) reach beyond the board edge, check them in the designer`);
 
@@ -261,11 +321,13 @@ export const planElements = (
 		circles,
 		rectangles,
 		panel,
+		origin: { x: bbox.minX, y: bbox.minY },
 		contours: (outline?.contours ?? []).map((contour) => contour.map((point) => toPanel(point))),
 		holes: holes.map((hole) => ({
 			...toPanel(hole),
 			diameter: hole.diameter,
-			selected: selectedKeys.has(hole.toolKey)
+			selected: selectedKeys.has(hole.toolKey),
+			...(hole.slot && { slot: toPanel(hole.slot) })
 		})),
 		warnings
 	};

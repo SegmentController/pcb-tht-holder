@@ -52,6 +52,7 @@
 	```
 
 	**Image Rendering:**
+	- Photos are drawn at 25 % opacity, generated board pictures (SVG from a Gerber import) opaque
 	- Image is flipped on Y-axis (scaleY negative) for correct PCB top-view
 	- Opacity set to 0.25 for visibility of overlaid components
 	- offsetY applied to account for Y-flip transformation
@@ -131,6 +132,7 @@
 		selectElementByMouseEnter
 	} from '$lib/fineMovement';
 	import { rotatedHalfExtents } from '$lib/geometry';
+	import { isGeneratedImage } from '$lib/gerber/boardSvg';
 	import {
 		cleanupMeasurement,
 		emptyMeasurementInfo,
@@ -547,6 +549,19 @@
 			step={ZOOM_STEP}
 			bind:value={$projectStore.zoom}
 		/>
+		{#if isGeneratedImage($projectStore.image)}
+			<span
+				class="ms-4 self-center whitespace-nowrap rounded-full bg-green-100 px-3 py-1 text-xs font-medium text-green-800"
+				title="Picture and holes come from Gerber files: exact millimetres, no photo scale"
+				>Gerber layout · exact size</span
+			>
+		{:else}
+			<span
+				class="ms-4 self-center whitespace-nowrap rounded-full bg-amber-100 px-3 py-1 text-xs font-medium text-amber-800"
+				title="Photo overlay at 25 % opacity, stretched to the panel size of the project settings"
+				>Photo overlay · scale from settings</span
+			>
+		{/if}
 	</div>
 	<!-- justify-center-safe: centered while it fits, scrollable from the left edge once wider than the viewport -->
 	<div
@@ -580,7 +595,7 @@
 					image={pcbImage}
 					listening={false}
 					offsetY={imageSize.height}
-					opacity={0.25}
+					opacity={isGeneratedImage($projectStore.image) ? 1 : 0.25}
 					scaleX={$projectStore.panelSettings.width / imageSize.width}
 					scaleY={(-1 * $projectStore.panelSettings.height) / imageSize.height}
 				/>

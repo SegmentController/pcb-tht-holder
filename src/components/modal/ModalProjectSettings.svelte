@@ -26,6 +26,8 @@
 	export let panelSettings: PanelSettings;
 	export let name: string;
 	export let label: string;
+	/** How the project was started: Gerber files give an exact size, a photo has no scale */
+	export let source: 'gerber' | 'photo' | undefined;
 </script>
 
 <EscapeClose on:escape={() => resolve(false)}>
@@ -52,6 +54,17 @@
 						<Label class="mb-2" for="height">Panel height (mm)</Label>
 						<NumberInputBound id="height" max={999} min={10} bind:value={panelSettings.height} />
 					</div>
+					{#if source === 'gerber'}
+						<p class="col-span-2 -mt-3 text-xs text-green-700">
+							<strong>Exact size</strong> from the Gerber board outline. Elements are placed in these
+							millimetres; changing the size only stretches the picture.
+						</p>
+					{:else if source === 'photo'}
+						<p class="col-span-2 -mt-3 text-xs text-amber-700">
+							<strong>Photo has no scale.</strong> Enter the real size of the board: the picture is stretched
+							to fit and all elements are placed in these millimetres.
+						</p>
+					{/if}
 					<div>
 						<Label class="mb-2" for="pcbThickness">PCB thickness (mm)</Label>
 						<NumberInputBound

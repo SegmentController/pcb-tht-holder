@@ -67,8 +67,8 @@ In its current state, it facilitates the installation of circular and oblong com
 - **Hover Info**: Real-time element information and available shortcuts when hovering
 - **Hollow Option**: Generate top-layer-only coverage for faster printing
 - **Custom Labels**: Print text labels on the side of your holder
-- **Demo Projects**: Three ready-made KiCad boards under the dropzone to try the workflow without a PCB
-- **Gerber / Excellon Import**: Drop a fabrication zip (or `.drl` + outline files): THT holes are placed at exact coordinates and grouped into parts, no photo needed
+- **Demo Projects**: Three ready-made boards under the dropzone to try the workflow without a PCB, one of them started straight from a `gerbers.zip`
+- **Gerber / Excellon Import**: **Drag and drop your `gerbers.zip`** (or `.drl` + outline files): THT holes are placed at exact coordinates and grouped into parts, the panel gets its exact size from the board outline, no photo needed
 - **Auto Image Resize**: Automatically resizes large images (>1280x1024) for easier handling
 - **PWA Support**: Install as a standalone application on your device
 - **Offline Ready**: Works without internet connection after first load (service worker precaches the app shell)
@@ -116,13 +116,25 @@ In its current state, it facilitates the installation of circular and oblong com
 
 Click here: https://segmentcontroller.github.io/pcb-tht-holder/
 
+### Photo or Gerber project?
+
+The project starts either way, and the app shows which one you have:
+
+|                           | Started from a photo                                                  | Started from Gerber files                                            |
+| ------------------------- | --------------------------------------------------------------------- | -------------------------------------------------------------------- |
+| Picture                   | Your photo, drawn at 25 % opacity                                     | Rendered top view (copper, solder mask openings, silkscreen), opaque |
+| Panel size                | Unknown scale: you enter the real width, the photo is stretched to it | Exact, taken from the board outline                                  |
+| Holes                     | You place and size every element by hand                              | Placed at exact coordinates, neighbours grouped into parts           |
+| Indicator in the designer | Amber badge _Photo overlay · scale from settings_                     | Green badge _Gerber layout · exact size_                             |
+| Project settings          | Amber note: _Photo has no scale_                                      | Green note: _Exact size from the Gerber board outline_               |
+
 ### Set up a PCB image
 
 Enter a PCB image with drag and drop or file selection, which will automatically flip and become transparent.
 
-Have the Gerber files? Drop the fabrication `.zip` (or the `.drl` drill files together with the `Edge.Cuts` layer) instead of a photo. The import dialog lists the drill tools (vias and mounting holes are off by default), groups neighbouring holes (default: closer than 2.6 mm, e.g. a pin header becomes one rectangle) and shows a preview. The panel takes the size of the board outline and all elements sit at their exact positions; THT parts that are missing from the BOM/pick-and-place files are fine, only the drill files matter.
+**Have the Gerber files? Drag and drop the fabrication `gerbers.zip`** (or the `.drl` drill files together with the `Edge.Cuts` layer) instead of a photo. The import dialog lists the drill tools (vias and mounting holes are off by default), groups neighbouring holes (default: closer than 2.6 mm, e.g. a pin header becomes one rectangle) and shows a preview. The panel takes the size of the board outline and all elements sit at their exact positions; THT parts that are missing from the BOM/pick-and-place files are fine, only the drill files matter.
 
-No PCB at hand? Pick one of the three demo boards under the dropzone: it loads a ready-made project with its holes and support legs already placed. Demo credits and licences: [`public/demo/CREDITS.md`](./public/demo/CREDITS.md).
+No PCB at hand? Pick one of the three demo boards under the dropzone: it loads a ready-made project with its holes and support legs already placed. _NE555 from Gerbers_ was started from a `gerbers.zip`; its package is offered on the card so you can try the drag and drop yourself. Demo credits and licences: [`public/demo/CREDITS.md`](./public/demo/CREDITS.md).
 
 ![alt text](./step1.png)
 

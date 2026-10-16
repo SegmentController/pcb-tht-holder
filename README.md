@@ -103,7 +103,7 @@ The project starts either way, and the app shows which one you have:
 - **Demo Projects**: Three ready-made boards under the dropzone to try the workflow without a PCB, one of them started straight from a `gerbers.zip`
 - **Auto Image Resize**: Automatically resizes large images (>1280x1024) for easier handling
 - **PWA Support**: Install as a standalone application on your device
-- **Offline Ready**: Works without internet connection after first load (service worker precaches the app shell)
+- **Offline Ready**: Works without internet connection after first load (service worker precaches the app shell and the 2D designer; a slow network falls back to the cached shell after 3 s)
 
 ## Keyboard Shortcuts
 
@@ -188,7 +188,7 @@ Use a PLA printer to save time and money. Practice shows that it is enough to pr
 - **Build Tool**: Vite (Tailwind via `@tailwindcss/vite`)
 - **3D Rendering**: Three.js with @threlte/core
 - **3D Operations**: three-bvh-csg for CSG boolean operations
-- **2D Canvas**: Konva.js for component placement
+- **2D Canvas**: Konva.js for component placement (lazy chunk, loaded once a picture exists)
 - **Fabrication files**: own pure TypeScript Gerber (RS-274X / X2) and Excellon/XNC parsers in `src/lib/gerber/`, zip extraction with `fflate`
 - **UI**: Flowbite Svelte with Tailwind CSS 4
 - **State**: Svelte stores persisted to local storage

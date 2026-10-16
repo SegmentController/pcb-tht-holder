@@ -61,11 +61,20 @@ const serviceWorker = (): Plugin => ({
 	apply: 'build',
 	generateBundle(_, bundle) {
 		const precache = new Set(SHELL_FILES);
+		// A chunk with everything it imports statically (shared chunks, css); dynamic imports stay lazy
+		const addChunk = (fileName: string) => {
+			const chunk = bundle[fileName];
+			if (chunk?.type !== 'chunk' || precache.has(fileName)) return;
+			precache.add(fileName);
+			for (const css of chunk.viteMetadata?.importedCss ?? []) precache.add(css);
+			for (const imported of chunk.imports) addChunk(imported);
+		};
 		for (const file of Object.values(bundle))
-			if (file.type === 'chunk' && file.isEntry) {
-				precache.add(file.fileName);
-				for (const css of file.viteMetadata?.importedCss ?? []) precache.add(css);
-			}
+			if (
+				file.type === 'chunk' &&
+				(file.isEntry || file.facadeModuleId?.endsWith('/AppDesigner.svelte'))
+			)
+				addChunk(file.fileName);
 
 		const template = readFileSync(
 			path.resolve(import.meta.dirname, 'src/service-worker.template.js'),

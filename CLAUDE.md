@@ -35,8 +35,9 @@ npm run npm:reinstall    # Clean reinstall dependencies
 
 The `service-worker` Vite plugin (`vite.config.ts`) emits `service-worker.js` from
 `src/service-worker.template.js`, filling in `__VERSION__` (package version) and `__PRECACHE__`
-(app shell + hashed entry assets). The 3D stack (three, CSG, threlte) is a lazy chunk loaded when the
-3D view opens; the `drop-unused-threlte-assets` plugin removes unreferenced draco/basis files.
+(app shell + entry assets + the lazy `AppDesigner` chunk with its static imports; navigations are network-first
+with a 3 s timeout). The 2D designer (Konva) is a lazy chunk `App.svelte` loads once a picture exists, and the 3D stack
+(three, CSG, threlte) is a lazy chunk loaded when the 3D view opens; the `drop-unused-threlte-assets` plugin removes unreferenced draco/basis files.
 The `drop-dark-css` plugin strips every `.dark …` rule (~50 KB, flowbite-svelte emits them) from the
 emitted CSS with `postcss`; the app has no dark mode. Remove the plugin before adding one.
 
@@ -81,7 +82,7 @@ src/
 │   ├── util/         # Pure helpers: math.ts, geometry.ts (rotated rectangle extents), format.ts (file name timestamp, `formatMm`), download.ts
 │   ├── designer/     # 2D canvas logic: alignment.ts (guides + magnetic snapping), fineMovement.ts, measurement.ts, zoom.ts (wheel/pinch zoom: pure step helpers + `wheelZoom` action)
 │   │   └── elements/ # Circle, rectangle, leg operations; collection.ts (shared store commit/remove/undo)
-│   ├── gerber/       # Fabrication file import (pure, tested): excellon.ts + gerberDrill.ts (drills), gerberOutline.ts, package.ts (layer roles, tools), unzip.ts (fflate, lazy), plan.ts (clustering → circles/rectangles), plotter.ts + macro.ts (RS-274X layer → SVG, aperture macros), legs.ts (`placeLegs` / `suggestLegs`: support legs clear of pads, silkscreen and holes), boardSvg.ts (top-view SVG with copper/mask/silk used as the project picture), types.ts, `fixtures/` (real KiCad output for tests)
+│   ├── gerber/       # Fabrication file import (pure, tested): excellon.ts + gerberDrill.ts (drills), gerberOutline.ts, package.ts (layer roles, tools), unzip.ts (fflate, lazy), plan.ts (clustering → circles/rectangles), plotter.ts + macro.ts (RS-274X layer → SVG, aperture macros; `PlotOptions` `keep`/`svg` and `extent` keep drill, outline and copper reads light), legs.ts (`placeLegs` / `suggestLegs`: support legs clear of pads, silkscreen and holes), boardSvg.ts (top-view SVG with copper/mask/silk used as the project picture), types.ts, `fixtures/` (real KiCad output for tests)
 │   ├── 3d/           # STL generation (stl.ts), CSG meshes (mesh.ts), worker + client, placement.ts (dependency-free constants), leg overlap (legOverlap.ts), watertight repair of CSG output (meshRepair.ts), `switchType` instance matcher
 │   └── svelteModal/  # Modal utilities
 ├── components/
@@ -114,10 +115,11 @@ Tests are co-located as `*.test.ts` next to the module they cover.
      overlapping ones must stay in separate batches (parity-based inside test)
    - **Leg collision detection**: Auto-filters overlapping legs before mesh generation (`legOverlap.ts`, pure and unit-tested; `hiddenLegsCount` is reported to the UI)
    - **Print tolerance**: Configurable 0-2mm (enlarges holes, shrinks panel)
-   - Optional text label engraving (Three.js TextGeometry, Roboto font)
+   - Optional text label engraving (Three.js TextGeometry, Roboto font; the font is only loaded when the project has a label, `createMeshSession(project, font?)` throws on a label without a font)
 4. **Mesh repair** (`src/lib/3d/meshRepair.ts`, pure and unit-tested, called from `toMeshInfo`):
    three-bvh-csg output has float-noise seams, T-junctions, zero-area slivers, fins, flipped patches
-   and small holes, which slicers report as thousands of "open edges". `repairMesh` welds (2e-4 mm),
+   and small holes, which slicers report as thousands of "open edges". `repairMesh(positions, index?)` takes the
+   indexed CSG geometry as is (no non-indexed expansion) and welds (2e-4 mm),
    drops degenerate triangles, splits edges at T-junctions, re-orients flipped patches, removes fins and
    fills small planar holes; `countOpenEdges` matches vertices by exact coordinates like a slicer does.
    - Larger weld radii (1e-3 and up) make seams _worse_; keep tolerance and weld radius equal.
@@ -246,7 +248,7 @@ See `components/mesh/Mesh3DScene.svelte` for the canonical example.
 - **Globals**: `__PKG_VERSION__`, `__BASE_URL__` injected at build time
 - **Service Worker**: PWA with offline caching, version auto-updated
 - **SEO**: Meta tags, sitemap.xml, Google Search Console verification
-- **Project loading** (`AppDropzone.svelte`): `.tht3d` uploads and demos both go through `loadProjectData()`
+- **Project loading** (`AppDropzone.svelte`): `.tht3d` uploads (read as text, not base64) and demos both go through `loadProjectData()`
   (Zod validation, one store write incl. label and zoom, embedded image via `onFileUpload`); a new image upload
   and File > New clear the print label
 - **Gerber import** (`AppDropzone.svelte` → `importFabFiles`, review dialog `ModalGerberImport.svelte`): routed by file

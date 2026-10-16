@@ -27,9 +27,11 @@ type Triangles = number[]; // flat vertex ids, 3 per triangle
 const edgeKeyFor = (vertexCount: number) => (a: number, b: number) =>
 	a < b ? a * vertexCount + b : b * vertexCount + a;
 
+type EdgeUses = Map<number, number>;
+
 /** Undirected edge -> number of triangles using it */
 const countEdgeUses = (triangles: Triangles, edgeKey: (a: number, b: number) => number) => {
-	const uses = new Map<number, number>();
+	const uses: EdgeUses = new Map();
 	for (let index = 0; index < triangles.length; index += 3)
 		for (let corner = 0; corner < 3; corner++) {
 			const key = edgeKey(triangles[index + corner]!, triangles[index + ((corner + 1) % 3)]!);
@@ -38,60 +40,76 @@ const countEdgeUses = (triangles: Triangles, edgeKey: (a: number, b: number) => 
 	return uses;
 };
 
-const countOpen = (triangles: Triangles, vertexCount: number) => {
+const countOpenIn = (edgeUses: EdgeUses) => {
 	let open = 0;
-	for (const uses of countEdgeUses(triangles, edgeKeyFor(vertexCount)).values())
-		if (uses === 1) open++;
+	for (const uses of edgeUses.values()) if (uses === 1) open++;
 	return open;
 };
 
-/** Merges corners closer than WELD_EPSILON; the representative keeps its exact coordinates */
-const weld = (vertices: Float32Array) => {
+const countOpen = (triangles: Triangles, vertexCount: number) =>
+	countOpenIn(countEdgeUses(triangles, edgeKeyFor(vertexCount)));
+
+/**
+ * Merges corners closer than WELD_EPSILON; the representative keeps its exact coordinates.
+ * With `index` the corners are looked up through it and every source vertex is welded only once.
+ */
+const weld = (vertices: Float32Array, index?: ArrayLike<number>) => {
 	const coordinates: Vertices = [];
 	const buckets = new Map<number, number[]>();
-	const corners = new Uint32Array(vertices.length / 3);
+	const corners = new Uint32Array(index ? index.length : vertices.length / 3);
+	const welded = index ? new Int32Array(vertices.length / 3).fill(-1) : undefined;
 	const epsilonSquared = WELD_EPSILON * WELD_EPSILON;
 
-	const findNear = (x: number, y: number, z: number, cells: [number[], number[], number[]]) => {
-		for (const cellX of cells[0])
-			for (const cellY of cells[1])
-				for (const cellZ of cells[2]) {
-					const bucket = buckets.get(hashCell(cellX, cellY, cellZ));
-					if (bucket)
-						for (const id of bucket) {
-							const dx = coordinates[id * 3]! - x;
-							const dy = coordinates[id * 3 + 1]! - y;
-							const dz = coordinates[id * 3 + 2]! - z;
-							if (dx * dx + dy * dy + dz * dz <= epsilonSquared) return id;
-						}
-				}
+	const findIn = (cellX: number, cellY: number, cellZ: number, x: number, y: number, z: number) => {
+		const bucket = buckets.get(hashCell(cellX, cellY, cellZ));
+		if (bucket)
+			for (const id of bucket) {
+				const dx = coordinates[id * 3]! - x;
+				const dy = coordinates[id * 3 + 1]! - y;
+				const dz = coordinates[id * 3 + 2]! - z;
+				if (dx * dx + dy * dy + dz * dz <= epsilonSquared) return id;
+			}
 		return -1;
 	};
 
 	for (let corner = 0; corner < corners.length; corner++) {
-		const x = vertices[corner * 3]!;
-		const y = vertices[corner * 3 + 1]!;
-		const z = vertices[corner * 3 + 2]!;
-		const scaled = [x / CELL_SIZE, y / CELL_SIZE, z / CELL_SIZE];
-		const own = scaled.map((value) => Math.floor(value));
-		const [nearX, nearY, nearZ] = scaled.map((value, axis) =>
-			value - own[axis]! < 0.5 ? own[axis]! - 1 : own[axis]! + 1
-		);
+		const source = index ? index[corner]! : corner;
+		const known = welded ? welded[source]! : -1;
+		if (known >= 0) {
+			corners[corner] = known;
+			continue;
+		}
 
-		let id = findNear(x, y, z, [
-			[own[0]!, nearX!],
-			[own[1]!, nearY!],
-			[own[2]!, nearZ!]
-		]);
+		const x = vertices[source * 3]!;
+		const y = vertices[source * 3 + 1]!;
+		const z = vertices[source * 3 + 2]!;
+		const scaledX = x / CELL_SIZE;
+		const scaledY = y / CELL_SIZE;
+		const scaledZ = z / CELL_SIZE;
+		const ownX = Math.floor(scaledX);
+		const ownY = Math.floor(scaledY);
+		const ownZ = Math.floor(scaledZ);
+		const nearX = scaledX - ownX < 0.5 ? ownX - 1 : ownX + 1;
+		const nearY = scaledY - ownY < 0.5 ? ownY - 1 : ownY + 1;
+		const nearZ = scaledZ - ownZ < 0.5 ? ownZ - 1 : ownZ + 1;
+
+		// Own cell first, then the nearer neighbour on each axis
+		let id = -1;
+		for (let cellX = ownX, passX = 0; id < 0 && passX < 2; cellX = nearX, passX++)
+			for (let cellY = ownY, passY = 0; id < 0 && passY < 2; cellY = nearY, passY++)
+				for (let cellZ = ownZ, passZ = 0; id < 0 && passZ < 2; cellZ = nearZ, passZ++)
+					id = findIn(cellX, cellY, cellZ, x, y, z);
+
 		if (id < 0) {
 			id = coordinates.length / 3;
 			coordinates.push(x, y, z);
-			const key = hashCell(own[0]!, own[1]!, own[2]!);
+			const key = hashCell(ownX, ownY, ownZ);
 			const bucket = buckets.get(key);
 			if (bucket) bucket.push(id);
 			else buckets.set(key, [id]);
 		}
 		corners[corner] = id;
+		if (welded) welded[source] = id;
 	}
 
 	return { coordinates, corners };
@@ -140,9 +158,13 @@ const isDegenerate = (coordinates: Vertices, a: number, b: number, c: number) =>
  *   the edge is inserted, which also splits the edges of real holes (bow-tie corners).
  * @returns Whether any triangle was split
  */
-const splitTJunctions = (coordinates: Vertices, triangles: Triangles, strict: boolean): boolean => {
+const splitTJunctions = (
+	coordinates: Vertices,
+	triangles: Triangles,
+	edgeUses: EdgeUses,
+	strict: boolean
+): boolean => {
 	const edgeKey = edgeKeyFor(coordinates.length / 3);
-	const edgeUses = countEdgeUses(triangles, edgeKey);
 	const addUse = (a: number, b: number, delta: number) => {
 		const key = edgeKey(a, b);
 		const next = (edgeUses.get(key) ?? 0) + delta;
@@ -276,9 +298,14 @@ const splitTJunctions = (coordinates: Vertices, triangles: Triangles, strict: bo
 	return changed;
 };
 
-const splitUntilStable = (coordinates: Vertices, triangles: Triangles, strict: boolean) => {
+const splitUntilStable = (
+	coordinates: Vertices,
+	triangles: Triangles,
+	edgeUses: EdgeUses,
+	strict: boolean
+) => {
 	for (let round = 0; round < MAX_SPLIT_ROUNDS; round++)
-		if (!splitTJunctions(coordinates, triangles, strict)) break;
+		if (!splitTJunctions(coordinates, triangles, edgeUses, strict)) break;
 };
 
 /**
@@ -291,16 +318,26 @@ const orientConsistently = (vertexCount: number, triangles: Triangles) => {
 	const edgeKey = edgeKeyFor(vertexCount);
 	const count = triangles.length / 3;
 
-	const owners = new Map<number, number[]>();
+	// Per edge: its first two triangles and how many use it (capped), without an array per edge
+	const slots = new Map<number, number>();
+	const firstOwner = new Int32Array(count * 3);
+	const secondOwner = new Int32Array(count * 3);
+	const ownerCount = new Uint8Array(count * 3);
 	for (let triangle = 0; triangle < count; triangle++)
 		for (let corner = 0; corner < 3; corner++) {
 			const key = edgeKey(
 				triangles[triangle * 3 + corner]!,
 				triangles[triangle * 3 + ((corner + 1) % 3)]!
 			);
-			const list = owners.get(key);
-			if (list) list.push(triangle);
-			else owners.set(key, [triangle]);
+			const slot = slots.get(key);
+			if (slot === undefined) {
+				slots.set(key, slots.size);
+				firstOwner[slots.size - 1] = triangle;
+				ownerCount[slots.size - 1] = 1;
+			} else {
+				if (ownerCount[slot] === 1) secondOwner[slot] = triangle;
+				if (ownerCount[slot]! < 255) ownerCount[slot]++;
+			}
 		}
 
 	const usesDirected = (triangle: number, from: number, to: number) => {
@@ -330,10 +367,10 @@ const orientConsistently = (vertexCount: number, triangles: Triangles) => {
 			for (let corner = 0; corner < 3; corner++) {
 				const from = triangles[triangle * 3 + corner]!;
 				const to = triangles[triangle * 3 + ((corner + 1) % 3)]!;
-				const sharing = owners.get(edgeKey(from, to))!;
-				if (sharing.length !== 2) continue;
+				const slot = slots.get(edgeKey(from, to))!;
+				if (ownerCount[slot] !== 2) continue;
 
-				const other = sharing[0] === triangle ? sharing[1]! : sharing[0]!;
+				const other = firstOwner[slot] === triangle ? secondOwner[slot]! : firstOwner[slot]!;
 				if (visited[other]) continue;
 				visited[other] = 1;
 				if (usesDirected(other, from, to)) {
@@ -365,24 +402,24 @@ const badEdgeChange = (uses: number) => {
 const removeSpuriousTriangles = (
 	vertexCount: number,
 	triangles: Triangles,
+	edgeUses: EdgeUses,
 	conservative: boolean
 ): boolean => {
 	const edgeKey = edgeKeyFor(vertexCount);
-	const edgeUses = countEdgeUses(triangles, edgeKey);
 	const count = triangles.length / 3;
 
-	const edgesOf = (triangle: number) =>
-		[0, 1, 2].map((corner) =>
-			edgeKey(triangles[triangle * 3 + corner]!, triangles[triangle * 3 + ((corner + 1) % 3)]!)
-		);
-
+	const keys = [0, 0, 0]; // edges of the triangle being looked at
 	const removed = new Set<number>();
 	let progress = true;
 	while (progress) {
 		progress = false;
 		for (let triangle = 0; triangle < count; triangle++) {
 			if (removed.has(triangle)) continue;
-			const keys = edgesOf(triangle);
+			for (let corner = 0; corner < 3; corner++)
+				keys[corner] = edgeKey(
+					triangles[triangle * 3 + corner]!,
+					triangles[triangle * 3 + ((corner + 1) % 3)]!
+				);
 			let gain = 0;
 			let isOverShared = false;
 			let isAttached = false;
@@ -440,9 +477,12 @@ const facesAlong = (
  * loop is filled with a triangle fan whose triangles all face the way the loop requires. Large,
  * branching, non-planar or non-fannable loops are left open rather than guessed.
  */
-const fillHoles = (coordinates: Vertices, triangles: Triangles) => {
+const fillHoles = (coordinates: Vertices, triangles: Triangles, edgeUses: EdgeUses) => {
 	const edgeKey = edgeKeyFor(coordinates.length / 3);
-	const edgeUses = countEdgeUses(triangles, edgeKey);
+	const addUse = (a: number, b: number) => {
+		const key = edgeKey(a, b);
+		edgeUses.set(key, (edgeUses.get(key) ?? 0) + 1);
+	};
 
 	// Directed open edges, in the direction the existing triangle uses them
 	const outgoing = new Map<number, number[]>();
@@ -539,8 +579,13 @@ const fillHoles = (coordinates: Vertices, triangles: Triangles) => {
 					);
 				if (!isValid) continue;
 
-				for (let index = 1; index + 1 < count; index++)
-					triangles.push(ring[0]!, ring[index]!, ring[index + 1]!);
+				for (let index = 1; index + 1 < count; index++) {
+					const [a, b, c] = [ring[0]!, ring[index]!, ring[index + 1]!];
+					triangles.push(a, b, c);
+					addUse(a, b);
+					addUse(b, c);
+					addUse(c, a);
+				}
 				for (const [index, id] of loop.entries())
 					consumed.add(directedKey(id, loop[(index + 1) % loop.length]!));
 				break;
@@ -553,14 +598,32 @@ const fillHoles = (coordinates: Vertices, triangles: Triangles) => {
  * `splitTJunctions` and `removeSpuriousTriangles`); the loose one is only kept if it ends up with
  * fewer open edges.
  */
-const settle = (coordinates: Vertices, triangles: Triangles, strict: boolean) => {
+const settle = (
+	coordinates: Vertices,
+	triangles: Triangles,
+	edgeUses: EdgeUses,
+	strict: boolean
+) => {
 	const vertexCount = coordinates.length / 3;
 
-	splitUntilStable(coordinates, triangles, strict);
+	// Every edge shared by exactly two triangles: splitting, fin removal and hole filling have
+	// nothing to do (each triangle would lose 3 well shared edges), only the orientation can be off
+	let isClosed = true;
+	for (const uses of edgeUses.values())
+		if (uses !== 2) {
+			isClosed = false;
+			break;
+		}
+	if (isClosed) {
+		orientConsistently(vertexCount, triangles);
+		return;
+	}
+
+	splitUntilStable(coordinates, triangles, edgeUses, strict);
 	orientConsistently(vertexCount, triangles);
-	if (removeSpuriousTriangles(vertexCount, triangles, strict))
-		splitUntilStable(coordinates, triangles, strict);
-	fillHoles(coordinates, triangles);
+	if (removeSpuriousTriangles(vertexCount, triangles, edgeUses, strict))
+		splitUntilStable(coordinates, triangles, edgeUses, strict);
+	fillHoles(coordinates, triangles, edgeUses);
 };
 
 /**
@@ -568,38 +631,44 @@ const settle = (coordinates: Vertices, triangles: Triangles, strict: boolean) =>
  * that is possible without guessing: drops triangles that have no area, splits edges at
  * T-junctions, flips inverted patches, removes fins and closes small planar holes.
  *
- * @param vertices - Non-indexed triangle soup (9 floats per triangle)
+ * @param vertices - Triangle soup (9 floats per triangle), or the vertex positions of an indexed
+ *   mesh when `index` is given (saves expanding it first)
+ * @param index - Optional triangle corners into `vertices`
  * @returns Repaired triangle soup with exactly shared vertex coordinates along every seam
  */
-export const repairMesh = (vertices: Float32Array): Float32Array => {
-	if (vertices.length === 0 || vertices.length % 9 !== 0) return vertices;
+export const repairMesh = (vertices: Float32Array, index?: ArrayLike<number>): Float32Array => {
+	const cornerCount = index ? index.length : vertices.length / 3;
+	if (cornerCount === 0 || cornerCount % 3 !== 0 || (!index && vertices.length % 9 !== 0))
+		return vertices;
 
-	const { coordinates, corners } = weld(vertices);
+	const { coordinates, corners } = weld(vertices, index);
 	const vertexCount = coordinates.length / 3;
 	let triangles: Triangles = [];
-	for (let index = 0; index < corners.length; index += 3) {
-		const a = corners[index]!;
-		const b = corners[index + 1]!;
-		const c = corners[index + 2]!;
+	for (let corner = 0; corner < corners.length; corner += 3) {
+		const a = corners[corner]!;
+		const b = corners[corner + 1]!;
+		const c = corners[corner + 2]!;
 		if (!isDegenerate(coordinates, a, b, c)) triangles.push(a, b, c);
 	}
 
-	settle(coordinates, triangles, true);
+	const edgeUses = countEdgeUses(triangles, edgeKeyFor(vertexCount));
+	settle(coordinates, triangles, edgeUses, true);
 
 	// Left-overs: retry with every touching vertex allowed to split an edge (bow-tie holes). It is a
 	// gamble that only pays off if the result has fewer open edges.
-	const open = countOpen(triangles, vertexCount);
+	const open = countOpenIn(edgeUses);
 	if (open > 0) {
 		const attempt = [...triangles];
-		settle(coordinates, attempt, false);
-		if (countOpen(attempt, vertexCount) < open) triangles = attempt;
+		const retryUses = new Map(edgeUses);
+		settle(coordinates, attempt, retryUses, false);
+		if (countOpenIn(retryUses) < open) triangles = attempt;
 	}
 
 	const result = new Float32Array(triangles.length * 3);
-	for (const [index, id] of triangles.entries()) {
-		result[index * 3] = coordinates[id * 3]!;
-		result[index * 3 + 1] = coordinates[id * 3 + 1]!;
-		result[index * 3 + 2] = coordinates[id * 3 + 2]!;
+	for (const [corner, id] of triangles.entries()) {
+		result[corner * 3] = coordinates[id * 3]!;
+		result[corner * 3 + 1] = coordinates[id * 3 + 1]!;
+		result[corner * 3 + 2] = coordinates[id * 3 + 2]!;
 	}
 	return result;
 };

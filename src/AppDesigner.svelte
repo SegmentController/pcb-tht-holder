@@ -274,6 +274,22 @@
 	/** Alignment lines to display during element dragging (replaced as a whole, never mutated) */
 	let alignmentLines: AlignmentLine[] = $state.raw([]);
 
+	/** Replaces the guides only when they differ, so an unchanged drag move does not redraw the overlay */
+	const setAlignmentLines = (lines: AlignmentLine[]) => {
+		const same =
+			lines.length === alignmentLines.length &&
+			lines.every((line, index) => {
+				const previous = alignmentLines[index]!;
+				return (
+					line.x1 === previous.x1 &&
+					line.y1 === previous.y1 &&
+					line.x2 === previous.x2 &&
+					line.y2 === previous.y2
+				);
+			});
+		if (!same) alignmentLines = lines;
+	};
+
 	/** Other elements of the drag in progress: built once per drag, not on every move event */
 	let otherElementsCache: { id: string; elements: GenericElement[] } | undefined;
 	const getOtherElements = (draggedId: string) => {
@@ -342,7 +358,7 @@
 	) => {
 		// Skip alignment detection if toggle is disabled
 		if (!$alignmentEnabled) {
-			alignmentLines = [];
+			setAlignmentLines([]);
 			return;
 		}
 
@@ -355,11 +371,13 @@
 
 		const allOtherElements = getOtherElements(draggedElement.id);
 
-		alignmentLines = detectAlignments(
-			liveElement,
-			allOtherElements,
-			$projectStore.panelSettings.width,
-			$projectStore.panelSettings.height
+		setAlignmentLines(
+			detectAlignments(
+				liveElement,
+				allOtherElements,
+				$projectStore.panelSettings.width,
+				$projectStore.panelSettings.height
+			)
 		);
 	};
 

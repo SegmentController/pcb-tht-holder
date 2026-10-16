@@ -43,7 +43,7 @@
 	import { getProjectStoreValue } from '$stores/projectStore';
 	import type { ImageSize } from '$types/ImageSize';
 
-	import AppDesigner, { type DesignerMode } from './AppDesigner.svelte';
+	import type { DesignerMode } from './AppDesigner.svelte';
 	import AppDropzone from './AppDropzone.svelte';
 	import AppNavigation from './AppNavigation.svelte';
 
@@ -71,6 +71,9 @@
 	 */
 	const reset = () => (imageSize = pcbImage = undefined);
 
+	/** The 2D designer (Konva) is a separate chunk: the dropzone screen does not need it */
+	const loadDesigner = () => import('./AppDesigner.svelte');
+
 	/** Reference to dropzone component for programmatic file loading */
 	let dropzone: AppDropzone;
 
@@ -82,7 +85,9 @@
 <PartnerBadge />
 <main class="flex flex-col justify-center">
 	{#if !!imageSize}
-		<AppDesigner bind:pcbImage bind:imageSize bind:mode={designerMode} />
+		{#await loadDesigner() then { default: AppDesigner }}
+			<AppDesigner bind:pcbImage bind:imageSize bind:mode={designerMode} />
+		{/await}
 	{:else}
 		<AppDropzone bind:this={dropzone} bind:pcbImage bind:imageSize />
 	{/if}

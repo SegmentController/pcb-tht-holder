@@ -2,7 +2,8 @@
 // - App shell + entry assets are precached at install (paths relative to the worker's scope).
 // - Hashed build assets and static files are served cache-first and cached on first use
 //   (this includes the lazily loaded 3D chunks and the label font, so they also work offline).
-// - Navigations are network-first so a new deployment is picked up, falling back to the cached shell.
+// - Navigations are network-first so a new deployment is picked up, falling back to the cached shell
+//   when the network fails or takes longer than NAVIGATION_TIMEOUT_MS.
 // A new worker waits until old tabs are closed (no skipWaiting), so a page never loses its chunks.
 
 const APP_PREFIX = 'pwa_pcb-tht-holder_';
@@ -21,18 +22,27 @@ const cacheFirst = async (event) => {
 	return response;
 };
 
+const NAVIGATION_TIMEOUT_MS = 3000;
+
 const networkFirst = async (event) => {
 	const cache = await caches.open(CACHE_NAME);
-	try {
-		const response = await fetch(event.request);
+	const network = fetch(event.request).then((response) => {
 		if (response.ok) event.waitUntil(cache.put(event.request, response.clone()));
 		return response;
-	} catch (error) {
-		const cached =
-			(await cache.match(event.request)) ?? (await cache.match(scopeUrl('index.html')));
-		if (cached) return cached;
-		throw error;
+	});
+	event.waitUntil(network.catch(() => {})); // keeps refreshing the cache after a timeout fallback
+
+	// A slow network must not hold the page back when the shell is cached
+	const timeout = new Promise((resolve) => setTimeout(resolve, NAVIGATION_TIMEOUT_MS));
+	try {
+		const response = await Promise.race([network, timeout]);
+		if (response) return response;
+	} catch {
+		/* offline: fall through to the cache */
 	}
+
+	const cached = (await cache.match(event.request)) ?? (await cache.match(scopeUrl('index.html')));
+	return cached ?? network;
 };
 
 self.addEventListener('install', (event) => {

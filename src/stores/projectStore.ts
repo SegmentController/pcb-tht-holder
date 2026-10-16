@@ -163,14 +163,22 @@ const PROJECT_STORAGE_KEY = 'project';
 const IMAGE_STORAGE_KEY = 'project-image';
 const AUTOSAVE_DEBOUNCE_MS = 250;
 
-/** Reads a stored project; the image comes from its own key unless a legacy blob embeds it */
-const parseStoredProject = (text: string): Project => {
+/**
+ * Reads a stored project; the image comes from its own key unless a legacy blob embeds it.
+ * `savedImage` is that stored image (what the next autosave need not write again), or undefined
+ * when there is none to trust: legacy blobs get migrated by the first write.
+ */
+const parseStoredProject = (text: string): { project: Project; savedImage?: string } => {
 	try {
 		const raw = JSON.parse(text);
-		if (!raw.image) raw.image = localStorage.getItem(IMAGE_STORAGE_KEY) ?? '';
-		return Project.parse(raw);
+		let savedImage: string | undefined;
+		if (!raw.image) {
+			raw.image = localStorage.getItem(IMAGE_STORAGE_KEY) ?? '';
+			savedImage = raw.image;
+		}
+		return { project: Project.parse(raw), savedImage };
 	} catch {
-		return structuredClone(emptyProject);
+		return { project: structuredClone(emptyProject) };
 	}
 };
 
@@ -180,14 +188,14 @@ const stringifyProjectForStorage = (project: Project) =>
 		key === 'image' ? undefined : skipKonvaProperties(key, value)
 	);
 
-const loadInitialProject = (): Project => {
+const loadInitialProject = (): { project: Project; savedImage?: string } => {
 	try {
 		const json = localStorage.getItem(PROJECT_STORAGE_KEY);
 		if (json) return parseStoredProject(json);
 	} catch {
 		/* storage unavailable */
 	}
-	return structuredClone(emptyProject);
+	return { project: structuredClone(emptyProject) };
 };
 
 /**
@@ -199,10 +207,11 @@ const loadInitialProject = (): Project => {
  * hidden or closed.
  */
 const createProjectStore = () => {
-	let current = loadInitialProject();
+	const initial = loadInitialProject();
+	let current = initial.project;
 	const { subscribe, set: setInternal } = writable<Project>(current);
 
-	let savedImage: string | undefined; // unknown until first write: legacy blobs get migrated then
+	let savedImage = initial.savedImage; // undefined: legacy blobs get migrated by the first write
 	let timer: ReturnType<typeof setTimeout> | undefined;
 	let hasWriteFailed = false;
 
@@ -249,8 +258,7 @@ const createProjectStore = () => {
 				clearTimeout(timer);
 				timer = undefined;
 			}
-			current = parseStoredProject(event.newValue);
-			savedImage = undefined;
+			({ project: current, savedImage } = parseStoredProject(event.newValue));
 			setInternal(current);
 		});
 	}

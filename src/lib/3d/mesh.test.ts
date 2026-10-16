@@ -144,6 +144,12 @@ describe('createMeshSession', () => {
 		expect(session.totalOperations).toBeGreaterThan(0);
 	});
 
+	it('needs no font without a label, and refuses a label without one', () => {
+		const unlabelled = makeProject(3, 6, 8, 5, '', 0.2);
+		expect(() => createMeshSession(unlabelled)).not.toThrow();
+		expect(() => createMeshSession(cases[0]!.project)).toThrow(/font/i);
+	});
+
 	it('memoizes variants and can start with the derived hollow variant', async () => {
 		const session = createMeshSession(project, font);
 		const hollow = await session.generate('hollow');

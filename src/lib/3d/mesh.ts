@@ -290,7 +290,7 @@ export type MeshSession = {
  * @param project - The PCB project containing panel settings and component data
  * @param font - Font for optional text label engraving
  */
-export const createMeshSession = (project: RenderableProject, font: Font): MeshSession => {
+export const createMeshSession = (project: RenderableProject, font?: Font): MeshSession => {
 	// Constant helper values
 	const panel = project.panelSettings;
 	const emptyHeight = panel.pcbThickness + panel.smdHeight;
@@ -389,12 +389,14 @@ export const createMeshSession = (project: RenderableProject, font: Font): MeshS
 	);
 
 	// Optional text label on front edge (measured up front so progress totals are exact)
-	const textInfo = project.label
-		? TEXT(font, project.label, {
-				x: outerWidth * 0.75,
-				y: (needHeight + BOTTOM_THICKNESS - emptyHeight) * 0.75
-			})
-		: undefined;
+	if (project.label && !font) throw new Error('A font is required to engrave the print label');
+	const textInfo =
+		font && project.label
+			? TEXT(font, project.label, {
+					x: outerWidth * 0.75,
+					y: (needHeight + BOTTOM_THICKNESS - emptyHeight) * 0.75
+				})
+			: undefined;
 
 	// Positive mesh pillars (thin base plate with components standing on it)
 	const pillarBatches = batchBrushes([
@@ -479,9 +481,9 @@ export const createMeshSession = (project: RenderableProject, font: Font): MeshS
 	const toMeshInfo = (solid: Brush, dimensions: MeshInfo['dimensions']): MeshInfo => {
 		// CSG output has near-duplicate seam vertices and T-junctions (open edges for slicers);
 		// the repair welds the former and splits edges at the latter
-		const geometry = solid.geometry.index ? solid.geometry.toNonIndexed() : solid.geometry;
-		const positions = geometry.attributes['position'].array as Float32Array;
-		return { vertexArray: repairMesh(positions), dimensions };
+		const { index, attributes } = solid.geometry;
+		const positions = attributes['position'].array as Float32Array;
+		return { vertexArray: repairMesh(positions, index?.array), dimensions };
 	};
 
 	const builders: Record<MeshKind, (step: Step) => Promise<MeshInfo>> = {
@@ -587,13 +589,13 @@ export const createMeshSession = (project: RenderableProject, font: Font): MeshS
  * Generates all three mesh variants of a project in one go (tests and main-thread fallback).
  *
  * @param project - The PCB project containing panel settings and component data
- * @param font - Font for optional text label engraving
+ * @param font - Font for the text label; only needed (and loaded) when the project has a label
  * @param onProgress - Optional callback to report progress (current, total operations)
  * @returns Object containing vertex arrays and dimensions for all three mesh types
  */
 export const generateMesh = async (
 	project: RenderableProject,
-	font: Font,
+	font: Font | undefined,
 	onProgress?: ProgressCallback
 ): Promise<MeshInfoTuple> => {
 	const session = createMeshSession(project, font);
@@ -629,7 +631,7 @@ export const generateMeshLazy = async (
 	onProgress?: ProgressCallback
 ): Promise<MeshInfoTuple> => {
 	try {
-		const font = await loadFont();
+		const font = project.label ? await loadFont() : undefined;
 		return await generateMesh(project, font, onProgress);
 	} catch (error) {
 		throw error instanceof Error ? error.message : error;

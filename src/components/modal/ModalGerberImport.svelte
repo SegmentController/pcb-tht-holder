@@ -39,31 +39,40 @@
 			return Object.fromEntries(fabPackage.tools.map((tool) => [tool.key, defaults.has(tool.key)]));
 		})
 	);
+	// Any valid depth: the real ones are applied to the plan afterwards
+	const PLACEHOLDER_DEPTH = 5;
 	let groupDistance = $state(DEFAULT_GROUP_DISTANCE);
 	let minMargin = $state(DEFAULT_MARGIN);
 	let circleDepth = $state(5);
 	let rectangleDepth = $state(5);
 	let addLegs = $state(true);
 
-	const plan = $derived(
+	// Geometry does not depend on the depths: editing them must not redo clustering, the leg search
+	// and the picture, so those work on `layout` and the depths are applied afterwards
+	const layout = $derived(
 		planElements(fabPackage.holes, fabPackage.outline, {
 			toolKeys: Object.keys(selection).filter((key) => selection[key]),
 			groupDistance,
 			minMargin,
-			circleDepth,
-			rectangleDepth
+			circleDepth: PLACEHOLDER_DEPTH,
+			rectangleDepth: PLACEHOLDER_DEPTH
 		})
 	);
+	const plan = $derived<ElementPlan>({
+		...layout,
+		circles: layout.circles.map((circle) => ({ ...circle, depth: circleDepth })),
+		rectangles: layout.rectangles.map((rectangle) => ({ ...rectangle, depth: rectangleDepth }))
+	});
 	// Legs keep clear of pads, silkscreen, every hole and the planned elements
 	const legs = $derived(
-		addLegs ? suggestLegs(plan, fabPackage.holes, fabPackage.partKeepouts ?? []) : []
+		addLegs ? suggestLegs(layout, fabPackage.holes, fabPackage.partKeepouts ?? []) : []
 	);
 	const preview = $derived(
 		svgToDataUrl(
-			renderBoardSvg(plan, {
+			renderBoardSvg(layout, {
 				shapes: {
-					circles: plan.circles,
-					rectangles: plan.rectangles,
+					circles: layout.circles,
+					rectangles: layout.rectangles,
 					legs: legs.map((leg) => ({ ...leg, width: LEG_SIZE, height: LEG_SIZE }))
 				},
 				layout: fabPackage.layout

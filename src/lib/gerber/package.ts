@@ -6,9 +6,9 @@ import {
 	type ZeroMode
 } from './excellon';
 import { drillsFromGerber, isGerberDrillLayer } from './gerberDrill';
-import { boundingBox, looksLikeOutlineName, outlineFromRecords } from './gerberOutline';
+import { looksLikeOutlineName, outlineFromRecords } from './gerberOutline';
 import { keepoutsFromRecords } from './legs';
-import { plotLayer } from './plotter';
+import { KEEP_NONE, plotLayer, type PlotOptions } from './plotter';
 import {
 	type BoardOutline,
 	type DrillHole,
@@ -136,6 +136,19 @@ const refineLayout = (file: FabFile, first: ExcellonResult, outline: BoardOutlin
 	return { result: best, guessed: best !== first };
 };
 
+/**
+ * What is read from the records of each picture layer. The mask is only drawn; copper gives its
+ * flashes (pads) and the replica of the profile; the silkscreen outlines of the parts keep clear
+ * the legs. The extent of everything is tracked by the plotter, so long traces need no record.
+ */
+const LAYER_PLOT_OPTIONS = {
+	copper: {
+		keep: (record) => record.type === 'flash' || /^profile$/i.test(record.function ?? '')
+	},
+	mask: { keep: KEEP_NONE },
+	silk: {}
+} satisfies Record<'copper' | 'mask' | 'silk', PlotOptions>;
+
 const padHoles = (plot: PlotResult) => {
 	const holes: DrillHole[] = [];
 	const tools = new Map<string, DrillTool>();
@@ -182,7 +195,7 @@ export const readFabPackage = (files: readonly FabFile[]): FabPackage => {
 		const { role, weight, byAttribute } = roleOf(file);
 		if (!role) continue;
 		if (role === 'drill') {
-			const plot = plotLayer(file.text, 'd');
+			const plot = plotLayer(file.text, 'd', { svg: false });
 			if (isGerberDrillLayer(plot.attributes) || byAttribute === false) {
 				const drills = drillsFromGerber(plot, file.name);
 				gerberDrills.push(drills);
@@ -198,7 +211,7 @@ export const readFabPackage = (files: readonly FabFile[]): FabPackage => {
 	// Board outline
 	let outline: BoardOutline | undefined;
 	if (chosen.outline) {
-		const plot = plotLayer(chosen.outline.file.text, 'o');
+		const plot = plotLayer(chosen.outline.file.text, 'o', { svg: false });
 		outline = outlineFromRecords(plot.records);
 		outlineFileName = outline ? chosen.outline.file.name : undefined;
 		if (!outline) warnings.add(`${chosen.outline.file.name}: no outline geometry found`);
@@ -234,7 +247,7 @@ export const readFabPackage = (files: readonly FabFile[]): FabPackage => {
 	for (const key of ['copper', 'mask', 'silk'] as const) {
 		const entry = chosen[key];
 		if (!entry) continue;
-		const plot = plotLayer(entry.file.text, LAYOUT_PREFIX[key]);
+		const plot = plotLayer(entry.file.text, LAYOUT_PREFIX[key], LAYER_PLOT_OPTIONS[key]);
 		if (key === 'copper') copperPlot = plot;
 		if (key === 'silk') silkPlot = plot;
 		if (!plot.objects) continue;
@@ -267,20 +280,10 @@ export const readFabPackage = (files: readonly FabFile[]): FabPackage => {
 	}
 
 	// Last resort: the extent of the copper
-	if (!outline && copperPlot) {
-		const points = copperPlot.records.flatMap((record) => {
-			if (record.type !== 'flash') return record.points;
-			const [halfW, halfH] = [record.width / 2, record.height / 2];
-			return [
-				{ x: record.x - halfW, y: record.y - halfH },
-				{ x: record.x + halfW, y: record.y + halfH }
-			];
-		});
-		if (points.length > 0) {
-			outline = { contours: [], bbox: boundingBox(points) };
-			warnings.delete('No board outline (Edge.Cuts) found, panel size is estimated');
-			warnings.add('No board outline found: the panel is the extent of the copper layer');
-		}
+	if (!outline && copperPlot?.extent) {
+		outline = { contours: [], bbox: copperPlot.extent };
+		warnings.delete('No board outline (Edge.Cuts) found, panel size is estimated');
+		warnings.add('No board outline found: the panel is the extent of the copper layer');
 	}
 
 	// SMD pads (through-hole pads are holes already) and the silkscreen outlines of the parts

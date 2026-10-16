@@ -1,0 +1,1 @@
+var e=e=>{if(e.length===0)return 0;let t=e[0];for(let n=1;n<e.length;n++)e[n]>t&&(t=e[n]);return t},t=(e,t,n)=>Math.max(Math.min(e,n),t);export{t as n,e as t};

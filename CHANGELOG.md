@@ -1,5 +1,28 @@
 # Change log
 
+## [1.15.1] - 2026-10-16
+
+Performance release: faster start, faster Gerber import and a lighter mesh repair. No change to the file formats or the generated STL.
+
+### Changed
+
+- The 2D designer (Konva) is a separate lazy chunk (`App.svelte` loads `AppDesigner.svelte` with a dynamic import): the dropzone screen no longer pays for it. The service worker precaches it together with the chunks it imports statically (`vite.config.ts`: `addChunk`), so the offline shell is still complete
+- The service worker's navigation handling is network-first with a 3 s timeout (`NAVIGATION_TIMEOUT_MS`): a slow network falls back to the cached shell instead of holding the page back, and the cache keeps refreshing in the background
+- Gerber import: `plotLayer` takes `PlotOptions` (`keep` filters the records that are kept, `svg: false` skips the markup) and always tracks the `extent` of every dark object. Drill and outline files are plotted without markup, copper keeps only flashes and the profile, the mask keeps no records (`KEEP_NONE`). The copper-extent fallback of the panel size uses `extent` instead of walking millions of records
+- Gerber import dialog: element depths are applied to the plan afterwards, so editing them no longer redoes clustering, the leg search and the board picture; the picture of the layers is cached per layout (`renderBoardSvg`) while only shapes and legs change
+- `repairMesh(vertices, index?)` accepts the vertex positions and index of the CSG geometry directly, welding every source vertex once and skipping the non-indexed expansion; a mesh whose edges are all shared by exactly two triangles skips splitting, fin removal and hole filling
+- Alignment guides replace the overlay only when they differ from the previous ones (`setAlignmentLines`), so an unchanged drag move does not redraw it
+- Autosave: a stored project loaded at start-up (and adopted from another tab) remembers its stored image, so the first write no longer rewrites the multi-MB `project-image` key
+
+### Fixed
+
+- Dropping a `.tht3d` project reads it as text instead of a base64 round trip of the multi-MB file
+- Projects without a print label no longer load the label font (main thread and worker); `createMeshSession(project, font?)` throws when a label needs a font that was not provided
+
+### Tests
+
+- `repairMesh` of an indexed mesh equals its expanded soup; `plotLayer` options (`keep`, `KEEP_NONE`, `svg: false`, `extent`, large step and repeat groups); a session needs no font without a label and refuses a label without one
+
 ## [1.15.0] - 2026-10-14
 
 ### Added

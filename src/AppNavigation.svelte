@@ -547,8 +547,12 @@
 					<Icon class="inline-flex" icon="mdi:chevron-down" />
 				</NavLi>
 				<Dropdown class="w-60 z-20 -mt-2" simple trigger="hover" bind:isOpen={fileMenuOpen}>
-					<DropdownItem onclick={reset}>New</DropdownItem>
-					<DropdownItem onclick={downloadProjectFile}>Save project</DropdownItem>
+					<DropdownItem class="flex items-center gap-2" onclick={reset}
+						><Icon icon="mdi:file-plus-outline" width={18} /> New</DropdownItem
+					>
+					<DropdownItem class="flex items-center gap-2" onclick={downloadProjectFile}
+						><Icon icon="mdi:content-save-outline" width={18} /> Save project</DropdownItem
+					>
 				</Dropdown>
 
 				<NavLi class="cursor-pointer" aria-expanded={editMenuOpen} aria-haspopup="menu">
@@ -561,7 +565,11 @@
 						disabled={!$undoStoreHistory.undo}
 						onclick={executeLastUndo}
 					>
-						<span>Undo{$undoStoreLastItem ? `: ${$undoStoreLastItem}` : ''}</span>
+						<span class="flex items-center gap-2"
+							><Icon icon="mdi:undo" width={18} /> Undo{$undoStoreLastItem
+								? `: ${$undoStoreLastItem}`
+								: ''}</span
+						>
 						<span class="flex items-center gap-2">
 							<span class="text-xs tabular-nums text-gray-500">
 								{$undoStoreHistory.undo} / {$undoStoreHistory.max}
@@ -574,37 +582,59 @@
 						disabled={!$undoStoreHistory.redo}
 						onclick={executeLastRedo}
 					>
-						<span>Redo{$redoStoreLastItem ? `: ${$redoStoreLastItem}` : ''}</span>
+						<span class="flex items-center gap-2"
+							><Icon icon="mdi:redo" width={18} /> Redo{$redoStoreLastItem
+								? `: ${$redoStoreLastItem}`
+								: ''}</span
+						>
 						<span class="flex items-center gap-2">
 							<span class="text-xs tabular-nums text-gray-500">{$undoStoreHistory.redo}</span>
 							<Kbd class="px-2 py-0 whitespace-nowrap">ctrl + shift + Z</Kbd>
 						</span>
 					</DropdownItem>
 					<DropdownDivider />
-					<DropdownItem onclick={() => addNewCircle()}>
-						Add circle...
-						<Kbd class="float-right px-2 py-0">shift + C</Kbd>
+					<DropdownItem class="flex items-center gap-2" onclick={() => addNewCircle()}
+						><Icon icon="mdi:circle-outline" width={18} /> Add circle... <Kbd
+							class="ml-auto px-2 py-0">shift + C</Kbd
+						>
 					</DropdownItem>
-					<DropdownItem onclick={() => addNewRectangle()}>
-						Add rectangle...
-						<Kbd class="float-right px-2 py-0">shift + R</Kbd>
+					<DropdownItem class="flex items-center gap-2" onclick={() => addNewRectangle()}
+						><Icon icon="mdi:rectangle-outline" width={18} /> Add rectangle... <Kbd
+							class="ml-auto px-2 py-0">shift + R</Kbd
+						>
 					</DropdownItem>
-					<DropdownItem onclick={addNewLeg}>
-						Add leg
-						<Kbd class="float-right px-2 py-0">shift + L</Kbd>
+					<DropdownItem class="flex items-center gap-2" onclick={addNewLeg}
+						><Icon icon="mdi:table-furniture" width={18} /> Add leg <Kbd class="ml-auto px-2 py-0"
+							>shift + L</Kbd
+						>
 					</DropdownItem>
-					<DropdownItem onclick={addCornerLegs}>Auto legs at corner</DropdownItem>
+					<DropdownItem class="flex items-center gap-2" onclick={addCornerLegs}
+						><Icon icon="mdi:vector-square" width={18} /> Auto legs at corner</DropdownItem
+					>
 					{#if $projectStore.legs.length}
-						<DropdownItem onclick={deleteAllLegsWithConfirm}>Delete all legs</DropdownItem>
+						<DropdownItem class="flex items-center gap-2" onclick={deleteAllLegsWithConfirm}
+							><Icon icon="mdi:delete-sweep-outline" width={18} /> Delete all legs</DropdownItem
+						>
 					{/if}
 					{#if sortedLibrary.length}
 						<DropdownItem class="flex items-center justify-between">
-							Add from library
+							<span class="flex items-center gap-2"
+								><Icon icon="mdi:bookshelf" width={18} /> Add from library</span
+							>
 							<Icon class="inline-flex" icon="mdi:chevron-right" />
 						</DropdownItem>
 						<Dropdown class="min-w-44 z-20" placement="right-start" simple trigger="hover">
 							{#each sortedLibrary as libraryItem}
-								<DropdownItem class="text-xs" onclick={() => addItemFromLibrary(libraryItem)}>
+								<DropdownItem
+									class="flex items-center gap-2 text-xs"
+									onclick={() => addItemFromLibrary(libraryItem)}
+								>
+									<Icon
+										icon={libraryItem.type === 'circle'
+											? 'mdi:circle-outline'
+											: 'mdi:rectangle-outline'}
+										width={16}
+									/>
 									{libraryItem.name} ({libraryItem.type})
 								</DropdownItem>
 							{/each}
@@ -623,11 +653,12 @@
 							checked={$alignmentEnabled}
 							tabindex={-1}
 						/>
-						Align (guides and magnetic snapping)
+						<Icon icon="mdi:magnet" width={18} /> Align (guides and magnetic snapping)
 					</DropdownItem>
-					<DropdownItem onclick={openProjectSettings}>
-						Project settings...
-						<Kbd class="float-right px-2 py-0">shift + P</Kbd>
+					<DropdownItem class="flex items-center gap-2" onclick={openProjectSettings}
+						><Icon icon="mdi:cog-outline" width={18} /> Project settings... <Kbd
+							class="ml-auto px-2 py-0">shift + P</Kbd
+						>
 					</DropdownItem>
 				</Dropdown>
 				<NavLi class="cursor-pointer" onclick={showModalLibrary}>Library</NavLi>

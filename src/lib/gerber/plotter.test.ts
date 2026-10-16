@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest';
 
 import { copperTop, maskTop, silkTop } from './fixtures';
-import { plotLayer } from './plotter';
+import { KEEP_NONE, plotLayer } from './plotter';
 import { resolveColors } from './types';
 
 const header = '%FSLAX24Y24*%\n%MOMM*%\nG75*\n';
@@ -328,5 +328,46 @@ M02*`;
 		const result = plotLayer(text, 'x');
 		expect(result.warnings.join(',')).toContain('Too many objects');
 		expect(result.records.length).toBeLessThan(1_000_000);
+	});
+});
+
+describe('plotLayer: options', () => {
+	const text = `${header}%ADD10C,1*%\n%ADD11R,2X1*%\nD10*\nX10000Y10000D02*\nX30000Y10000D01*\nD11*\nX50000Y20000D03*\nM02*`;
+
+	it('keeps only the records the caller asks for, and still measures all of them', () => {
+		const all = plotLayer(text, 'x');
+		const flashes = plotLayer(text, 'x', { keep: (record) => record.type === 'flash' });
+		const none = plotLayer(text, 'x', { keep: KEEP_NONE });
+
+		expect(all.records.map((record) => record.type)).toEqual(['draw', 'flash']);
+		expect(flashes.records.map((record) => record.type)).toEqual(['flash']);
+		expect(none.records).toEqual([]);
+		for (const result of [flashes, none])
+			// Strokes count by their points, flashes by their aperture size (as the copper-extent fallback did)
+			expect(result.extent).toEqual({ minX: 1, minY: 1, maxX: 6, maxY: 2.5 });
+		expect(none.objects).toBe(all.objects);
+	});
+
+	it('leaves the markup out when asked, keeping records and extent', () => {
+		const result = plotLayer(text, 'x', { svg: false });
+		expect(result.objects).toBe('');
+		expect(result.defs).toBe('');
+		expect(result.records).toHaveLength(2);
+		expect(result.extent).toEqual(plotLayer(text, 'x').extent);
+	});
+
+	it('has no extent without objects', () => {
+		expect(plotLayer(header, 'x').extent).toBeUndefined();
+	});
+
+	it('copies large step and repeat groups without spreading them into push', () => {
+		const flashes = 'X0Y0D03*\n'.repeat(120_000);
+		const result = plotLayer(
+			`${header}%ADD10C,1*%\nD10*\n%SRX2Y1I10J0*%\n${flashes}%SR*%\nM02*`,
+			'x'
+		);
+		expect(result.warnings.join(',')).not.toContain('stopped');
+		expect(result.records).toHaveLength(240_000);
+		expect(result.records.at(-1)).toMatchObject({ type: 'flash', x: 10 });
 	});
 });

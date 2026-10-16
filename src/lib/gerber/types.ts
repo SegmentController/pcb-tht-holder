@@ -91,7 +91,10 @@ export interface PlottedLayer {
 
 /** Result of plotting a Gerber file: SVG plus the semantic data used to read drills and outlines */
 export interface PlotResult extends PlottedLayer {
+	/** The records the caller asked to keep (all by default) */
 	records: PlotRecord[];
+	/** Bounding box of every dark object, whatever was kept; undefined without objects */
+	extent?: BoundingBox;
 	/** File attributes (`TF`), e.g. `FileFunction` -> `['Copper', 'L1', 'Top']` */
 	attributes: Record<string, string[]>;
 }

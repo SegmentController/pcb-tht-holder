@@ -625,4 +625,21 @@ describe('repairMesh: retry with every touching vertex allowed to split', () => 
 		expect(output.length).toBe(input.length);
 		expect(countOpenEdges(output)).toBe(4);
 	});
+
+	it('repairs an indexed mesh like its expanded soup', () => {
+		// Unique corners with duplicated seam vertices (float noise) referenced through an index
+		const soup = cube();
+		const positions: number[] = [];
+		const index: number[] = [];
+		for (const [x, y, z] of soup) {
+			index.push(positions.length / 3);
+			positions.push(x, y, z + (index.length % 2 === 0 ? 1e-5 : 0));
+		}
+
+		const fromIndexed = repairMesh(new Float32Array(positions), new Uint32Array(index));
+		const fromSoup = repairMesh(new Float32Array(positions));
+		expect(fromIndexed).toEqual(fromSoup);
+		expect(countOpenEdges(fromIndexed)).toBe(0);
+		expect(volumeOf(fromIndexed)).toBeCloseTo(1, 3);
+	});
 });

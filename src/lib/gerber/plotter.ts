@@ -1,5 +1,5 @@
 import { circlePath, compileMacro, polygonSvg, regularPolygonPoints } from './macro';
-import type { PlotRecord, PlotResult, Point } from './types';
+import type { BoundingBox, PlotRecord, PlotResult, Point } from './types';
 
 const MM_PER_INCH = 25.4;
 const MAX_RECORDS = 400_000;
@@ -125,6 +125,36 @@ const holePath = (round: boolean, values: readonly number[]) => {
 		: `M${number(-holeW / 2)} ${number(-holeH / 2)}h${number(holeW)}v${number(holeH)}h${number(-holeW)}Z`;
 };
 
+export interface PlotOptions {
+	/**
+	 * Which records are kept in the result (default: all). The extent of every record is tracked
+	 * either way, so a caller that only needs a few kinds does not hold millions of the others.
+	 */
+	keep?: (record: PlotRecord) => boolean;
+	/** `false` leaves `defs` and `objects` empty: for layers that are only read for their records */
+	svg?: boolean;
+}
+
+/** Keeps no record at all (the layer is only drawn) */
+export const KEEP_NONE = () => false;
+
+/** Grows `extent` by the geometry of a record (a flash by its aperture size) */
+const growExtent = (extent: BoundingBox, record: PlotRecord) => {
+	if (record.type === 'flash') {
+		extent.minX = Math.min(extent.minX, record.x - record.width / 2);
+		extent.maxX = Math.max(extent.maxX, record.x + record.width / 2);
+		extent.minY = Math.min(extent.minY, record.y - record.height / 2);
+		extent.maxY = Math.max(extent.maxY, record.y + record.height / 2);
+		return;
+	}
+	for (const { x, y } of record.points) {
+		if (x < extent.minX) extent.minX = x;
+		if (x > extent.maxX) extent.maxX = x;
+		if (y < extent.minY) extent.minY = y;
+		if (y > extent.maxY) extent.maxY = y;
+	}
+};
+
 /**
  * Plots a Gerber (RS-274X / X2) file to SVG markup and semantic records.
  *
@@ -138,8 +168,10 @@ const holePath = (round: boolean, values: readonly number[]) => {
  *
  * @param text - Gerber file content
  * @param prefix - Id prefix of the generated definitions, unique per layer in one SVG document
+ * @param options - What to keep of the result, see {@link PlotOptions}
  */
-export const plotLayer = (text: string, prefix: string): PlotResult => {
+export const plotLayer = (text: string, prefix: string, options: PlotOptions = {}): PlotResult => {
+	const { keep, svg: withSvg = true } = options;
 	const warnings = new Set<string>();
 	const macros = new Map<string, string[]>();
 	const apertures = new Map<number, Aperture>();
@@ -149,6 +181,7 @@ export const plotLayer = (text: string, prefix: string): PlotResult => {
 
 	const top: Sink = { svg: [], records: [] };
 	const sinks: Sink[] = [top];
+	const extent: BoundingBox = { minX: Infinity, minY: Infinity, maxX: -Infinity, maxY: -Infinity };
 	const blocks: { code: number }[] = [];
 	let repeat: { x: number; y: number; i: number; j: number } | undefined;
 	let repeatCount = 0;
@@ -215,9 +248,23 @@ export const plotLayer = (text: string, prefix: string): PlotResult => {
 		if (target.batch) target.svg.push(target.batch.wrap(target.batch.parts));
 		target.batch = undefined;
 	};
+	/**
+	 * Files records into a sink. Only the top level (what ends up on the board) is filtered and
+	 * measured; blocks and step-and-repeat groups keep everything until they are placed.
+	 */
+	const store = (target: Sink, records: PlotRecord[]) => {
+		if (target !== top) {
+			for (const record of records) target.records.push(record);
+			return;
+		}
+		for (const record of records) {
+			growExtent(extent, record);
+			if (!keep || keep(record)) top.records.push(record);
+		}
+	};
 	const count = (target: Sink, records: PlotRecord[]) => {
 		recordCount += Math.max(1, records.length);
-		if (!clear) target.records.push(...records);
+		if (!clear) store(target, records);
 		if (recordCount > MAX_RECORDS) {
 			warnings.add('Too many objects: the rest of the file was skipped');
 			capped = true;
@@ -226,8 +273,10 @@ export const plotLayer = (text: string, prefix: string): PlotResult => {
 	};
 	const emit = (svg: string, records: PlotRecord[]) => {
 		const target = sink();
-		flushBatch(target);
-		target.svg.push(svg);
+		if (withSvg) {
+			flushBatch(target);
+			target.svg.push(svg);
+		}
 		count(target, records);
 	};
 	/** Strokes and flashes of equal polarity (and width) share one element: far less markup per object */
@@ -238,11 +287,13 @@ export const plotLayer = (text: string, prefix: string): PlotResult => {
 		records: PlotRecord[]
 	) => {
 		const target = sink();
-		if (target.batch?.key !== key) {
-			flushBatch(target);
-			target.batch = { key, parts: [], wrap };
+		if (withSvg) {
+			if (target.batch?.key !== key) {
+				flushBatch(target);
+				target.batch = { key, parts: [], wrap };
+			}
+			target.batch!.parts.push(part);
 		}
-		target.batch!.parts.push(part);
 		count(target, records);
 	};
 
@@ -511,11 +562,11 @@ export const plotLayer = (text: string, prefix: string): PlotResult => {
 			for (let y = 0; y < parameters.y && !capped; y++) {
 				const dx = x * parameters.i;
 				const dy = y * parameters.j;
-				sink().svg.push(`<use href="#${id}" x="${number(dx)}" y="${number(dy)}"/>`);
-				sink().records.push(
-					...closed.records.map((record) =>
-						transformRecord(record, { a: 1, b: 0, c: 0, d: 1, e: dx, f: dy })
-					)
+				if (withSvg) sink().svg.push(`<use href="#${id}" x="${number(dx)}" y="${number(dy)}"/>`);
+				const matrix = { a: 1, b: 0, c: 0, d: 1, e: dx, f: dy };
+				store(
+					sink(),
+					closed.records.map((record) => transformRecord(record, matrix))
 				);
 				recordCount += Math.max(1, closed.records.length);
 				if (recordCount > MAX_RECORDS) {
@@ -822,9 +873,10 @@ export const plotLayer = (text: string, prefix: string): PlotResult => {
 	else if (declared === 'positive') polarity = 'Positive';
 
 	return {
-		defs: defs.join(''),
+		defs: withSvg ? defs.join('') : '',
 		objects: top.svg.join(''),
 		records: top.records,
+		extent: extent.minX <= extent.maxX ? extent : undefined,
 		attributes,
 		complement,
 		polarity,

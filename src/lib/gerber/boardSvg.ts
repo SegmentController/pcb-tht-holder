@@ -9,6 +9,9 @@ const LONG_SIDE_PX = 1000;
 
 const number = (value: number) => String(Math.round(value * 100) / 100);
 
+/** Last rendered layout picture per layout, see `renderBoardSvg` */
+const layoutCache = new WeakMap<PcbLayout, { key: string; markup: string }>();
+
 /** Board colours of the rendered layout: substrate under the mask, copper, exposed pads, silkscreen */
 const COLORS = {
 	background: '#e5e7eb',
@@ -23,6 +26,13 @@ export const MAX_LAYOUT_SVG_LENGTH = 1_500_000;
 
 /** Generated pictures are SVG; photos are raster images (the designer shows photos transparent) */
 export const isGeneratedImage = (dataUrl: string) => dataUrl.startsWith('data:image/svg+xml');
+
+/**
+ * What a layer's image stands for: copper and legend are material when positive, mask layers
+ * show the openings unless declared positive (then the image is the mask itself)
+ */
+const complementOf = (layer: PlottedLayer, kind: 'material' | 'openings') =>
+	layer.complement !== (layer.polarity === (kind === 'material' ? 'Negative' : 'Positive'));
 
 export interface BoardSvgOptions {
 	/** Also draw the planned circles and rectangles (import preview); the designer draws those itself */
@@ -68,20 +78,13 @@ export const renderBoardSvg = (
 					.join('')
 			: '';
 
-	const parts: string[] = [
-		`<svg xmlns="http://www.w3.org/2000/svg" width="${pixelWidth}" height="${pixelHeight}" viewBox="0 0 ${pixelWidth} ${pixelHeight}">`
-	];
-
-	if (layout) {
+	const layoutMarkup = (layout: PcbLayout) => {
+		const markup: string[] = [];
 		// Layers are drawn in CAM coordinates (mm, Y up): the group maps them onto the picture
 		const origin = plan.origin ?? { x: 0, y: 0 };
 		const bounds = `x="${number(origin.x)}" y="${number(origin.y)}" width="${number(width)}" height="${number(height)}"`;
 		const fill = (color: string) => `<rect ${bounds} fill="${color}"/>`;
 
-		// What a layer's image stands for: copper and legend are material when positive, mask layers
-		// show the openings unless declared positive (then the image is the mask itself)
-		const complementOf = (layer: PlottedLayer, kind: 'material' | 'openings') =>
-			layer.complement !== (layer.polarity === (kind === 'material' ? 'Negative' : 'Positive'));
 		const layers = [
 			{
 				id: 'copper',
@@ -105,7 +108,7 @@ export const renderBoardSvg = (
 				: ''
 		);
 
-		parts.push(
+		markup.push(
 			`<defs>${definitions.join('')}</defs>`,
 			`<rect width="${pixelWidth}" height="${pixelHeight}" fill="${COLORS.background}"/>`,
 			outlinePath
@@ -118,10 +121,28 @@ export const renderBoardSvg = (
 			const exposed = layout.mask
 				? `<g mask="url(#opening)">${fill(COLORS.exposed)}</g>`
 				: fill(COLORS.exposed);
-			parts.push(`<g mask="url(#copper)">${fill(COLORS.copper)}${exposed}</g>`);
+			markup.push(`<g mask="url(#copper)">${fill(COLORS.copper)}${exposed}</g>`);
 		}
-		if (layout.silk) parts.push(`<g mask="url(#silk)">${fill(COLORS.silk)}</g>`);
-		parts.push('</g>');
+		if (layout.silk) markup.push(`<g mask="url(#silk)">${fill(COLORS.silk)}</g>`);
+		markup.push('</g>');
+		return markup.join('');
+	};
+
+	const parts: string[] = [
+		`<svg xmlns="http://www.w3.org/2000/svg" width="${pixelWidth}" height="${pixelHeight}" viewBox="0 0 ${pixelWidth} ${pixelHeight}">`
+	];
+
+	if (layout) {
+		const origin = plan.origin ?? { x: 0, y: 0 };
+		// The picture of the layers is the expensive part (colour resolution over megabytes of markup)
+		// and does not change while the import dialog only moves shapes and legs around
+		const key = [outlinePath, width, height, origin.x, origin.y].join('|');
+		let cached = layoutCache.get(layout);
+		if (cached?.key !== key) {
+			cached = { key, markup: layoutMarkup(layout) };
+			layoutCache.set(layout, cached);
+		}
+		parts.push(cached.markup);
 	} else parts.push(`<rect width="${pixelWidth}" height="${pixelHeight}" fill="#dcefd8"/>`);
 
 	for (const contour of plan.contours)

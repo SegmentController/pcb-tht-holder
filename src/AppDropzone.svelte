@@ -173,8 +173,21 @@
 		}
 	};
 
-	/** Takes the drop when it contains fabrication data, images and `.tht3d` files keep their path */
+	/** Reads a `.tht3d` project as text: no base64 round trip of the multi-MB file */
+	const loadProjectFile = async (file: File) => {
+		try {
+			loadProjectData(JSON.parse(await file.text()));
+		} catch (error) {
+			errorMessage = `Cannot load project file: ${error instanceof Error ? error.message : error}`;
+		}
+	};
+
+	/** Takes the drop when it is a project or contains fabrication data, images keep their path */
 	const claimFabFiles = (files: File[]) => {
+		if (files.length === 1 && /\.tht3d$/i.test(files[0]!.name)) {
+			void loadProjectFile(files[0]!);
+			return true;
+		}
 		// Several files that are no pictures or projects are a loose fabrication set whatever their extensions
 		const isFabrication =
 			files.some((file) => isFabFileName(file.name)) ||

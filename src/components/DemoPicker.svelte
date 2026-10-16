@@ -27,12 +27,22 @@
 	<div class="grid gap-4 sm:grid-cols-3">
 		{#each DEMOS as demo (demo.id)}
 			<Card class="max-w-none p-4 bg-white" color="gray">
-				<img
-					class="mb-3 h-40 w-full rounded bg-gray-100 object-contain"
-					alt="Top view of the {demo.title} PCB"
-					loading="lazy"
-					src={demoUrl(BASE_URL, demo.thumbnail)}
-				/>
+				<!-- Mouse shortcut for the Load button below, so it stays out of the tab order -->
+				<button
+					class="mb-3 block w-full cursor-pointer rounded enabled:hover:ring-2 enabled:hover:ring-primary-500 disabled:cursor-default"
+					disabled={!!loadingId}
+					onclick={() => onSelect(demo)}
+					tabindex="-1"
+					title="Load demo {demo.title}"
+					type="button"
+				>
+					<img
+						class="h-40 w-full rounded bg-gray-100 object-contain"
+						alt="Top view of the {demo.title} PCB"
+						loading="lazy"
+						src={demoUrl(BASE_URL, demo.thumbnail)}
+					/>
+				</button>
 				<h3 class="text-md font-bold tracking-tight text-gray-900">
 					{demo.title}
 					{#if demo.gerbers}

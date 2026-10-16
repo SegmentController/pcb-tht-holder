@@ -35,7 +35,10 @@ self.addEventListener('message', async (event: MessageEvent<MeshWorkerRequest>) 
 	const { id, kind, key, project } = message;
 	try {
 		if (current?.key !== key)
-			current = { key, session: createMeshSession(project, await loadFont()) };
+			current = {
+				key,
+				session: createMeshSession(project, project.label ? await loadFont() : undefined)
+			};
 		const { session } = current;
 
 		const mesh = await session.generate(

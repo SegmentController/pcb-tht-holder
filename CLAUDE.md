@@ -10,27 +10,6 @@ PCB THT Holder is a web-based 3D STL generator for THT PCB panels. Users upload 
 
 **Purpose**: Enables neat DIY THT component installation for users who order SMD-assembled PCBs. Works entirely client-side - no registration, PCB images never leave browser.
 
-## Development Commands
-
-```bash
-npm run dev              # Start dev server with --host (network accessible)
-npm run build            # Production build (outputs to docs/)
-npm run preview          # Preview production build
-
-npm run test             # Unit tests (Vitest, Node env)
-npm run test:watch       # Vitest watch mode
-npx vitest run src/lib/designer/alignment.test.ts   # Single test file
-npx vitest run -t "snaps legs"              # Tests matching a name
-npm run ts:check         # TypeScript checking
-npm run format:check     # Check formatting
-npm run format:fix       # Auto-fix formatting
-npm run lint:check       # ESLint checks
-npm run lint:fix         # Auto-fix linting
-npm run all              # Run format:fix, lint:fix, ts:check, test, build (rewrites files and docs/)
-
-npm run npm:reinstall    # Clean reinstall dependencies
-```
-
 ## Build Process
 
 The `service-worker` Vite plugin (`vite.config.ts`) emits `service-worker.js` from
@@ -56,46 +35,6 @@ README screenshots (`step*.png`, repo root) when the UI changed.
 
 ## Architecture
 
-### Technology Stack
-
-- **Framework**: Svelte 5 + TypeScript
-- **Build**: Vite with path aliases (`$components/*`, `$lib/*`, `$stores/*`, `$types/*`)
-- **3D Rendering**: Three.js + @threlte/core
-- **3D Operations**: three-bvh-csg for CSG boolean operations
-- **2D Canvas**: Konva.js via svelte-konva
-- **Validation**: Zod for runtime schemas
-- **UI**: Flowbite Svelte + Tailwind CSS 4
-- **State**: Svelte stores persisted to localStorage (`projectStore` is hand-rolled, `libraryStore` uses svelte-persisted-store)
-
-### Key Directory Structure
-
-```
-src/
-├── stores/           # projectStore, modalStore, undoStore, toastStore, libraryStore
-├── types/            # Zod schemas, TypeScript types, type guards (typeGuards.ts)
-├── lib/
-│   ├── constants.ts  # Centralized constants
-│   ├── shortcut.ts   # `shortcut` Svelte action (keyboard shortcuts, modal-aware)
-│   ├── icons.ts      # Bundled MDI icons
-│   ├── libraryDefaults.ts  # DEFAULT_COMPONENTS + `convertDefaultComponentToLibraryItem`
-│   ├── demos.ts      # Demo project catalogue (files in public/demo/, credits + licences in public/demo/CREDITS.md)
-│   ├── util/         # Pure helpers: math.ts, geometry.ts (rotated rectangle extents), format.ts (file name timestamp, `formatMm`), download.ts
-│   ├── designer/     # 2D canvas logic: alignment.ts (guides + magnetic snapping), fineMovement.ts, measurement.ts, zoom.ts (wheel/pinch zoom: pure step helpers + `wheelZoom` action)
-│   │   └── elements/ # Circle, rectangle, leg operations; collection.ts (shared store commit/remove/undo)
-│   ├── gerber/       # Fabrication file import (pure, tested): excellon.ts + gerberDrill.ts (drills), gerberOutline.ts, package.ts (layer roles, tools), unzip.ts (fflate, lazy), plan.ts (clustering → circles/rectangles), plotter.ts + macro.ts (RS-274X layer → SVG, aperture macros; `PlotOptions` `keep`/`svg` and `extent` keep drill, outline and copper reads light), legs.ts (`placeLegs` / `suggestLegs`: support legs clear of pads, silkscreen and holes), boardSvg.ts (top-view SVG with copper/mask/silk used as the project picture), types.ts, `fixtures/` (real KiCad output for tests)
-│   ├── 3d/           # STL generation (stl.ts), CSG meshes (mesh.ts), worker + client, placement.ts (dependency-free constants), leg overlap (legOverlap.ts), watertight repair of CSG output (meshRepair.ts), `switchType` instance matcher
-│   └── svelteModal/  # Modal utilities
-├── components/
-│   ├── base/         # Reusable components (ContextMenu, HoverInfo, ToastContainer, PartnerBadge), `input/NumberInputBound.svelte` (min/max clamped number field, `step` 0.1)
-│   ├── designer/     # DesignerGrid, DesignerCrosshair (canvas overlays)
-│   ├── mesh/         # Mesh3DScene, MeshObject (Threlte scene of the 3D view)
-│   ├── DemoPicker.svelte  # Demo cards under the dropzone (AppDropzone fetches public/demo/*.tht3d, or runs a demo's `gerbers` zip through the Gerber import)
-│   └── modal/        # Modal dialogs
-└── App*.svelte       # AppDesigner (Konva canvas), AppNavigation (menu, 3D/export), AppDropzone (image/project load)
-```
-
-Tests are co-located as `*.test.ts` next to the module they cover.
-
 ### Core Data Flow
 
 1. **projectStore** (persisted): PCB image (base64), panel settings, components (`circles[]`, `rectangles[]`, `legs[]`)
@@ -107,42 +46,7 @@ Tests are co-located as `*.test.ts` next to the module they cover.
      so keep schema constraints and the values the UI can produce in sync.
 2. **AppDesigner.svelte**: Konva.js Stage for 2D canvas, pointer/measure modes, context menus, keyboard shortcuts
    - **Alignment guides**: Visual blue lines + magnetic snapping (0.2mm range), toggle via Align switch
-3. **3D Mesh Generation** (`src/lib/3d/mesh.ts`):
-   - Runs in a Web Worker (`mesh.worker.ts`, via `meshClient.ts`) with progress tracking; falls back to the UI thread
-   - Variants are generated on demand and memoized per project (`createMeshSession`): Main (full-depth),
-     Hollow (material-saving, sliced from the shared base solid), Positive (PCB visualization, display only)
-   - Disjoint cutters/legs/pillars are merged into one CSG operand per batch (`partitionDisjoint`);
-     overlapping ones must stay in separate batches (parity-based inside test)
-   - **Leg collision detection**: Auto-filters overlapping legs before mesh generation (`legOverlap.ts`, pure and unit-tested; `hiddenLegsCount` is reported to the UI)
-   - **Print tolerance**: Configurable 0-2mm (enlarges holes, shrinks panel)
-   - Optional text label engraving (Three.js TextGeometry, Roboto font; the font is only loaded when the project has a label, `createMeshSession(project, font?)` throws on a label without a font)
-4. **Mesh repair** (`src/lib/3d/meshRepair.ts`, pure and unit-tested, called from `toMeshInfo`):
-   three-bvh-csg output has float-noise seams, T-junctions, zero-area slivers, fins, flipped patches
-   and small holes, which slicers report as thousands of "open edges". `repairMesh(positions, index?)` takes the
-   indexed CSG geometry as is (no non-indexed expansion) and welds (2e-4 mm),
-   drops degenerate triangles, splits edges at T-junctions, re-orients flipped patches, removes fins and
-   fills small planar holes; `countOpenEdges` matches vertices by exact coordinates like a slicer does.
-   - Larger weld radii (1e-3 and up) make seams _worse_; keep tolerance and weld radius equal.
-   - `mesh.test.ts` asserts zero open edges **and** origin-independent volume (closed, consistently
-     oriented). Raw CSG volumes of the hollow variant were origin-dependent by tens of mm³.
-   - Edges shared by 4 triangles (two parts touching along a line) are left as they are.
-5. **STL Export** (`src/lib/3d/stl.ts`): Binary STL only (the ASCII writer was removed in 1.14.0)
-
-### Async Mesh Generation
-
-Flow: `AppNavigation.openDisplay()` → `showModalMesh(name, project)` → `ModalMeshDisplay` →
-`createMeshClient(project).generate(kind, onProgress)` → `mesh.worker.ts` → `createMeshSession().generate(kind)`.
-
-- The worker keeps the latest session (keyed by project content without zoom), so reopening the 3D view or
-  toggling Hollow/PCB reuses solids; closing the modal sends a cancel that stops at the next operation.
-- Progress via `onProgress(current, total)`. `YIELD_DELAY_MS` in mesh.ts (0 for prod, 10+ for testing).
-- Operation count per variant is derived from the batches (`solidOperations`, `mainOperations`,
-  `hollowOperations`, `positiveOperations` in `createMeshSession`): keep them in sync when adding CSG steps
-  or the progress bar misreports.
-- Regression tests (`mesh.test.ts`) compare volume and bounds, not triangle counts, and require zero
-  open edges and an origin-independent volume (see Mesh repair above). Positive pillars sink
-  1 mm into the base plate (coplanar contact faces blow up the CSG triangulation).
-- three-bvh-csg 0.0.18 logs a deprecated `maxLeafSize` warning; it is filtered in the worker.
+3. **3D mesh generation, mesh repair, STL export and the async worker flow** (`src/lib/3d/`): see `src/lib/3d/CLAUDE.md`
 
 ### Coordinate Systems (CRITICAL)
 
@@ -157,7 +61,7 @@ Flow: `AppNavigation.openDisplay()` → `showModalMesh(name, project)` → `Moda
 
 ### State Management
 
-All stores export: `get{Store}Value()`, `set{Store}Value()`, `update{Store}Value()`
+Outside components, `projectStore` is read and written through `getProjectStoreValue()`, `setProjectStoreValue()` and `updateProjectStoreValue()`; `libraryStore` has the get and set pair. The other stores have their own APIs.
 
 Use `projectJsonSerializer` to skip non-serializable Konva properties.
 
@@ -176,47 +80,9 @@ Use `projectJsonSerializer` to skip non-serializable Konva properties.
 - The shortcut matches `event.key` exactly and the key case flips with Shift (and can with Caps Lock), so the
   handler is registered for both `z` and `Z` and routes by `shiftKey`
 
-#### Toast Notifications (`toastStore.ts`)
-
-- Types: `success`, `error`, `warning`, `info`
-- Auto-removal via setTimeout, manual dismiss via UUID
-- Position: bottom-right, z-50
-- Usage: `toastStore.error(message, duration)`, `toastStore.push(type, message, duration)`
-
-#### Library System (`libraryStore.ts`)
-
-Saves component specs (dimensions, depth, rotation) for reuse. Persisted to localStorage.
-
-**Data**: Array of `LibraryItem` (circle | rectangle)
-
-```typescript
-// Circle: { type: 'circle', name, radius, depth }
-// Rectangle: { type: 'rectangle', name, width, height, depth, rotation }
-```
-
-**Default Components**: 13 pre-defined THT components (DIP sockets, capacitors, buzzers, terminals, relays)
-
-- Loaded via `loadDefaultsToLibrary()` with duplicate detection (O(1) Set lookup)
-- UI: "Load defaults", Import, Export, Clear buttons in Library modal
-
-**Workflow**: Load defaults → add custom → export JSON → import in future projects
-
-### Constants (`src/lib/constants.ts`)
-
-```text
-ELEMENT_OPACITY = 0.75
-CIRCLE_COLOR = 'orange'; RECTANGLE_COLOR = 'green'; LEG_COLOR = 'gray'
-POSITIVE_MESH_COLOR = '#ff8811'
-FINE_MOVEMENT_DELTA = 0.1 // mm, SHIFT multiplier = 5
-ALIGNMENT_SNAP_THRESHOLD = 0.1; ALIGNMENT_SNAP_DISTANCE = 0.2
-ALIGNMENT_LINE_COLOR = '#0088ff'; ALIGNMENT_LINE_WIDTH = 0.1
-ZOOM_MIN = 10; ZOOM_MAX = 300; ZOOM_STEP = 10; ZOOM_DEFAULT = 100 // percent, shared by slider, +/-/* and wheel
-ELEMENT_SKIP_JSON_PROPERTIES = ['fill', 'draggable', 'opacity']
-```
-
 ### Type Guards (`src/types/typeGuards.ts`)
 
-**ALWAYS use type guards, NEVER use `'radius' in element`**
+Tell element kinds apart with these guards, not by testing for a field such as `'radius' in element`:
 
 ```typescript
 isCircle(element: GenericElement): element is CircleData
@@ -251,18 +117,7 @@ See `components/mesh/Mesh3DScene.svelte` for the canonical example.
 - **Project loading** (`AppDropzone.svelte`): `.tht3d` uploads (read as text, not base64) and demos both go through `loadProjectData()`
   (Zod validation, one store write incl. label and zoom, embedded image via `onFileUpload`); a new image upload
   and File > New clear the print label
-- **Gerber import** (`AppDropzone.svelte` → `importFabFiles`, review dialog `ModalGerberImport.svelte`): routed by file
-  name extension (`isFabFileName`), before the MIME check. Stored y is plain CAM Y-up (`y = gerberY - outlineMinY`,
-  the designer flips the picture itself); the board outline bbox (rounded up to 0.1) is the panel, clamped to the 10–999 mm
-  limits of the settings dialog. The review dialog's _Add support legs_ option (on by default) calls `suggestLegs`. Holes of the same diameter within `groupDistance` form one part: lone hole → circle,
-  several → min-area oriented rectangle padded by half the pitch (rotation = CCW angle in CAM coordinates). The project
-  image is a generated SVG data URL (no image-less projects), so restore, `.tht3d` and 3D work unchanged. The designer draws generated (SVG) pictures opaque and photos at 25 % (`isGeneratedImage`). Layers are SVG `<mask>`s in CAM coordinates (dark = white, clear = black, so clear polarity needs no special case); mask-layer dark objects are the openings. Pictures above 1.5 MB fall back to outline + holes (`renderProjectImage`)
-- **Standards followed by the gerber library** (`src/lib/gerber/`): Ucamco Gerber Layer Format (plotter, rev. 2026.05) and
-  XNC (drills, rev. 2021.11) plus the dialects of real CAD output. Layer role: X2 `FileFunction` first, then names
-  (`roleOf`); polarity: `.FilePolarity`/`IPNEG` (mask dark = openings unless declared Positive). Excellon without a
-  declared layout is parsed with the defaults and re-parsed with candidate layouts when the holes miss the outline
-  (`refineLayout`). Tool defaults (`defaultToolKeys`): component role or plated >= 0.7 mm, never vias, non-plated or blind.
-  When adding syntax support add a case to `plotter.test.ts` / `excellon.test.ts` that cites the spec section
+- **Gerber import** (`AppDropzone.svelte` → `importFabFiles`, `ModalGerberImport.svelte`) and the standards the gerber library follows: see `src/lib/gerber/CLAUDE.md`
 - **Partner Badge** (`PartnerBadge.svelte`): SkipTheCAD listing badge, fixed top-right from `xl` up and below the header on smaller screens, auto-hides after 7s; mounted once in `App.svelte` right after `AppNavigation`
 - **Number fields** (`NumberInputBound.svelte`): `step` defaults to 0.1 so one decimal digit is valid (the browser
   default of 1 rejects decimals and blocks the dialog's submit); all dialogs use it. Values with two or more
@@ -284,17 +139,8 @@ See `components/mesh/Mesh3DScene.svelte` for the canonical example.
 
 ## Keyboard Shortcuts
 
-**Mode**: `P` (Pointer), `M` (Measure)
-**Create**: `Shift+C` (circle), `Shift+R` (rectangle), `Shift+L` (leg)
-**Edit**: Arrow keys (0.1mm), Shift+Arrow (0.5mm), `R` (rotate +5°), `Shift+R` (reset rotation), `F` (flip dimensions)
-**View**: `+` / `-` (zoom ±10%), `*` (reset zoom), `Ctrl/Cmd+wheel` or trackpad pinch (zoom at cursor, `wheelZoom` action in `lib/designer/zoom.ts`)
-**Other**: `Ctrl+Z` (undo), `Ctrl/Cmd+Shift+Z` or `Ctrl+Y` (redo), `Shift+P` (settings), `D` (display 3D), `ESC` (close modals)
-
-**Modal Awareness**: All shortcuts disabled when modals open (except ESC). Prevents text input interference.
-
-**Browser Conflict Avoidance**: Shift+letter combos avoid browser shortcuts (copy, reload, print, address bar).
-
-Implementation: `shortcut` action in `src/lib/shortcut.ts` checks `modalStore` state.
+All shortcuts are disabled while a modal is open (except ESC); the `shortcut` action in `src/lib/shortcut.ts` checks `modalStore`.
+Shift+letter combos are used to avoid browser shortcuts (copy, reload, print, address bar).
 
 ## Element Operations
 
@@ -331,26 +177,3 @@ tests use explicit `import { describe, it, expect } from 'vitest'` (no globals).
 5. Add legs → verify positioning
 6. Generate mesh → check wireframe/solid/positive mesh
 7. Export STL → validate in slicer
-
-## Code Quality Standards
-
-### Use Type Guards
-
-```typescript
-// Good
-if (isCircle(element)) { ... }
-// Bad
-if ('radius' in element) { ... }
-```
-
-### Use Constants
-
-```typescript
-import { CIRCLE_COLOR, ELEMENT_OPACITY, FINE_MOVEMENT_DELTA } from '$lib/constants';
-```
-
-### Coordinate System Awareness
-
-- Rectangles rotate around **center** (not top-left)
-- Negate rotation for 2D → 3D: `(-rotation * Math.PI) / 180`
-- Account for Y-axis flip: Konva (down) vs Three.js (up)
